@@ -1,50 +1,36 @@
-// Asteroid.js
-import { useFrame, useThree } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { Billboard, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { useScroll } from '@react-three/drei';
 
-export default function Asteroid() {
-  const scroll = useScroll();
-  var progress = scroll.offset;
+export default function Asteroid({ position = [0, 0, 150], message = "Mysterious Rock" }) {
   const asteroidRef = useRef();
-  const { camera } = useThree();
-
-  // Generate a bumpy geometry once
-  const geometry = new THREE.IcosahedronGeometry(5, 2);
-  const positionAttribute = geometry.attributes.position;
-  const vertex = new THREE.Vector3();
-  for (let i = 0; i < positionAttribute.count; i++) {
-    vertex.fromBufferAttribute(positionAttribute, i);
-    vertex.addScaledVector(vertex.clone().normalize(), (Math.random() - 0.5) * 1);
-    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
-  }
-
-  useFrame(() => {
-    if (!asteroidRef.current) return;
-
-    // Animate only during a specific progress range
-    if (progress > 1.4 && progress < 2) {
-      const localProgress = (progress - 1.4) / (2 - 1.4); // 0 to 1
-
-      // Z comes toward camera, with slight offset
-      const z = THREE.MathUtils.lerp(-1000, camera.position.z + 5, localProgress);
-
-      // Wobble movement on X/Y
-      const x = Math.sin(localProgress * Math.PI * 4) * 10;
-      const y = Math.cos(localProgress * Math.PI * 2) * 5;
-
-      asteroidRef.current.position.set(x, y, z);
-
-      // Rotation for realism
-      asteroidRef.current.rotation.x += 0.01;
-      asteroidRef.current.rotation.y += 0.015;
-    }
-  });
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <mesh ref={asteroidRef} geometry={geometry}>
-      <meshStandardMaterial color="#5a5a5a" roughness={1} metalness={0.2} flatShading />
-    </mesh>
+    <group position={position}>
+      <mesh
+        ref={asteroidRef}
+        geometry={new THREE.IcosahedronGeometry(1, 2)}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        <meshStandardMaterial color={hovered ? '#888888' : '#5a5a5a'} roughness={1} metalness={0.2} flatShading />
+      </mesh>
+
+      {hovered && (
+        // <Billboard position={[position.x, position.y, position.z]}>
+        <Billboard position={[position[0], position[1] - 50, position[2]]}>
+          <Text
+            fontSize={10}
+            color="black"
+            anchorX="center"
+            anchorY="middle"
+            backgroundColor="black"
+          >
+            {message}
+          </Text>
+        </Billboard>
+      )}
+    </group>
   );
 }

@@ -141,7 +141,7 @@ export const Avatar = forwardRef((props, ref) => {
       eyeRef.current.getWorldPosition(eyePosition)
     }
 
-    const progress = scroll.offset * 2 // 0 to 1
+    const progress = scroll.offset * 2.5 // 0 to 1
     if(progress > 1.38) setTeleported(true); 
     else setTeleported(false);
 
@@ -173,7 +173,7 @@ export const Avatar = forwardRef((props, ref) => {
 
             //camera
       const waypoints = generateUturnWaypoints({
-        center : [0, 5.6, 15],
+        center : [0, 15, 15],
           radius : 35,
           height : 2,
           segments : 10
@@ -194,11 +194,11 @@ export const Avatar = forwardRef((props, ref) => {
 
             //camera
        const waypoints = [
-         [-2, 15, 60], // curve left and lower
-         [0, 10, 40],  // center and down
+         [-2, 25, 60], // curve left and lower
+         [0, 25, 30],  // center and down
         //  [2, 5, 20],   // curve right and go below
-         [5, 15, -60],    // start right and high, far back
-         [-0, 5, -20],   // curve left and slightly down
+        //  [5, 25, -60],    // start right and high, far back
+         [-0, 25, -20],   // curve left and slightly down
     // curve left and reach center
       ]
       // const waypoints = generateUturnWaypoints({
@@ -206,12 +206,11 @@ export const Avatar = forwardRef((props, ref) => {
           camera,
           waypoints,
           progress: THREE.MathUtils.clamp(scroll.offset, 0, 1),
-          lookAtTarget: new THREE.Vector3(0, 0, 0),
+          lookAtTarget: new THREE.Vector3(0, 0, 25),
         })
 
       if (progress > 0.95 && progress < 1.0) {
         if (!shockwaveTriggered.current) {
-          console.log('triggering shockwave')
           setStartShockwave(true)
           shockwaveTriggered.current = true
         }
@@ -242,16 +241,25 @@ export const Avatar = forwardRef((props, ref) => {
         group.current.position.y = progress * 2
         group.current.position.z = progress * 20
       }
-    }else if(progress >= 1.39) {
+    }else if(progress >= 1.39 && progress < 2.005) {
       const wobbleAmplitude = 5; // how far it moves left and right
-      const wobbleFrequency = 2; // how fast it wobbles (higher = faster)
-      const zOffset = (progress - 1.4) * 400;
+      const wobbleFrequency = 10; // how fast it wobbles (higher = faster)
+      const zOffset = (progress - 1.39) * 400;
       const wobbleX = Math.sin(progress * Math.PI * wobbleFrequency) * wobbleAmplitude;
 
       group.current.position.z = zOffset;
       camera.position.set(wobbleX, 10, -15 + zOffset);
       camera.lookAt(group.current.position);
-      scrubAnimation('Flying', 0)
+      // scrubAnimation('Flying', 0)
+      actions['Flying'].play();
+      actions['Flying'].setEffectiveWeight(1);
+      actions['Flying'].setEffectiveTimeScale(1);
+      // if (progress > 2.005) {
+      //   const zOffset = (progress - 1.39) * 402;
+      //   camera.position.set(wobbleX, 10 - (progress - 1.39), -15 + zOffset);
+      // }
+    }else if(progress >= 2.005) {
+
     }
   })
 
@@ -260,8 +268,8 @@ export const Avatar = forwardRef((props, ref) => {
     async playSequence(sequence = []) {
       for (const name of sequence) {
         playAnimation(name)
-        const duration = actions[name]?._clip?.duration ?? 1
-        await new Promise((res) => setTimeout(res, duration * 600))
+        const duration = actions[name]?._clip?.duration ?? 0.8
+        await new Promise((res) => setTimeout(res, duration * 800))
       }
     },
   }))

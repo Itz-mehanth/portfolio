@@ -30,8 +30,8 @@ export default function SplashParticles({ count = 50, position=[0,-35, 4.5], rad
     for (let i = 0; i < count; i++) {
       const color = new THREE.Color(Math.random(), Math.random(), Math.random())
       arr[i * 3] = 255
-      arr[i * 3 + 1] = color.g
-      arr[i * 3 + 2] = color.b
+      arr[i * 3 + 1] = 255
+      arr[i * 3 + 2] = 255
     }
     return arr
   }, [count])

@@ -11,7 +11,7 @@ import { Suspense, useRef, useEffect, useState } from 'react'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import Portal from './Portal'
 import './App.css'
-import { AmbientLight, Color, PointLight } from 'three';
+import { AdditiveBlending, AmbientLight, Color, PointLight } from 'three';
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import Shockwave from './Shockwave'
@@ -21,6 +21,7 @@ import SpiralPortal from './SpiralPortal'
 import SplashParticles from './SplashParticles'
 import Planet from './Planet'
 import Asteroid from './Astroid'
+import Effects from './Effects'
 
 function GroundPlane() {
   return (
@@ -63,7 +64,8 @@ export default function App() {
     document.body.style.overflow = 'hidden'
 
     const timeout = setTimeout(() => {
-      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Stretch', 'Idle'])
+      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
+      avatarRef.current?.playSequence(['Idle', 'Stretch'])
       setTimeout(() => {
         document.body.style.overflow = 'auto'
         setScrollEnabled(true)
@@ -77,31 +79,10 @@ export default function App() {
     <>
       <div className="canvas-container" style={{ width: '100vw', height: '100%', background: 'black', overflow: 'hidden', position: 'relative'  }}>
         <Canvas shadows>
-
-          {/* <Hud>
-            <PerspectiveCamera makeDefault position={[0, 0, 10]} />
-            <mesh>
-              <ringGeometry />
-            </mesh>
-          </Hud>
-          <Hud>
-            <PerspectiveCamera makeDefault position={[0, 0, 10]} />
-            <mesh>
-              <ringGeometry />
-            </mesh>
-          </Hud> */}
           <Suspense fallback={null}>
+            <Effects/>
             <PerspectiveCamera makeDefault position={[0, 4, 20]} fov={50} />
             <ScrollControls pages={1} damping={2} enabled={scrollEnabled} >
-
-              {/* <Scroll  html>
-                <Html>
-                  {showName && (
-                    <div className={`name-banner ${showName ? 'animate-name' : ''}`}>Mehanth</div>
-                  )}
-                </Html>
-              </Scroll> */}
-
               <Scroll>
                 {!teleported &&
                 <>
@@ -114,36 +95,31 @@ export default function App() {
                     shadow-mapSize-width={1024}
                     shadow-mapSize-height={1024}
                   />
-                  <Sparkles  color='white' count={80} size={180} scale={50}/>
+
+                  {/* <Sparkles  color='white' count={80} size={180} scale={50} noise={1} speed={1} blending={AdditiveBlending}/> */}
 
                   <Portal count={5000}/>
                   {/* <Planet textureUrl='Planets/mars.jpg' radius={20} position={[100,100,1000]}/> */}
+                  
                   <Planet textureUrl='Planets/moon.jpg' radius={40} position={[-50,100,500]}/>
-                  <pointLight color="yellow" intensity={2000} position={[200, 100, 1100]} />
 
 
                   { startSpiralPortal &&
                     <Mask>
-                      <SpiralPortal position={[0, 4.5, 35]} scale={2} />
+                      {/* <SpiralPortal position={[0, 4.5, 35]} scale={2} />
                       <SpiralPortal position={[0, 4.5, 35]} scale={1.5} />
-                      <SpiralPortal position={[0, 4.5, 35]} scale={1} />
+                      <SpiralPortal position={[0, 4.5, 35]} scale={1} /> */}
                       <SplashParticles radius={1} count={1000} position={[0,-35, 4.5]}/>
-                      <SplashParticles radius={1} count={1000} position={[0,-40, 4.5]}/>
+                      <SplashParticles radius={1} count={1000} position={[0,-36, 4.5]}/>
+                      <SplashParticles radius={1} count={1000} position={[0,-37, 4.5]}/>
+                      <SplashParticles radius={1} count={1000} position={[0,-38, 4.5]}/>
+                      <SplashParticles radius={1} count={1000} position={[0,-39, 4.5]}/>
                     </Mask>
                   }
 
                   {/* Scene Elements */}
                   {/* <GroundPlane /> */}
                   <Terrain />
-
-                  <Float
-                    speed={10}
-                    rotationIntensity={1}
-                    floatIntensity={1}
-                    floatingRange={[10, 10]} 
-                  >
-                    <Sphere args={[0.5, 32, 32]} scale={1} position={[0, 1, 0]}></Sphere>
-                  </Float>
 
                   {Array.from({ length: 5 }, (_, i) => (
                     <Enemy
@@ -167,8 +143,7 @@ export default function App() {
                   
                   {/* Controls */}
                   {/* <OrbitControls enableZoom={false} /> */}
-                  <Environment preset="night" intensity={1}>
-                  <pointLight intensity={100} position={[10,5,5]}/>
+                  <Environment preset="night" intensity={0}>
                   </Environment>
                   <Stars radius={200} depth={10} count={1000} factor={10} saturation={0} fade speed={1} />
                   <Stars radius={100} depth={10} count={1000} factor={10} saturation={0} fade speed={1} />
@@ -183,46 +158,41 @@ export default function App() {
                 
                 {teleported &&
                   <>
-                    <Environment preset="sunset" intensity={1} background></Environment>
-                    <ambientLight intensity={1} />
+                    <Environment preset="night" intensity={0.1}></Environment>
+                    <ambientLight intensity={0.1} />
+
+                    <pointLight position={[0, 0, 500]} intensity={100} distance={100} decay={2} color="white" />
+
+                    <Stars radius={200} depth={1} count={1000} factor={10} saturation={1} fade speed={1} />
+                    <Stars radius={50} depth={10} count={1000} factor={10} saturation={1} fade speed={1} />
+                    <Stars radius={100} depth={10} count={100} factor={10} saturation={1} fade speed={1} />
+                    <Stars radius={20} depth={1} count={1000} factor={10} saturation={1} fade speed={1} />
 
                     <Clouds position={[0, 0, 0]} >
-                      <Cloud segments={250} seed={8} scale={2} bounds={[100, -150, 300]} volume={250} color="white"  fade={1} />
-                      <Cloud segments={250} seed={7} scale={3} bounds={[100, -150, 300]} volume={250} color="white"  fade={1} />
-                      <Cloud segments={250} seed={6} scale={2} bounds={[100, -150, 300]} volume={250} color="white"  fade={1} />
-                      <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 300]} volume={250} color="white"  fade={1} />
+                      <Cloud segments={250} seed={8} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
+                      <Cloud segments={250} seed={7} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
+                      <Cloud segments={250} seed={6} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
+                      <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 500]} opacity={0.1} volume={250} color="white"  fade={100} />
                     </Clouds>
 
-                    <Asteroid/>
+                    <Planet textureUrl='Planets/mars.jpg' radius={150} position={[0,-250,100]}/>
+
+                    <Asteroid position={[5, 0, 170]}/>
+                    <Asteroid position={[-5, 0, 150]}/>
+                    <Asteroid position={[5, 0, 120]}/>
+                    <Asteroid position={[-5, 0, 100]}/>
+                    <Asteroid position={[5, 0, 80]}/>
+                    <Asteroid position={[-5, 0, 60]}/>
+                    <Asteroid position={[5, 0, 40]}/>
 
                     {/* <GroundPlane /> */}
                     {/* <OrbitControls/> */}
-                    <Sky 
-                      distance={450} // Camera distance (default=4500)
-                      sunPosition={[100, 20, 10]} // Sun position (default=[100, 20, 10])
-                      inclination={0} // [0..1] inclination (default=0)
-                      azimuth={0.25} // [0..1] azimuth (default=0.25)
-                      turbidity={10} // [0..20] turbidity (default=10)
-                      rayleigh={2} // [0..4] rayleigh (default=1)
-                      mieCoefficient={0.005} // [0..0.1] mieCoefficient (default=0.005)
-                      mieDirectionalG={0.8} // [0..1] mieDirectionalG (default=0.8)
-                      exposure={1} // Camera exposure control (default=1)
-                    />
                   </>
                 }
 
               </Scroll>
             </ScrollControls>
           </Suspense>
-
-          {/* HUD renders on top and stays fixed on screen */}
-          {/* <Hud>
-            <OrbitControls/>
-            <PerspectiveCamera makeDefault position={[0, 0, 10]} />
-            <mesh>
-              <ringGeometry />
-            </mesh>
-          </Hud> */}
         </Canvas>
       </div>
     </>
