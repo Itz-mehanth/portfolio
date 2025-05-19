@@ -242,7 +242,7 @@ export const Avatar = forwardRef((props, ref) => {
         group.current.position.y = progress * 2
         group.current.position.z = progress * 20
       }
-    }else{
+    }else if(progress >= 1.39) {
       const wobbleAmplitude = 5; // how far it moves left and right
       const wobbleFrequency = 2; // how fast it wobbles (higher = faster)
       const zOffset = (progress - 1.4) * 400;
