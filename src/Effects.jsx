@@ -33,9 +33,9 @@ export default function Effects() {
             samples={100}
             density={0.96}
             decay={0.95}
-            weight={4}
-            exposure={5}
-            clampMax={25}
+            weight={10}
+            exposure={15}
+            clampMax={50}
           />
         </EffectComposer>
       )}

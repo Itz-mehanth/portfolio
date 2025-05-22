@@ -3,10 +3,13 @@ import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
-export const Avatar = forwardRef((props, ref) => {
+const  Avatar = forwardRef((props, ref) => {
   const scrollEnabled  = props.scrollEnabled
   const setStartShockwave = props.setStartShockwave
   const setTeleported = props.setTeleported
+  const setContactPage = props.setContactPage
+  const contactPage = props.contactPage
+
   const group = useRef()
   const eyeRef = useRef()
   const scroll = useScroll()
@@ -24,6 +27,7 @@ export const Avatar = forwardRef((props, ref) => {
   const { animations: landingAnim } = useFBX('/animations/Landing.fbx')
   const { animations: diveAnim } = useFBX('/animations/Run To Dive.fbx')
   const { animations: flyingAnim } = useFBX('/animations/Flying.fbx')
+  const { animations: sittingAnim } = useFBX('/animations/Male Sitting Pose.fbx')
 
   // Rename animations for easy access
   standupAnim[0].name = 'StandUp'
@@ -36,9 +40,10 @@ export const Avatar = forwardRef((props, ref) => {
   landingAnim[0].name = 'Landing'
   diveAnim[0].name = 'Dive'
   flyingAnim[0].name = 'Flying'
+  sittingAnim[0].name = 'Sitting'
 
   const { actions } = useAnimations(
-    [...closingAnim, ...standupAnim, ...diveAnim, ...flyingAnim, ...landingAnim, ...walkAnim, ...runAnim, ...idleAnim, ...stretchAnim, ...smashAnim],
+    [...closingAnim, ...standupAnim, ...sittingAnim, ...diveAnim, ...flyingAnim, ...landingAnim, ...walkAnim, ...runAnim, ...idleAnim, ...stretchAnim, ...smashAnim],
     group
   )
 
@@ -131,10 +136,11 @@ export const Avatar = forwardRef((props, ref) => {
 
   // Scroll-controlled animation sequence
   useFrame(({camera}) => {
+    console.log("running")
     if (!scrollEnabled) return
     group.current.position.y = 0
 
-    console.log(scroll.offset.toFixed(2))
+    console.log(scroll.offset.toFixed(4))
 
     const eyePosition = new THREE.Vector3()
     if (eyeRef.current) {
@@ -171,7 +177,7 @@ export const Avatar = forwardRef((props, ref) => {
       const local = (progress - 0.3) / 0.3
       scrubAnimation('Run', local)
 
-            //camera
+      //camera
       const waypoints = generateUturnWaypoints({
         center : [0, 15, 15],
           radius : 35,
@@ -187,6 +193,7 @@ export const Avatar = forwardRef((props, ref) => {
         lookAtTarget: new THREE.Vector3(0, 0, 0)
       })
     }
+
     // Smash: 0.7 - 1.0
     else if (progress >= 0.6 && progress < 1.1) {
       const local = (progress - 0.6) / 0.5
@@ -242,6 +249,11 @@ export const Avatar = forwardRef((props, ref) => {
         group.current.position.z = progress * 20
       }
     }else if(progress >= 1.39 && progress < 2.005) {
+      if(contactPage) {
+        setContactPage(false)
+        console.log("contact page closed")
+      }
+
       const wobbleAmplitude = 5; // how far it moves left and right
       const wobbleFrequency = 10; // how fast it wobbles (higher = faster)
       const zOffset = (progress - 1.39) * 400;
@@ -251,15 +263,32 @@ export const Avatar = forwardRef((props, ref) => {
       camera.position.set(wobbleX, 10, -15 + zOffset);
       camera.lookAt(group.current.position);
       // scrubAnimation('Flying', 0)
-      actions['Flying'].play();
-      actions['Flying'].setEffectiveWeight(1);
-      actions['Flying'].setEffectiveTimeScale(1);
+
+      // if(actions['Flying'].isRunning() == false) {
+        actions['Flying'].play();
+        actions['Flying'].setEffectiveWeight(1);
+        actions['Flying'].setEffectiveTimeScale(1);
+      // }
+      
       // if (progress > 2.005) {
       //   const zOffset = (progress - 1.39) * 402;
       //   camera.position.set(wobbleX, 10 - (progress - 1.39), -15 + zOffset);
       // }
     }else if(progress >= 2.005) {
-
+      if(!contactPage) {
+        setContactPage(true)
+        console.log("contact page opened")
+        // actions['Run'].reset().fadeIn(0.5).play();
+      }
+      
+      group.current.position.y = 0
+      group.current.position.z = 0
+      group.current.position.x = 0
+      // camera.position.set(0,2,20)
+      // camera.lookAt(group.current.position);
+      actions['Sitting'].play();
+      actions['Sitting'].setEffectiveWeight(1);
+      actions['Sitting'].setEffectiveTimeScale(1);
     }
   })
 
@@ -339,7 +368,7 @@ export const Avatar = forwardRef((props, ref) => {
   )
 })
 
-export function animateCameraAlongPath({
+function animateCameraAlongPath({
   camera,
   waypoints,
   progress,
@@ -363,5 +392,7 @@ export function animateCameraAlongPath({
 
   camera.lookAt(lookAtTarget)
 }
+
+export default Avatar;
 
 useGLTF.preload('/models/character.glb')
