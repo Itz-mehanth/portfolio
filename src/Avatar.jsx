@@ -136,7 +136,6 @@ const  Avatar = forwardRef((props, ref) => {
 
   // Scroll-controlled animation sequence
   useFrame(({camera}) => {
-    console.log("running")
     if (!scrollEnabled) return
     group.current.position.y = 0
 
