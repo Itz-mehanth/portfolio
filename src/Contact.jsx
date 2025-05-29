@@ -4,6 +4,7 @@ import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import Effects from './Effects'
+import Avatar from './Avatar'
 
 
 // Rock throne
@@ -72,7 +73,7 @@ function RockThrone() {
 }
 
 
-function SteelRingsUpright({ count = 5 }) {
+function SteelRingsUpright({ count = 8 }) {
   const groupRef = useRef()
   const rings = useRef([])
   const materialRef = useRef()
@@ -81,7 +82,7 @@ function SteelRingsUpright({ count = 5 }) {
   useEffect(() => {
     if (rings.current.length === 0) {
       rings.current = Array.from({ length: count }).map((_, i) => ({
-        height: -5 + Math.random() * 15,
+        height: -7 + Math.random() * 15,
         speed: 0.1 + Math.random() * 0.5,
         shakeIntensity: 0.02 + Math.random() * 0.1,
         initialRotationX: Math.PI / 2,
@@ -214,11 +215,11 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3 }) {
 }
 
 // Main scene
-export default function VillainScene() {
+export default function Contact() {
   const spotlightRef = useRef()
 
   useEffect(() => {
-    console.log("VillainScene loaded")
+    console.log("Contact loaded")
   }, [])
 
   return (
@@ -227,8 +228,9 @@ export default function VillainScene() {
       <Stars radius={100} depth={500} count={100} factor={7} saturation={1} fade speed={5} />
       <Stars radius={100} depth={50} count={500} factor={7} saturation={1} fade speed={1} />
 
-      <PerspectiveCamera makeDefault position={[0, 4, 20]} fov={50} />
+      <PerspectiveCamera makeDefault position={[0, 4, 20]} fov={70} />
 
+      {/* <Avatar size={2} position={[0, 0, 0]} rotation={[-Math.PI/2, 0, 0]} static = {true} /> */}
 
       <OrbitControls
         enableZoom={false}

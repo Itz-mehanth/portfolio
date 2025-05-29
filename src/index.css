@@ -1,7 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Righteous:wght@400;600;700&display=swap');
+
 html, body, #root, .canvas-container {
   margin: 0;
   padding: 0;
+  font-family: 'Poppins', sans-serif;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+#root::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+  overflow: hidden; /* Hide scrollbar in all browsers */
+}
+
+.Quicksand{
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 800;
+}
+
+.Righteous{
+  font-family: 'Righteous', sans-serif;
+  font-weight: 800;
 }

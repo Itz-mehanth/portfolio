@@ -81,10 +81,6 @@ export default function AboutMe(props) {
         </Environment>
         <Stars radius={200} depth={10} count={1000} factor={10} saturation={4} fade speed={1} />
         <Stars radius={100} depth={10} count={1000} factor={10} saturation={7} fade speed={1} />
-        <Stars radius={10} depth={10} count={100} factor={10} saturation={1} fade speed={1} />
-        <Clouds>
-
-        </Clouds>
     </>
     )
 }

@@ -9,6 +9,7 @@ const  Avatar = forwardRef((props, ref) => {
   const setTeleported = props.setTeleported
   const setContactPage = props.setContactPage
   const contactPage = props.contactPage
+  const animationDisabled = props.static || false
 
   const group = useRef()
   const eyeRef = useRef()
@@ -137,16 +138,20 @@ const  Avatar = forwardRef((props, ref) => {
   // Scroll-controlled animation sequence
   useFrame(({camera}) => {
     if (!scrollEnabled) return
+    if(animationDisabled){
+      scrubAnimation('Sitting', 0)
+      return
+    }
     group.current.position.y = 0
 
-    console.log(scroll.offset.toFixed(4))
+    // console.log(scroll.offset.toFixed(4))
 
     const eyePosition = new THREE.Vector3()
     if (eyeRef.current) {
       eyeRef.current.getWorldPosition(eyePosition)
     }
 
-    const progress = scroll.offset * 2.5 // 0 to 1
+    const progress = scroll.offset * 2 // 0 to 1
     if(progress > 1.38) setTeleported(true); 
     else setTeleported(false);
 
@@ -247,10 +252,17 @@ const  Avatar = forwardRef((props, ref) => {
         group.current.position.y = progress * 2
         group.current.position.z = progress * 20
       }
-    }else if(progress >= 1.39 && progress < 2.005) {
+    }else if(progress >= 1.39 && progress <= 2) {
       if(contactPage) {
         setContactPage(false)
         console.log("contact page closed")
+      }
+
+      if(progress > 1.9){
+        setTimeout(() => {
+          setContactPage(false)
+          console.log("contact page opened")
+        }, 1000)
       }
 
       const wobbleAmplitude = 5; // how far it moves left and right
@@ -273,21 +285,6 @@ const  Avatar = forwardRef((props, ref) => {
       //   const zOffset = (progress - 1.39) * 402;
       //   camera.position.set(wobbleX, 10 - (progress - 1.39), -15 + zOffset);
       // }
-    }else if(progress >= 2.005) {
-      if(!contactPage) {
-        setContactPage(true)
-        console.log("contact page opened")
-        // actions['Run'].reset().fadeIn(0.5).play();
-      }
-      
-      group.current.position.y = 0
-      group.current.position.z = 0
-      group.current.position.x = 0
-      // camera.position.set(0,2,20)
-      // camera.lookAt(group.current.position);
-      actions['Sitting'].play();
-      actions['Sitting'].setEffectiveWeight(1);
-      actions['Sitting'].setEffectiveTimeScale(1);
     }
   })
 
