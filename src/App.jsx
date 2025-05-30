@@ -13,7 +13,6 @@ import {
   Hud,
   Box,
 } from '@react-three/drei'
-import Draggable from 'react-draggable'
 import Avatar from './Avatar'
 import { Suspense, useRef, useEffect, useState } from 'react'
 import './App.css'
