@@ -2,9 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Righteous:wght@400;600;700&display=swap');
 
-html, body, #root, .canvas-container {
+*{
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body, #root, .canvas-container {
+  margin: 0;
+  padding: 0px;
   font-family: 'Poppins', sans-serif;
   width: 100vw;
   height: 100vh;
@@ -26,4 +32,24 @@ html, body, #root, .canvas-container {
 .Righteous{
   font-family: 'Righteous', sans-serif;
   font-weight: 800;
+}
+
+.content {
+  padding-top: 10px;
+  transform: translate3d(calc(50% + 40px), 0, 0);
+  text-align: left;
+  background: #ffffff;
+  color: rgb(0, 0, 0);
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+
+.content::before {
+  content: "";
+  position: absolute;
+  top: 25px;
+  left: -40px;
+  height: 1px;
+  width: 40px;
+  background: black;
 }

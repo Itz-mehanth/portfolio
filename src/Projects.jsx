@@ -1,13 +1,91 @@
 // src/App.jsx
-import { Clouds } from '@react-three/drei'
-import {  Environment, Cloud, Stars} 
+import { Billboard, Clouds } from '@react-three/drei'
+import {  Environment, Cloud, Stars, Box } 
 from '@react-three/drei'
 import './App.css'
 import Planet from './Planet'
 import Asteroid from './Astroid'
 import Effects from './Effects'
+import  { useRef } from "react"
+import { Html } from "@react-three/drei"
+import {Text} from "@react-three/drei"
 
-export default function Projects() {
+function Dodecahedron({ time, ...props }) {
+  return (
+    <mesh {...props}>
+      <dodecahedronGeometry />
+      <meshStandardMaterial roughness={0.75} emissive="#404057" />
+
+      <Billboard>
+        <group>
+          <Html position={[0, 0, 0]}>
+            <div
+              style={{
+                width: "200px",
+                height: "100px",
+                backgroundColor: "white",
+                padding: "10px",
+                borderRadius: "5px",
+                color: "black",
+                fontFamily: "Arial",
+                boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+              }}
+            >
+              <p style={{ fontSize: "18px" }}>This is a HTML</p>
+            </div>
+          </Html>
+        </group>
+      </Billboard>
+    </mesh>
+  )
+}
+
+function Content() {
+  const ref = useRef()
+  // useFrame(() => (ref.current.rotation.x = ref.current.rotation.y = ref.current.rotation.z += 0.01))
+  return (
+    <group ref={ref}>
+      <Dodecahedron position={[5, 0, 170]}/>
+      <Dodecahedron position={[-5, 0, 150]} />
+      <Dodecahedron position={[5, 0, 120]}/>
+    </group>
+  )
+}
+
+export default function Projects(props) {
+    const asteroidData = [
+      {
+        z: 170,
+        url: "https://sipandchat-91e6f.web.app/",
+        title: "Sip & Chat",
+        description: "A social chat app designed for seamless conversations over coffee."
+      },
+      {
+        z: 150,
+        url: "https://virtual-herbal-garden-7a5e6.web.app/",
+        title: "Virtual Herbal Garden",
+        description: "Explore medicinal plants in an immersive 3D environment."
+      },
+      {
+        z: 120,
+        url: "https://medbot-12052.web.app/",
+        title: "MedBot",
+        description: "An AI-powered health assistant for quick and reliable medical advice."
+      },
+      {
+        z: 100,
+        url: "https://healthboosters-dff5b.web.app/",
+        title: "Health Boosters",
+        description: "Track your fitness, get tips, and boost your health every day."
+      },
+      {
+        z: 80,
+        url: "https://medicinal-plant-82aa9.web.app/",
+        title: "Medicinal Plants Info",
+        description: "Discover uses and benefits of medicinal plants with images and data."
+      }
+    ];
+    
     return (
     <>
         <Environment preset="night" intensity={0.1}></Environment>
@@ -29,13 +107,18 @@ export default function Projects() {
 
         <Planet textureUrl='Planets/mars.jpg' radius={150} position={[0,-250,100]}/>
 
-        <Asteroid position={[5, 0, 170]}/>
-        <Asteroid position={[-5, 0, 150]}/>
-        <Asteroid position={[5, 0, 120]}/>
-        <Asteroid position={[-5, 0, 100]}/>
-        <Asteroid position={[5, 0, 80]}/>
-        <Asteroid position={[-5, 0, 60]}/>
-        <Asteroid position={[5, 0, 40]}/>
+        {asteroidData.map((asteroid, index) => (
+          <Asteroid
+            key={index}
+            openIframe={props.openIframe}
+            iframeUrl={asteroid.url}
+            position={[index % 2 === 0 ? 5 : -5, 0, asteroid.z]}
+            title={asteroid.title}
+            description={asteroid.description}
+          />
+        ))}
+
+        {/* <Content /> */}
 
         {/* <GroundPlane /> */}
         {/* <OrbitControls/> */}

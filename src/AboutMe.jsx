@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Clouds } from '@react-three/drei'
-import { Environment, Mask, Stars} 
+import { Environment, Mask, Stars, Html} 
 from '@react-three/drei'
 import Portal from './Portal'
 import './App.css'
@@ -10,15 +10,56 @@ import Terrain from './Terrain'
 import SplashParticles from './SplashParticles'
 import Planet from './Planet'
 import Effects from './Effects'
+import './AboutMe.css'
+import { useState, useEffect } from 'react'
+
+function TextOverlay() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const triggerPoint = window.innerHeight * 0.5
+      setVisible(window.scrollY > triggerPoint)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <Html position={[0, 2, 0]} center>
+      <div className={`text-container ${visible ? 'visible' : ''}`}>
+        <span className="left">Curiosity...</span>
+        <span className="right">Drive...</span>
+        <span className="center">A leap into the unknown...</span>
+      </div>
+    </Html>
+  )
+}
 
 export default function AboutMe(props) {
     const startSpiralPortal = props.startSpiralPortal
     const startShockwave = props.startShockwave
     const waves = props.waves
     const setWaves = props.setWaves
+    const [visible, setVisible] = useState(false)
+
+    useEffect(() => {
+      const handleScroll = () => {
+        const triggerPoint = window.innerHeight * 0.5
+        setVisible(window.scrollY > triggerPoint)
+      }
+
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
 
     return (
     <>
+
+      <TextOverlay />
+
         {/* Lights */}
         <ambientLight intensity={0.5} />
         <directionalLight
@@ -34,7 +75,7 @@ export default function AboutMe(props) {
         <Portal count={10000}/>
         {/* <Planet textureUrl='Planets/mars.jpg' radius={20} position={[100,100,1000]}/> */}
 
-        <Planet textureUrl='Planets/moon.jpg' radius={40} position={[-50,100,500]}/>
+        <Planet textureUrl='Planets/earth.jpg' radius={80} position={[-50,100,500]}/>
 
         { startSpiralPortal &&
           <Mask>
@@ -54,16 +95,7 @@ export default function AboutMe(props) {
         <Terrain />
 
         <Effects/>
-
-        {Array.from({ length: 5 }, (_, i) => (
-          <Enemy
-            key={i}
-            index={i}
-            total={5}
-            shockwave={startShockwave}
-          />
-        ))}
-
+        
         {waves.map((wave) => (
           <Shockwave
             key={wave.id}

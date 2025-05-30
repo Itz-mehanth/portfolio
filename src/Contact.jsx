@@ -143,7 +143,7 @@ function SteelRingsUpright({ count = 8 }) {
 }
 
 
-function RandomOrbitingRocks({ count = 50, speedMultiplier = 3 }) {
+function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFontBlack }) {
   const groupRef = useRef()
   const rocks = useRef([])
   const materialRef = useRef()
@@ -184,6 +184,9 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3 }) {
 
 
   useFrame((state) => {
+    if(fontBlack){
+      setFontBlack(false);
+    }
     const time = state.clock.getElapsedTime()
     if (materialRef.current) {
       materialRef.current.iridescenceThickness = 300 + Math.sin(time) * 100
@@ -215,7 +218,9 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3 }) {
 }
 
 // Main scene
-export default function Contact() {
+export default function Contact(props) {
+  const fontBlack = props.fontBlack
+  const setFontBlack = props.setFontBlack
   const spotlightRef = useRef()
 
   useEffect(() => {
@@ -254,24 +259,12 @@ export default function Contact() {
         <Cloud opacity={1} scale={10} segments={1} color={'white'}/> 
       </Clouds>
       
-
-      {/* Steel rings with various radius and speed */}
-      {/* <SteelRing radius={4} speed={0.2} shakeIntensity={0.01} />
-      <SteelRing radius={6} speed={-0.15} shakeIntensity={0.02} />
-      <SteelRing radius={8} speed={0.1} shakeIntensity={0.03} /> */}
-
       <SteelRingsUpright count={6} />
-      <RandomOrbitingRocks count={100} />
+      <RandomOrbitingRocks fontBlack={fontBlack} setFontBlack={setFontBlack} count={100} />
 
         <Sparkles color={'aqua'} count={100} size={10} scale={50} noise={1} speed={1} blending={THREE.AdditiveBlending}/>
       {/* Central rock throne */}
       <RockThrone />
-
-      {/* Ground */}
-      {/* <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#000000" />
-      </mesh> */}
 
       {/* Effects */}
       <EffectComposer>

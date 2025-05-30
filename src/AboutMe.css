@@ -1,0 +1,68 @@
+.text-container {
+  position: relative;
+  width: 100vw;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  color: white;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 1s ease;
+  pointer-events: none;
+}
+
+.text-container.visible {
+  opacity: 1;
+  transform: translateY(0px);
+}
+
+.text-container span {
+  display: block;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+.text-container .left {
+  animation: slideLeft 1s ease forwards;
+}
+
+.text-container .right {
+  animation: slideRight 1s ease 0.5s forwards;
+}
+
+.text-container .center {
+  animation: zoomIn 1s ease 1s forwards;
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

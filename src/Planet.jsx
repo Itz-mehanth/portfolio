@@ -4,7 +4,7 @@ import * as THREE from 'three'
 
 export default function Planet({
   position = [0, -0, -0], // push it far and below
-  radius = 10,
+  radius = 20,
   textureUrl = '/Planets/mars.jpg', // your planet texture
 }) {
   const planetRef = useRef()
