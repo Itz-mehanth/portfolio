@@ -1,5 +1,5 @@
 import { useBox, useSphere, Physics, usePlane } from '@react-three/cannon'
-import { OrbitControls, Center, Text3D, Box, Sparkles,CameraControls, Fisheye, DeviceOrientationControls, PerspectiveCamera } from '@react-three/drei'
+import { OrbitControls, Center, Text3D, Box, Sparkles,CameraControls, Fisheye, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect} from 'react'
@@ -58,12 +58,12 @@ function ClickableBox({ position, color }) {
       ref={ref}
       onPointerDown={(e) => {
         e.stopPropagation()
-        api.applyImpulse([5, 5, 0], [10, 2, 10]) // small jump
+        api.applyImpulse([15, 15, 15], [0, 0, 0]) // small jump
       }}
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[2, 2, 2]} />
+      <boxGeometry args={[4, 4, 4]} />
       <meshPhysicalMaterial
         transmission={1}
         thickness={1}
@@ -91,12 +91,12 @@ function ClickableSphere({ position, color }) {
       ref={ref}
       onPointerDown={(e) => {
         e.stopPropagation()
-        api.applyImpulse([5, 10, 0], [10, 10, 10]) // bounce right
+        api.applyImpulse([15, 15, 15], [0, 0, 0]) // bounce right
       }}
       castShadow
       receiveShadow
     >
-      <sphereGeometry args={[1.5, 50, 50]} />
+      <sphereGeometry args={[2, 50, 50]} />
       <meshPhysicalMaterial
         transmission={1}
         thickness={1}
@@ -131,11 +131,11 @@ function Ground() {
 }
 
 export function DraggableMeshes() {
-  const NUM_OBJECTS = 20
+  const NUM_OBJECTS = 30
   const randomPosition = () => [
-    (Math.random() - 0.5) * 20, // X between -10 and 10
-    Math.random() * 20 + 10,   // Y between 10 and 30 (height)
-    (Math.random() - 0.5) * 20 // Z between -10 and 10
+    (Math.random() - 0.5) * 50, // X between -10 and 10
+    Math.random() * 50 + 10,   // Y between 10 and 30 (height)
+    (Math.random() - 0.5) * 50 // Z between -10 and 10
   ]
   
   return (
@@ -162,7 +162,7 @@ export default function IntroSection() {
   return (
     <div
     style={{
-        backgroundColor: '#ffb700',
+        backgroundColor: 'blue',
         position: 'relative',
         zIndex: 10,
         width: '90%',
@@ -173,7 +173,7 @@ export default function IntroSection() {
       }}
       >
       <Canvas shadows >
-        <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} />
+        <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
         <Suspense fallback={null}>
         <ambientLight intensity={50} />
         {/* <OrbitControls enableZoom={false}/> */}
@@ -183,7 +183,11 @@ export default function IntroSection() {
           <Bloom></Bloom>
         </EffectComposer>
           <Center>
-            <Sparkles count={100}/>
+                <Billboard position={[-10, 5, 25]}>
+                  <Text>
+                    Look around and interact with the objects!
+                  </Text>
+                </Billboard>
                 <Text3D
                   font={'/fonts/Calligraphy_Regular.typeface.json'}
                   emissive={'white'}
@@ -197,14 +201,95 @@ export default function IntroSection() {
                   bevelEnabled
                   bevelSegments={5}
                   letterSpacing={0.1}
-                  position={[0, 0, 0]}
+                  position={[-10, 0, 30]}
+                  rotation={[0, Math.PI / 2, 0]}
+                  >
+                  Mehanth
+                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
+                  />
+                </Text3D>
+
+                <Billboard position={[40, 5, 25]}>
+                  <Text>
+                    Look around and interact with the objects!
+                  </Text>
+                </Billboard>
+
+                <Text3D
+                  font={'/fonts/Calligraphy_Regular.typeface.json'}
+                  emissive={'white'}
+                  color={'white'}
+                  castShadow
+                  receiveShadow
+                  emissiveIntensity = {2}
+                  size={4}
+                  height={2}
+                  curveSegments={32}
+                  bevelEnabled
+                  bevelSegments={5}
+                  letterSpacing={0.1}
+                  position={[40, 0, 20]}
+                  rotation={[0, -Math.PI / 2, 0]}
+                  >
+                  Mehanth
+                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
+                  />
+                </Text3D>
+
+                <Billboard position={[15, 5, 0]}>
+                  <Text>
+                    Look around and interact with the objects!
+                  </Text>
+                </Billboard>
+
+                <Text3D
+                  font={'/fonts/Calligraphy_Regular.typeface.json'}
+                  emissive={'white'}
+                  color={'white'}
+                  castShadow
+                  receiveShadow
+                  emissiveIntensity = {2}
+                  size={4}
+                  height={2}
+                  curveSegments={32}
+                  bevelEnabled
+                  bevelSegments={5}
+                  letterSpacing={0.1}
+                  position={[10, 0, 0]}
+                  >
+                  Mehanth
+                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
+                  />
+                </Text3D>
+
+                <Billboard position={[15, 5, 50]}>
+                  <Text>
+                    Look around and interact with the objects!
+                  </Text>
+                </Billboard>
+
+                <Text3D
+                  font={'/fonts/Calligraphy_Regular.typeface.json'}
+                  emissive={'white'}
+                  color={'white'}
+                  castShadow
+                  receiveShadow
+                  emissiveIntensity = {2}
+                  size={4}
+                  height={2}
+                  curveSegments={32}
+                  bevelEnabled
+                  bevelSegments={5}
+                  letterSpacing={0.1}
+                  position={[20, 0, 50]}
+                  rotation={[0, Math.PI, 0]}
                   >
                   Mehanth
                   <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
                   />
                 </Text3D>
           </Center>
-          <Sparkles count={200} size={10} scale={50} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
+          <Sparkles count={200} size={20} scale={50} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
 
           {/* Draggable Meshes */}
           <DraggableMeshes />
