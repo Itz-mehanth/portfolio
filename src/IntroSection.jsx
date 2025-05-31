@@ -173,8 +173,8 @@ export default function IntroSection() {
       }}
       >
       <Canvas shadows >
-        <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
         <Suspense fallback={null}>
+        <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
         <ambientLight intensity={50} />
         {/* <OrbitControls enableZoom={false}/> */}
         {/* <DeviceOrientationControls/> */}

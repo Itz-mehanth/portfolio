@@ -26,6 +26,8 @@ import './Navbar.css'
 import FaceMeshFromLocal from './FaceMeshFromLocal'
 import { useAudio } from './context/AudioProvider'
 import { AmbientLight } from 'three'
+import SplashLoader from './SplashLoader'
+import Skills from './Skills'
 
 const Navbar = ({ fontBlack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -46,6 +48,7 @@ const Navbar = ({ fontBlack }) => {
       {/* Desktop menu */}
       <ul className="navbar-right desktop-menu">
         <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
+        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
         <li><a href="#about" style={{ color: fontBlack ? 'black' : 'white' }}>About</a></li>
         <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
       </ul>
@@ -60,6 +63,7 @@ const Navbar = ({ fontBlack }) => {
       {/* Mobile menu overlay */}
       <div  style={{backgroundColor: fontBlack ? 'black' : 'white'}} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#about" onClick={toggleMenu}>About</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
       </div>
@@ -83,6 +87,7 @@ export default function App() {
   const { playTrack } = useAudio()
   const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
   const [showIframe, setShowIframe] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const openIframe = (url) => {
     setIframeUrl(url);
@@ -140,9 +145,11 @@ export default function App() {
   }, [])
 
   return (
+    <>
+     {loading && <SplashLoader setLoading={setLoading} />}
+    {!loading && (
     <div style={{ scrollSnapType: 'y mandatory',  height: '100vh', overflowX: 'hidden' }}>
-
-      
+      {/* <CustomCursor /> */}
       <Navbar fontBlack = {fontBlack}/>
       {/* Intro Section */}
       <section id='lander'
@@ -162,11 +169,27 @@ export default function App() {
 
         <div style={{width: '90%'}}>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
-          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>Mehanth — a Computer Science Engineering student </p>
+          <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left'}}>Mehanth</p>
+          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
         </div>
         <IntroSection />
       </section>
+
+        <section id='lander'
+        style={{
+          height: '100vh',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          background: 'white',
+          scrollSnapAlign: 'start',
+        }}
+        >
+          <Skills/>
+        </section>
 
       {/* 3D Section */}
       <section id='about'
@@ -217,7 +240,7 @@ export default function App() {
             <p className='Righteous' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Explore my Portfolio</p>
         </div> */}
           <Canvas shadows>
-          
+         
             <Suspense fallback={null}>
                 <Hud>
                   <ambientLight intensity={5} />
@@ -263,16 +286,8 @@ export default function App() {
                   </Html>
                 </Hud>
               <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={70} />
-              <ScrollControls distance={5} pages={1} damping={0.5} enabled={scrollEnabled}>
+              <ScrollControls distance={5} pages={1} damping={1} enabled={scrollEnabled}>
                 <Scroll>
-
-                  <Html position={[0, 2, 0]} center>
-                    <div className='text-container'>
-                      <span className='left'>Curiosity...</span>
-                      <span className='right'>Drive...</span>
-                      <span className='center'>A leap into the unknown...</span>
-                    </div>
-                  </Html>
                   {!teleported && !contactPage && (
                     <AboutMe
                       startSpiralPortal={startSpiralPortal}
@@ -317,7 +332,9 @@ export default function App() {
         }}
       >
         <Canvas>
+          <Suspense fallback={null}>
           <Contact />
+          </Suspense>
         </Canvas>
 
          {/* <Canvas camera={{ position: [0, 8, 5] }}>
@@ -359,5 +376,7 @@ export default function App() {
         
       </section>
     </div>
+     )}
+    </>
   )
 }

@@ -57,9 +57,6 @@ export default function AboutMe(props) {
 
     return (
     <>
-
-      <TextOverlay />
-
         {/* Lights */}
         <ambientLight intensity={0.5} />
         <directionalLight

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
-import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Icosahedron, CubicBezierLine, Sparkles} from '@react-three/drei'
+import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Icosahedron, CubicBezierLine, Sparkles,  Html} from '@react-three/drei'
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
