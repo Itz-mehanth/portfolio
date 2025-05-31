@@ -1,5 +1,6 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
+import * as THREE from 'three'
 
 export default function WaterTank(props) {
   const { nodes, materials } = useGLTF('models/water tank.glb')

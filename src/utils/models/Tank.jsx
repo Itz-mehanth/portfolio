@@ -1,9 +1,10 @@
 
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
-
+import * as THREE from 'three'
 export default function Tank(props) {
   const { nodes, materials } = useGLTF('models/tank.glb')
+
   return (
     <group {...props} dispose={null}>
       <group position={[1.425, 0.613, 3.639]} scale={[0.221, 0.479, 0.221]}>

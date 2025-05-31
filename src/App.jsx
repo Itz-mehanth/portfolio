@@ -176,7 +176,7 @@ export default function App() {
         <IntroSection />
       </section>
 
-        <section id='lander'
+        <section id='skills'
         style={{
           height: '100vh',
           width: '100vw',
@@ -186,8 +186,10 @@ export default function App() {
           flexDirection: 'column',
           background: 'white',
           scrollSnapAlign: 'start',
+          zIndex: -1
         }}
         >
+          <h1 style={{fontSize: '80px', fontWeight: '500'}} className='Barrio'>Skill Town</h1>
           <Skills/>
         </section>
 
@@ -234,6 +236,7 @@ export default function App() {
             height: '80%',
             borderRadius: '20px',
             overflow: 'hidden',
+            zIndex: 5
           }}
         >
         {/* <div style={{width: '90%'}}>
@@ -329,6 +332,7 @@ export default function App() {
           height: '100vh',
           scrollSnapAlign: 'start',
           background: 'black',
+          zIndex: 1000
         }}
       >
         <Canvas>
@@ -336,44 +340,6 @@ export default function App() {
           <Contact />
           </Suspense>
         </Canvas>
-
-         {/* <Canvas camera={{ position: [0, 8, 5] }}>
-          <ScrollControls pages={2} damping={0.5} enabled={scrollEnabled}>
-            <Scroll>
-              <ambientLight intensity={1} />
-                  <mesh>
-                    <boxGeometry args={[1, 1, 1]} />
-                    <meshStandardMaterial color="orange" />
-                  </mesh>
-              <Billboard lockX={true} lockY={true} lockZ={true}>
-                <group>
-                  <sphereGeometry position={[-2,2,0]} args={[1, 32, 32]} />
-                  <Html style={{position: 'relative', top: '0px', left: '0px', background: 'white'}} position={[0, -105, 0]}>
-                    <div
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        backgroundColor: "white",
-                        padding: "10px",
-                        borderRadius: "5px",
-                        color: "black",
-                        fontFamily: "Arial",
-                        boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      <iframe
-                        src="https://mehanth-a1964.web.app"
-                        title="Mobile Preview"
-                        style={{ width: "100%", height: "100%", border: "none" }}
-                      ></iframe>
-                    </div>
-                  </Html>
-                </group>
-              </Billboard>
-            </Scroll>
-          </ScrollControls>
-        </Canvas> */}
-        
       </section>
     </div>
      )}

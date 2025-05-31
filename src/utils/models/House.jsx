@@ -1,8 +1,11 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 
 export default function House(props) {
   const { nodes, materials } = useGLTF('models/house.glb')
+
   return (
     <group {...props} dispose={null}>
       <group position={[0, 0, 2.412]} scale={[0.53, 0.284, 0.284]}>
