@@ -1,0 +1,113 @@
+[33mcommit 2012d7913653976cc3ae2e73b6b9c56d32e08fd3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Thu Jul 24 02:43:23 2025 +0530
+
+    worked with size optimization
+
+[33mcommit e858055c26e4b2517375bb676cbae2235d82a634[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sun Jun 1 02:37:37 2025 +0530
+
+    created the skills page
+
+[33mcommit 8d036c94060725fd468d0c012eb54044f5258033[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sat May 31 12:34:26 2025 +0530
+
+    added skills section
+
+[33mcommit 577c17cc0b2191e1ddff2bb9bf73b368bc945dca[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sat May 31 01:51:43 2025 +0530
+
+    added device orientation controls
+
+[33mcommit 4ffed61a7474b2e9ada1f09dde9455b7949346a9[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sat May 31 01:17:18 2025 +0530
+
+    Fix: Install react-draggable for Netlify build
+
+[33mcommit a949b65e8bb356a6e7c9f23b4ba145731c4ea0e9[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sat May 31 01:13:59 2025 +0530
+
+    added projects billboard and iframe
+
+[33mcommit 85e75dc77ce13818845c064d1ad5e5ad8d82d45a[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Sat May 31 01:09:49 2025 +0530
+
+    added projects billboard and iframe
+
+[33mcommit 11cb96d241290cdec438b9a28a68a3b3590f852a[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Thu May 29 09:31:25 2025 +0530
+
+    created the intro page
+
+[33mcommit f1de4087f7dca4e2c95b815051a43af197f940ac[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Wed May 28 01:37:42 2025 +0530
+
+    added google tag
+
+[33mcommit d46e43b735a664f5fde4126bc908ff2990bf0f12[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Wed May 28 01:12:49 2025 +0530
+
+    moved sitemap.xml to public folder
+
+[33mcommit 9c41f65eeec308016934a0cd88fcf3c446c5dcbb[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Wed May 28 01:08:52 2025 +0530
+
+    added logo and updated the index.html
+
+[33mcommit d32c398f7344c1725d60fbc7e69b8781b3623d45[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Wed May 28 01:03:40 2025 +0530
+
+    added sitemap.xml
+
+[33mcommit e7404cdcd08ee0700a62d4a1d5952499c45f61df[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Wed May 28 00:58:19 2025 +0530
+
+    added sitemap.xml
+
+[33mcommit 26f7b2ed4e824b985afcfe26bee0bac14505e4cf[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Fri May 23 17:15:39 2025 +0530
+
+    Added the glass effect in the contact page
+
+[33mcommit 8e59480370fac1e54b3d4df74890ea5d1567e668[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Thu May 22 22:30:27 2025 +0530
+
+    Added the final contact page with spinning animation
+
+[33mcommit 41affaf51df3aea9f2bfebb1b3524fefffe210da[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Tue May 20 02:59:49 2025 +0530
+
+    added the second portal
+
+[33mcommit a2f9a85be3c541f583941b6184bf6e815b5756e2[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Mon May 19 22:39:39 2025 +0530
+
+    fixed the useframe initial lag
+
+[33mcommit 4c8de12a740be4b311cb2536e300e0ef95cefbc4[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Mon May 19 22:33:16 2025 +0530
+
+    pushing files
+
+[33mcommit f9d5fb885b2c25990f4b92b8a8d7993e24295f4b[m
+Author: Mehanth <mehanth2310579@ssn.edu.in>
+Date:   Mon May 19 22:30:44 2025 +0530
+
+    first commit

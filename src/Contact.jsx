@@ -132,7 +132,7 @@ function SteelRingsUpright({ count = 8 }) {
             iridescenceIOR={1.3}
             iridescenceThicknessRange={[100, 400]}
             reflectivity={0.8}
-            color="00ffff"
+            color="#00ffff"
           />
         </mesh>
       ))}

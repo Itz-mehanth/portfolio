@@ -130,7 +130,7 @@ export default function App() {
 
   return (
     <>
-      <AssetPreloader
+      {/* <AssetPreloader
         onProgress={setProgress}
         onComplete={() => setAssetsReady(true)}
       />
@@ -139,7 +139,7 @@ export default function App() {
           isFadingOut={assetsReady}
           loadingTexts={loadingFacts}
         />
-      }
+      } */}
       
       <div style={{ visibility: !assetsLoading ? 'visible' : 'hidden', scrollSnapType: 'y mandatory', height: '100vh', overflowX: 'hidden' }}>
         <Navbar fontBlack={fontBlack} />
