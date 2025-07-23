@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, Environment } from '@react-three/drei';
+import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, Environment, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground'; // Adjust the import path as necessary
 import { Suspense } from 'react';
@@ -14,6 +14,15 @@ import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
 import { useThree } from '@react-three/fiber';
 
+// Preload all models at the start
+useGLTF.preload('models/house.glb');
+useGLTF.preload('models/water tank.glb');
+useGLTF.preload('models/tank.glb');
+useGLTF.preload('models/wind mill.glb');
+useGLTF.preload('models/tree.glb');
+useGLTF.preload('models/ground.glb');
+useGLTF.preload('models/car.glb');
+
 const cityColors = {
   web: '#00ffff',
   mobile: '#ff00ff',
@@ -21,34 +30,55 @@ const cityColors = {
   uiux: '#ffff00',
 };
 
+// Wrap individual models in Suspense
+function ModelWithSuspense({ component: Component, ...props }) {
+  return (
+    <Suspense fallback={null}>
+      <Component {...props} />
+    </Suspense>
+  );
+}
+
+// Add a loading fallback component for individual models
+function LoadingFallback() {
+  return (
+    <Billboard>
+      <Text fontSize={0.2} color="#000000">
+        Loading...
+      </Text>
+    </Billboard>
+  );
+}
 
 function City({ id, name, position, onClick, isSelected }) {
-//   const color = cityColors[id] || '#ffffff';
   const color =  '#FF002C';
  
   return (
     <group position={position} onClick={() => onClick(id)}>
-      <House scale={1}/>
-      <WaterTank position={[1,-0.5,-1]}/>
+      <Suspense fallback={<LoadingFallback />}>
+        <House scale={1}/>
+      </Suspense>
+      <Suspense fallback={<LoadingFallback />}>
+        <WaterTank position={[1,-0.5,-1]}/>
+      </Suspense>
 
-        {!isSelected && (
-          <Billboard position={[0, 1.1, 2.5]}>
-            <Text fontSize={0.4} position={[0, 0, 0]} color="#000000" anchorX="center" anchorY="middle">
-              {name}
-            </Text>
-          </Billboard>
-          )
-        }
+      {!isSelected && (
+        <Billboard position={[0, 1.1, 2.5]}>
+          <Text fontSize={0.4} position={[0, 0, 0]} color="#000000" anchorX="center" anchorY="middle">
+            {name}
+          </Text>
+        </Billboard>
+      )}
 
-        {isSelected && (
-          <Billboard position={[0, 1.1, 2.6]}>
-            <mesh>
-              <planeGeometry args={[2, 1]} />
-              <meshStandardMaterial emissive={'yellow'} emissiveIntensity={50} color={'yellow'} />
-            </mesh>
-            <Text fontSize={0.4} fontWeight={1000} position={[0, 0, 0]} color= "black" anchorX="center" anchorY="middle">
-              {name}
-            </Text>
+      {isSelected && (
+        <Billboard position={[0, 1.1, 2.6]}>
+          <mesh>
+            <planeGeometry args={[2, 1]} />
+            <meshStandardMaterial emissive={'yellow'} emissiveIntensity={50} color={'yellow'} />
+          </mesh>
+          <Text fontSize={0.4} fontWeight={1000} position={[0, 0, 0]} color="black" anchorX="center" anchorY="middle">
+            {name}
+          </Text>
         </Billboard>
       )}
     </group>
@@ -163,9 +193,9 @@ export default function SciFiSkillCities() {
       { name: 'Firebase', description: 'A backend platform for building web and mobile applications' },
     ],
     mobile: [
-      { name: 'Flutter', description: 'Google’s UI toolkit for natively compiled mobile apps' },
+      { name: 'Flutter', description: 'Google\'s UI toolkit for natively compiled mobile apps' },
       { name: 'Kotlin', description: 'A modern language for Android app development' },
-      { name: 'Swift', description: 'Apple’s language for building iOS applications' },
+      { name: 'Swift', description: 'Apple\'s language for building iOS applications' },
     ],
     arvr: [
       { name: 'Unity', description: 'A powerful game engine for creating 2D and 3D experiences' },
@@ -183,15 +213,38 @@ export default function SciFiSkillCities() {
     <>
     <div style={{width: '90vw', height: '50vh', border: '15px ridge black', borderRadius: '10px'}}>
     <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}>
+      {/* Basic scene setup - always available */}
+      <ambientLight intensity={0.3} />
+      <Environment preset='sunset' environmentIntensity={0.4} background={false} />
+      <directionalLight
+        castShadow
+        position={[10, 10, 10]}
+        intensity={1.4}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+      />
+      <OrbitControls enableZoom={true} enablePan={true} maxPolarAngle={Math.PI / 2.3} />
+
+      {/* Post-processing effects */}
       <Suspense fallback={null}>
         <EffectComposer>
           <Outline edgeStrength={5} visibleEdgeColor="black" hiddenEdgeColor="gray" blur />
         </EffectComposer>
+      </Suspense>
 
+      {/* Ground - fundamental element */}
+      <Suspense fallback={null}>
+        <Ground scale={3} />
+      </Suspense>
+
+      {/* Car with camera */}
+      <Suspense fallback={null}>
         <PerspectiveCamera makeDefault position={[0, 6, 10]} />
-
-        <ambientLight intensity={0.3} />
-
         <Car
           position={cityPathPoints[currentCity].toArray()}
           path={path}
@@ -200,65 +253,51 @@ export default function SciFiSkillCities() {
             setCurrentCity(selectedCity);
           }}
         />
+      </Suspense>
 
-        <Billboard position={[0, 2.5, 1.5]}>
-          <Text fontSize={0.4} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
-            🚩click to visit house
-          </Text>
-        </Billboard>
+      {/* UI Elements */}
+      <Billboard position={[0, 2.5, 1.5]}>
+        <Text fontSize={0.4} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
+          🚩click to visit house
+        </Text>
+      </Billboard>
 
-        <Environment preset='sunset' environmentIntensity={0.4} background={false} />
-        <directionalLight
-          castShadow
-          position={[10, 10, 10]}
-          intensity={1.4}
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-          shadow-camera-far={50}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
-        />
-        <OrbitControls enableZoom={true} enablePan={true} maxPolarAngle={Math.PI / 2.3} />
-
-        {/* Ground Plane */}
-        <Ground scale = {3}/>
-        {/* {path && (
-          <mesh>
-            <tubeGeometry args={[path, 100, 0.1, 8, false]} />
-            <meshStandardMaterial color="red" />
-          </mesh>
-        )} */}
-
+      {/* Decorative elements - can load progressively */}
+      <group>
         {/* Windmills */}
         {Object.entries(windmillPositions).map(([id, pos]) => (
-          <WindMills key={id} position={pos} />
+          <Suspense key={id} fallback={<LoadingFallback />}>
+            <WindMills position={pos} />
+          </Suspense>
         ))}
 
         {/* Trees */}
         {Object.entries(treePositions).map(([id, pos]) => (
-          <Tree key={id} position={pos} scale={1} />
+          <Suspense key={id} fallback={<LoadingFallback />}>
+            <Tree position={pos} scale={1} />
+          </Suspense>
         ))}
 
         {/* Tanks */}
         {Object.entries(tankPositions).map(([id, pos]) => (
-          <Tank key={id} position={pos} />
+          <Suspense key={id} fallback={<LoadingFallback />}>
+            <Tank position={pos} />
+          </Suspense>
         ))}
 
-        {/* Sci-fi Cities */}
+        {/* Cities */}
         {Object.entries(cityPositions).map(([id, pos]) => (
-          <City
-            key={id}
-            id={id}
-            name={id.toUpperCase()}
-            position={pos}
-            onClick={handleCityClick}
-            isSelected={selectedCity === id}
+          <City 
+            key={id} 
+            id={id} 
+            name={id.toUpperCase()} 
+            position={pos} 
+            onClick={handleCityClick} 
+            isSelected={selectedCity === id} 
           />
         ))}
+      </group>
 
-      </Suspense>
     </Canvas>
     </div>
 

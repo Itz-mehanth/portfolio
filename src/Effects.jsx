@@ -18,7 +18,7 @@ export default function Effects() {
       {/* Sun mesh: This is what GodRays will sample */}
       <mesh ref={sunRef} position={[0, 0, 248]}>
         <sphereGeometry args={[0.3, 520, 520]} />
-        <meshBasicMaterial color="white" toneMapped={false} />
+        <meshBasicMaterial color="yellow" toneMapped={false} />
       </mesh>
 
       {/* Actual light source for the scene (optional) */}

@@ -40,17 +40,6 @@ function Dodecahedron({ time, ...props }) {
   )
 }
 
-function Content() {
-  const ref = useRef()
-  // useFrame(() => (ref.current.rotation.x = ref.current.rotation.y = ref.current.rotation.z += 0.01))
-  return (
-    <group ref={ref}>
-      <Dodecahedron position={[5, 0, 170]}/>
-      <Dodecahedron position={[-5, 0, 150]} />
-      <Dodecahedron position={[5, 0, 120]}/>
-    </group>
-  )
-}
 
 export default function Projects(props) {
     const asteroidData = [
@@ -94,18 +83,15 @@ export default function Projects(props) {
         <pointLight position={[0, 0, 500]} intensity={100} distance={100} decay={2} color="white" />
 
         <Stars radius={200} depth={1} count={1000} factor={10} saturation={1} fade speed={1} />
-        <Stars radius={50} depth={10} count={1000} factor={10} saturation={1} fade speed={1} />
         <Stars radius={100} depth={10} count={100} factor={10} saturation={1} fade speed={1} />
         {/* <Stars radius={20} depth={1} count={1000} factor={10} saturation={1} fade speed={1} /> */}
 
         <Clouds position={[0, 0, 0]} >
-          <Cloud segments={250} seed={8} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={7} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={6} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 500]} opacity={0.1} volume={250} color="white"  fade={100} />
+          <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 500]} opacity={0.01} volume={150} color="white"  fade={100} />
         </Clouds>
 
-        <Planet textureUrl='Planets/mars.jpg' radius={150} position={[0,-250,100]}/>
+        <Planet textureUrl='Planets/mars.jpg' radius={10} position={[0,-50,100]}/>
+        <Planet textureUrl='Planets/earth.jpg' radius={10} position={[50,-50,200]}/>
 
         {asteroidData.map((asteroid, index) => (
           <Asteroid

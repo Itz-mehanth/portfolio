@@ -3,9 +3,7 @@ import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Ic
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import Effects from './Effects'
-import Avatar from './Avatar'
-
+// import Character from './Character'
 
 // Rock throne
 function RockThrone() {
@@ -125,7 +123,7 @@ function SteelRingsUpright({ count = 8 }) {
             ref={materialRef}
             transmission={1}
             thickness={1}
-            emissive={new THREE.Color("00ffff")}
+            emissive={new THREE.Color("#00ffff")}
             roughness={0}
             clearcoat={1}
             clearcoatRoughness={0.1}
@@ -159,10 +157,10 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFo
       clearcoatRoughness: 0.1,
       metalness: 0,
       iridescence: 1,
-      emissive: new THREE.Color("00ffff"),
+      emissive: new THREE.Color("#00ffff"),
       iridescenceIOR: 1.3,
       reflectivity: 0.8,
-      color: new THREE.Color("00ffff"),
+      color: new THREE.Color("#00ffff"),
     });
   }, []);
 
@@ -254,6 +252,8 @@ export default function Contact(props) {
       />
 
     {/* <Effects/> */}
+
+      {/* <Character scale={2} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} /> */}
       
       <Clouds>
         <Cloud opacity={1} scale={10} segments={1} color={'white'}/> 

@@ -2,10 +2,9 @@ import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export default function Portal({ count = 150, delay = 0}) {
+export default function Portal({ count = 150, delay = 0, end = false }) {
   const meshRef = useRef()
   const [start, setStart] = useState(false)
-  const [end, setEnd] = useState(false)
   const [opacity, setOpacity] = useState(0)
 
   // Delay activation
@@ -15,14 +14,6 @@ export default function Portal({ count = 150, delay = 0}) {
     }, delay)
     return () => clearTimeout(timeout)
   }, [delay])
- 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setEnd(true)
-    }, 5000)
-    return () => clearTimeout(timeout)
-  }, [delay])
-
 
   const particles = useMemo(() => {
     const positions = []
