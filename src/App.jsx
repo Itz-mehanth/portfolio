@@ -2,7 +2,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import { ScrollControls, Scroll, Html, PerspectiveCamera, Hud, useProgress } from '@react-three/drei';
-import { Perf } from 'r3f-perf';
+// import { Perf } from 'r3f-perf';
 import Avatar from './Avatar';
 import { Suspense, useRef, useEffect, useState } from 'react';
 import './App.css';
@@ -230,7 +230,7 @@ export default function App() {
               <Suspense fallback={null}>
                 <Hud>
                   <ambientLight intensity={5} />
-                  <Perf position="top-left" />
+                  {/* <Perf position="top-left" /> */}
                   <Html center>
                     <div
                       style={{
@@ -320,7 +320,7 @@ export default function App() {
         >
           <Canvas>
             <Suspense fallback={null}>
-              <Perf position="top-left" />
+              {/* <Perf position="top-left" /> */}
               <Contact />
             </Suspense>
           </Canvas>

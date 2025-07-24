@@ -1,5 +1,6 @@
 import { EffectComposer, GodRays } from '@react-three/postprocessing'
 import { useRef, useEffect, useState } from 'react'
+import { AdditiveBlending } from 'three'
 
 export default function Effects() {
   const sunRef = useRef()
@@ -28,7 +29,7 @@ export default function Effects() {
         <EffectComposer>
           <GodRays
             sun={sunRef}
-            blendFunction={THREE.AdditiveBlending}
+            blendFunction={AdditiveBlending}
             samples={100}
             density={0.96}
             decay={0.95}

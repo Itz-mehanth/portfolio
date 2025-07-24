@@ -2,7 +2,7 @@ import { OrbitControls, Center, Text3D, Box, Sparkles, DeviceOrientationControls
 import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect } from 'react'
-import { Perf } from 'r3f-perf'
+// import { Perf } from 'r3f-perf'
 import { AdditiveBlending, Color } from 'three'
 
 // Preload font
@@ -341,7 +341,7 @@ export default function IntroSection() {
     >
       <Canvas shadows>
         <Suspense fallback={null}>
-          <Perf position="top-left" />
+          {/* <Perf position="top-left" /> */}
           <Scene />
         </Suspense>
       </Canvas>
