@@ -10,13 +10,10 @@ import AboutMe from './AboutMe';
 import Projects from './Projects';
 import Contact from './Contact';
 import IntroSection from './IntroSection';
-import { motion, progress } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import './Navbar.css';
 import Skills from './Skills';
-import { AssetPreloader } from './AssetPreloader'; // Import asset lists
-import { useGLTF } from '@react-three/drei';
-import { GlobalLoader } from './GlobalLoader';
 
 const Navbar = ({ fontBlack }) => {
   const [menuOpen, setMenuOpen] = useState(false);

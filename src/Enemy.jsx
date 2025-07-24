@@ -1,6 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { Billboard, Image, useScroll, Sphere, Text3D } from '@react-three/drei'
-import * as THREE from 'three'
+import { Billboard, useScroll} from '@react-three/drei'
 import { useRef } from 'react'
 
 export default function Enemy({ index, total, shockwave }) {

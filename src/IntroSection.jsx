@@ -1,10 +1,9 @@
-import { useBox, useSphere, Physics, usePlane } from '@react-three/cannon'
-import { OrbitControls, Center, Text3D, Box, Sparkles, CameraControls, Fisheye, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls, Center, Text3D, Box, Sparkles, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
+import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
-import { Suspense, useState, useEffect, useRef } from 'react'
-import * as THREE from 'three'
+import { Suspense, useState, useEffect } from 'react'
 import { Perf } from 'r3f-perf'
+import { AdditiveBlending, Color } from 'three'
 
 // Preload font
 const fontUrl = '/fonts/Calligraphy_Regular.typeface.json';
@@ -75,7 +74,7 @@ function ClickableBox({ position, color }) {
     >
       <boxGeometry args={[4, 4, 4]} />
       <meshPhysicalMaterial
-        emissive={new THREE.Color(color)}
+        emissive={new Color(color)}
         emissiveIntensity={2}
         metalness={1}
         reflectivity={2}
@@ -100,7 +99,7 @@ function ClickableSphere({ position, color }) {
     >
       <sphereGeometry args={[2, 50, 50]} />
       <meshPhysicalMaterial
-        emissive={new THREE.Color(color)}
+        emissive={new Color(color)}
         emissiveIntensity={0.7}
         color={color}
       />
@@ -316,7 +315,7 @@ function Scene() {
           scale={20}
           noise={1}
           speed={1}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           color={'yellow'}
         />
 

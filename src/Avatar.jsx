@@ -1,13 +1,8 @@
-import { useGLTF, useFBX, useAnimations, useScroll, useProgress } from '@react-three/drei'
-import { useEffect, useRef, forwardRef, useImperativeHandle, Suspense, useState} from 'react'
-import * as THREE from 'three'
+import { useGLTF, useFBX, useAnimations, useScroll } from '@react-three/drei'
+import { useEffect, useRef, forwardRef, useImperativeHandle, Suspense} from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-// import { useAudio } from './context/AudioProvider'
-import { Billboard, Html, Outlines, Wireframe, Text } from '@react-three/drei'
-
-// Preload character model
-// useGLTF.preload('/models/character.glb')
-
+import { Billboard, Text } from '@react-three/drei'
+import { LoopOnce, Vector3, MathUtils, CatmullRomCurve3 } from 'three'
 function LoadingFallback() {
   return (
     <Billboard>
@@ -160,7 +155,7 @@ const Avatar = forwardRef((props, ref) => {
     Object.values(actions).forEach((action) => {
       action.paused = true
       action.enabled = true
-      action.setLoop(THREE.LoopOnce, 0)
+      action.setLoop(LoopOnce, 0)
       action.clampWhenFinished = true
       action.time = 0
       action.reset() // prevent leftover blend weights
@@ -178,7 +173,7 @@ const Avatar = forwardRef((props, ref) => {
 
     // console.log(scroll.offset.toFixed(4))
 
-    const eyePosition = new THREE.Vector3()
+    const eyePosition = new Vector3()
     if (eyeRef.current) {
       eyeRef.current.getWorldPosition(eyePosition)
     }
@@ -235,7 +230,7 @@ const Avatar = forwardRef((props, ref) => {
         camera,
         waypoints,
         progress: scroll.offset,
-        lookAtTarget: new THREE.Vector3(0, 0, 0)
+        lookAtTarget: new Vector3(0, 0, 0)
       })
     }
 
@@ -257,8 +252,8 @@ const Avatar = forwardRef((props, ref) => {
         animateCameraAlongPath({
           camera,
           waypoints,
-          progress: THREE.MathUtils.clamp(scroll.offset, 0, 1),
-          lookAtTarget: new THREE.Vector3(0, 0, 25),
+          progress: MathUtils.clamp(scroll.offset, 0, 1),
+          lookAtTarget: new Vector3(0, 0, 25),
         })
 
       if (progress > 0.95 && progress < 1.1) {
@@ -407,7 +402,7 @@ function animateCameraAlongPath({
   camera,
   waypoints,
   progress,
-  lookAtTarget = new THREE.Vector3(0, 0, 0),
+  lookAtTarget = new Vector3(0, 0, 0),
 }) {
   if (waypoints.length < 2) {
     console.warn('Need at least 2 waypoints for camera path.')
@@ -415,8 +410,8 @@ function animateCameraAlongPath({
   }
 
   // Create a smooth 3D curve
-  const curve = new THREE.CatmullRomCurve3(
-    waypoints.map(p => new THREE.Vector3(...p)),
+  const curve = new CatmullRomCurve3(
+    waypoints.map(p => new Vector3(...p)),
     false, // not closed
     'catmullrom',
     0.5     // tension

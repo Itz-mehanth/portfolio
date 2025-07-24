@@ -1,7 +1,7 @@
 import { useLoader } from '@react-three/fiber'
-import { Suspense, useState, useEffect } from 'react'
-import * as THREE from 'three'
+import { Suspense } from 'react'
 import { Text, Billboard } from '@react-three/drei'
+import { TextureLoader } from 'three'
 
 function LoadingFallback() {
   return (
@@ -14,7 +14,7 @@ function LoadingFallback() {
 }
 
 function TerrainMesh() {
-  const [heightMap, colorMap, roughnessMap, normalMap] = useLoader(THREE.TextureLoader, 
+  const [heightMap, colorMap, roughnessMap, normalMap] = useLoader(TextureLoader, 
     [
       'images/terrain/terrain.jpg',
      'images/terrain/col.jpg',
@@ -31,7 +31,6 @@ function TerrainMesh() {
         normalMap={normalMap}
         roughnessMap={roughnessMap}
         color={"#111111"}
-        // displacementScale={-0.1}
       />
     </mesh>
   )

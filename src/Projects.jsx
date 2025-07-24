@@ -1,14 +1,12 @@
 // src/App.jsx
 import { Billboard, Clouds } from '@react-three/drei'
-import {  Environment, Cloud, Stars, Box } 
+import {  Environment, Cloud, Stars} 
 from '@react-three/drei'
 import './App.css'
 import Planet from './Planet'
 import Asteroid from './Astroid'
 import Effects from './Effects'
-import  { useRef } from "react"
 import { Html } from "@react-three/drei"
-import {Text} from "@react-three/drei"
 
 function Dodecahedron({ time, ...props }) {
   return (

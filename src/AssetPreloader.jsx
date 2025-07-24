@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';

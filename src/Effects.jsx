@@ -1,5 +1,4 @@
 import { EffectComposer, GodRays } from '@react-three/postprocessing'
-import * as THREE from 'three'
 import { useRef, useEffect, useState } from 'react'
 
 export default function Effects() {

@@ -1,11 +1,8 @@
-// src/App.jsx
-import { Clouds } from '@react-three/drei'
 import { Environment, Mask, Stars, Html} 
 from '@react-three/drei'
 import Portal from './Portal'
 import './App.css'
 import Shockwave from './Shockwave'
-import Enemy from './Enemy'
 import Terrain from './Terrain'
 import SplashParticles from './SplashParticles'
 import Planet from './Planet'

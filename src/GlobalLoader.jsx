@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './GlobalLoader.css'; // We'll create this new CSS file for the animations
 
 export function GlobalLoader({ progress, isFadingOut, loadingTexts = [] }) {

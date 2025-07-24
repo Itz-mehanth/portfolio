@@ -1,10 +1,8 @@
-import { useRef, useEffect, useMemo, useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Icosahedron, CubicBezierLine, Sparkles,  Html} from '@react-three/drei'
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-// import Character from './Character'
-
+import { Vector2, Color, MeshPhysicalMaterial, AdditiveBlending } from 'three'
 // Rock throne
 function RockThrone() {
   const glassRef = useRef()
@@ -12,7 +10,7 @@ function RockThrone() {
   // Lathe profile for throne back
   const lathePoints = []
   for (let i = 0; i < 10; i++) {
-    lathePoints.push(new THREE.Vector2(Math.sin(i * 0.3) * 0.3 + 0.4, i * 0.1))
+    lathePoints.push(new Vector2(Math.sin(i * 0.3) * 0.3 + 0.4, i * 0.1))
   }
 
   useFrame(() => {
@@ -123,7 +121,7 @@ function SteelRingsUpright({ count = 8 }) {
             ref={materialRef}
             transmission={1}
             thickness={1}
-            emissive={new THREE.Color("#00ffff")}
+            emissive={new Color("#00ffff")}
             roughness={0}
             clearcoat={1}
             clearcoatRoughness={0.1}
@@ -149,7 +147,7 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFo
   
   useEffect(() => {
     console.log("RandomOrbitingRocks loaded")
-    materialRef.current = new THREE.MeshPhysicalMaterial({
+    materialRef.current = new MeshPhysicalMaterial({
       transmission: 1,
       thickness: 1,
       roughness: 0,
@@ -157,10 +155,10 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFo
       clearcoatRoughness: 0.1,
       metalness: 0,
       iridescence: 1,
-      emissive: new THREE.Color("#00ffff"),
+      emissive: new Color("#00ffff"),
       iridescenceIOR: 1.3,
       reflectivity: 0.8,
-      color: new THREE.Color("#00ffff"),
+      color: new Color("#00ffff"),
     });
   }, []);
 
@@ -262,7 +260,7 @@ export default function Contact(props) {
       <SteelRingsUpright count={6} />
       <RandomOrbitingRocks fontBlack={fontBlack} setFontBlack={setFontBlack} count={100} />
 
-        <Sparkles color={'aqua'} count={100} size={10} scale={50} noise={1} speed={1} blending={THREE.AdditiveBlending}/>
+        <Sparkles color={'aqua'} count={100} size={10} scale={50} noise={1} speed={1} blending={AdditiveBlending}/>
       {/* Central rock throne */}
       <RockThrone />
 

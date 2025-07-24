@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, Environment, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import { Text, PerspectiveCamera, OrbitControls, Billboard, Environment, useGLTF } from '@react-three/drei';
 import Ground from './utils/models/Ground'; // Adjust the import path as necessary
 import { Suspense } from 'react';
 import House from './utils/models/House'; // Adjust the import path as necessary
@@ -9,10 +8,9 @@ import WaterTank from './utils/models/WaterTank'; // Adjust the import path as n
 import Tank from './utils/models/Tank'; // Adjust the import path as necessary
 import WindMills from './utils/models/WIndMill';
 import Tree from './utils/models/Tree'; // Adjust the import path as necessary
-import { useLoader } from '@react-three/fiber';
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
-import { useThree } from '@react-three/fiber';
+import { Vector3, CatmullRomCurve3, ACESFilmicToneMapping } from 'three';
 
 // Preload all models at the start
 useGLTF.preload('models/house.glb');
@@ -109,10 +107,10 @@ function Scroll({ open, skills }) {
 const cityOrder = ['arvr', 'mobile', 'web', 'uiux'];
 
 const cityPathPoints = {
-  arvr: new THREE.Vector3(5.5, 1.6, 0.5),
-  mobile: new THREE.Vector3(2, 1.6, 0.2),
-  web: new THREE.Vector3(-1.5, 1.6, 0.5),
-  uiux: new THREE.Vector3(-4, 1.6, 0.4),
+  arvr: new Vector3(5.5, 1.6, 0.5),
+  mobile: new Vector3(2, 1.6, 0.2),
+  web: new Vector3(-1.5, 1.6, 0.5),
+  uiux: new Vector3(-4, 1.6, 0.4),
 };
 
 const getCityToCityPath = (fromId, toId) => {
@@ -139,7 +137,7 @@ export default function SciFiSkillCities() {
   
   // Ordered city IDs representing the path
   
-  const serialPath = new THREE.CatmullRomCurve3(cityOrder.map(cityId => cityPathPoints[cityId]), false, 'catmullrom', 0.5);
+  const serialPath = new CatmullRomCurve3(cityOrder.map(cityId => cityPathPoints[cityId]), false, 'catmullrom', 0.5);
   
   const handleCityClick = (id) => {
     setSelectedCity(id);
@@ -212,7 +210,7 @@ export default function SciFiSkillCities() {
   return (
     <>
     <div style={{width: '90vw', height: '50vh', border: '15px ridge black', borderRadius: '10px'}}>
-    <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}>
+    <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: ACESFilmicToneMapping}}>
       {/* Basic scene setup - always available */}
       <ambientLight intensity={0.3} />
       <Environment preset='sunset' environmentIntensity={0.4} background={false} />

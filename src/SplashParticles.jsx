@@ -1,6 +1,5 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
 
 export default function SplashParticles({ count = 50, position=[0,-35, 4.5], radius = 1 }) {
   const ref = useRef()

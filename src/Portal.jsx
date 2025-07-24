@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
+import { AdditiveBlending } from 'three'
 
 export default function Portal({ count = 150, delay = 0, end = false }) {
   const meshRef = useRef()
@@ -100,7 +100,7 @@ export default function Portal({ count = 150, delay = 0, end = false }) {
         transparent
         opacity={opacity}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
     />
 
     </points>
