@@ -1,5 +1,9 @@
+
+
+// SpiralPortal.js
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 
 export default function SpiralPortal({ position = [0, 0, 0], scale = 1 }) {
   const spiralRef = useRef()

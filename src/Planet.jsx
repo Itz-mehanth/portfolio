@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { TextureLoader } from 'three'
+import * as THREE from 'three'
 
 export default function Planet({
   position = [0, -0, -0], // push it far and below
@@ -19,7 +19,7 @@ export default function Planet({
   return (
     <mesh ref={planetRef} position={position}>
       <sphereGeometry args={[radius, 64, 64]} />
-      <meshStandardMaterial color={'white'} map={new TextureLoader().load(textureUrl)} />
+      <meshStandardMaterial color={'white'} map={new THREE.TextureLoader().load(textureUrl)} />
     </mesh>
   )
 }

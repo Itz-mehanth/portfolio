@@ -1,22 +1,35 @@
 // src/App.jsx
-
-import { Canvas } from '@react-three/fiber';
-import { ScrollControls, Scroll, Html, PerspectiveCamera, Hud, useProgress } from '@react-three/drei';
-// import { Perf } from 'r3f-perf';
-import Avatar from './Avatar';
-import { Suspense, useRef, useEffect, useState } from 'react';
-import './App.css';
-import AboutMe from './AboutMe';
-import Projects from './Projects';
-import Contact from './Contact';
-import IntroSection from './IntroSection';
-import { motion } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
-import './Navbar.css';
-import Skills from './Skills';
+import { Canvas } from '@react-three/fiber'
+import {
+  ScrollControls,
+  Scroll,
+  Html,
+  PerspectiveCamera,
+  Billboard,
+  Text,
+  OrbitControls,
+  Splat,
+  AsciiRenderer,
+  Hud,
+  Box,
+} from '@react-three/drei'
+import Avatar from './Avatar'
+import { Suspense, useRef, useEffect, useState } from 'react'
+import './App.css'
+import AboutMe from './AboutMe'
+import Projects from './Projects'
+import Contact from './Contact'
+import IntroSection from './IntroSection'
+import { motion, transform } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
+import './Navbar.css'
+import { useAudio } from './context/AudioProvider'
+import SplashLoader from './SplashLoader'
+import Skills from './Skills'
 
 const Navbar = ({ fontBlack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isAudioEnabled, toggleAudio } = useAudio()
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
 
@@ -26,6 +39,11 @@ const Navbar = ({ fontBlack }) => {
         Mehanth
       </div>
 
+      <button onClick={toggleAudio}>
+        {isAudioEnabled ? '🔊 Music On' : '🔇 Music Off'}
+      </button>
+
+      {/* Desktop menu */}
       <ul className="navbar-right desktop-menu">
         <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
         <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
@@ -33,13 +51,15 @@ const Navbar = ({ fontBlack }) => {
         <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
       </ul>
 
+      {/* Hamburger icon */}
       <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
       </div>
 
-      <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
+      {/* Mobile menu overlay */}
+      <div  style={{backgroundColor: fontBlack ? 'black' : 'white'}} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#about" onClick={toggleMenu}>About</a>
@@ -49,24 +69,23 @@ const Navbar = ({ fontBlack }) => {
   );
 };
 
+
 export default function App() {
-  const { active: assetsLoading } = useProgress();
-  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 });
-  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 });
-  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 });
-  const avatarRef = useRef();
-  const [scrollEnabled, setScrollEnabled] = useState(false);
-  const [waves, setWaves] = useState([]);
-  const [startShockwave, setStartShockwave] = useState(false);
-  const [startSpiralPortal, setStartSpiralPortal] = useState(false);
-  const [teleported, setTeleported] = useState(false);
-  const [contactPage, setContactPage] = useState(false);
-  const [fontBlack, setFontBlack] = useState(true);
-  const [iframeUrl, setIframeUrl] = useState(null);
+  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const avatarRef = useRef()
+  const [scrollEnabled, setScrollEnabled] = useState(false)
+  const [waves, setWaves] = useState([])
+  const [startShockwave, setStartShockwave] = useState(false)
+  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
+  const [teleported, setTeleported] = useState(false)
+  const [contactPage, setContactPage] = useState(false)
+  const [fontBlack, setFontBlack] = useState(true)
+  const { playTrack } = useAudio()
+  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
   const [showIframe, setShowIframe] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [assetsReady, setAssetsReady] = useState(false);
-  const [portalEnd, setPortalEnd] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const openIframe = (url) => {
     setIframeUrl(url);
@@ -79,159 +98,154 @@ export default function App() {
   };
 
   const triggerShockwave = (pos) => {
-    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }]);
-  };
+    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
+  }
 
   useEffect(() => {
     if (inView || contactinView) {
-      setFontBlack(false);
+      setFontBlack(false)
     } else {
-      setFontBlack(true);
+      setFontBlack(true)
     }
-  }, [inView, contactinView]);
+  }, [inView, contactinView])
+  
+  useEffect(() => {
+    if (introinView) {
+      console.log('intro in view')
+      playTrack('happy')
+    }
+  }, [introinView])
 
   useEffect(() => {
     if (startShockwave) {
-      triggerShockwave([0, 0, 25]);
-      setStartShockwave(false);
+      console.log('triggered shockwave')
+      triggerShockwave([0, 0, 25])
+      setStartShockwave(false)
       setTimeout(() => {
-        setStartSpiralPortal(true);
-      }, 1000);
+        setStartSpiralPortal(true)
+      }, 1000)
     } else {
-      setStartSpiralPortal(false);
+      setStartSpiralPortal(false)
     }
-  }, [startShockwave]);
+  }, [startShockwave])
 
   useEffect(() => {
-    if (!assetsLoading) {
-      document.body.style.overflow = 'hidden';
-      const timeout = setTimeout(() => {
-        avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle']);
-        avatarRef.current?.playSequence(['Idle', 'Stretch']);
-        setTimeout(() => {
-          document.body.style.overflow = 'auto';
-          setScrollEnabled(true);
-        }, 5000);
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-  }, [assetsLoading]);
-
-  const loadingFacts = [
-    "Crafting interactive 3D experiences...",
-    "Assembling virtual worlds, one polygon at a time.",
-    "Did you know? The first video game was created in 1958.",
-    "Compiling shaders and bending pixels to our will.",
-    "Great design is making something memorable and meaningful."
-  ];
+    document.body.style.overflow = 'hidden'
+    const timeout = setTimeout(() => {
+      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
+      avatarRef.current?.playSequence(['Idle', 'Stretch'])
+      setTimeout(() => {
+        document.body.style.overflow = 'auto'
+        setScrollEnabled(true)
+      }, 5000)
+    }, 2000)
+    return () => clearTimeout(timeout)
+  }, [])
 
   return (
     <>
-      {/* <AssetPreloader
-        onProgress={setProgress}
-        onComplete={() => setAssetsReady(true)}
-      />
-      {!assetsReady && <GlobalLoader 
-          progress={progress} 
-          isFadingOut={assetsReady}
-          loadingTexts={loadingFacts}
-        />
-      } */}
-      
-      <div style={{ visibility: !assetsLoading ? 'visible' : 'hidden', scrollSnapType: 'y mandatory', height: '100vh', overflowX: 'hidden' }}>
-        <Navbar fontBlack={fontBlack} />
-        {/* The rest of your sections... */}
-        <section
-          id='lander'
-          style={{
-            height: '100vh',
-            width: '100vw',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'column',
-            background: 'white',
-            scrollSnapAlign: 'start',
-          }}
-          ref={introRef}
+     {loading && <SplashLoader setLoading={setLoading} />}
+    {!loading && (
+    <div style={{ scrollSnapType: 'y mandatory',  height: '100vh', overflowX: 'hidden' }}>
+      {/* <CustomCursor /> */}
+      <Navbar fontBlack = {fontBlack}/>
+      {/* Intro Section */}
+      <section id='lander'
+        style={{
+          height: '100vh',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          background: 'white',
+          scrollSnapAlign: 'start',
+        }}
+        ref = {introRef}
         >
-          <div style={{ width: '90%' }}>
-            <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>Hi, I'm</p>
-            <p className='Silkscreen' style={{ margin: '5px 0px', fontSize: '50px', textAlign: 'left' }}>Mehanth</p>
-            <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '24px', textAlign: 'left' }}>a Computer Science Engineering student </p>
-            <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
-          </div>
-          <IntroSection />
-        </section>
+        {/* <FaceMeshFromLocal/> */}
+
+        <div style={{width: '90%'}}>
+          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
+          <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left'}}>Mehanth</p>
+          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
+          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+        </div>
+        <IntroSection />
+      </section>
 
         <section id='skills'
-          style={{
-            height: '100vh',
-            width: '100vw',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'column',
-            background: 'white',
-            scrollSnapAlign: 'start',
-            zIndex: -1
-          }}
+        style={{
+          height: '100vh',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          background: 'white',
+          scrollSnapAlign: 'start',
+          zIndex: -1
+        }}
         >
-          <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
-          <Skills />
+          <h1 style={{fontSize: '80px', fontWeight: '500'}} className='Barrio'>Skill Town</h1>
+          <Skills/>
         </section>
 
-        {/* 3D Section */}
-        <section id='about'
-          className="canvas-text-section hide-scrollbar"
-          style={{
-            height: '100vh',
-            width: '100vw',
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            overflow: 'hidden',
-            background: 'white',
-            scrollSnapAlign: 'start',
-          }}
-          ref={ref}
-        >
+      {/* 3D Section */}
+      <section id='about'
+        className="canvas-text-section hide-scrollbar"
+        style={{
+          height: '100vh',
+          width: '100vw',
+          position: 'relative', // Important to contain absolute children
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
+          background: 'white',
+          scrollSnapAlign: 'start',
+        }}
+        ref={ref}
+      >
           {/* Canvas Wrapper */}
-          <motion.div className='hide-scrollbar'
-            initial={{
-              width: '40%',
-              height: '40%',
-              borderRadius: '20px',
-              boxShadow: '0 0 30px rgba(0, 0, 0, 0.3)',
-              overflow: 'scroll',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-            animate={{
-              width: inView ? '100%' : '40%',
-              height: inView ? '100%' : '40%',
-              borderRadius: inView ? '0px' : '30px',
-              boxShadow: inView ? 'none' : '0 0 30px rgba(0, 0, 0, 0.3)',
-            }}
-            transition={{ duration: 1.5, ease: 'easeInOut' }}
-            style={{
-              backgroundColor: 'black',
-              position: 'relative',
-              width: '80%',
-              height: '80%',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              zIndex: 5
-            }}
-          >
-            <Canvas shadows>
-              <Suspense fallback={null}>
+        <motion.div className='hide-scrollbar'
+          initial={{
+            width: '40%',
+            height: '40%',
+            borderRadius: '20px',
+            boxShadow: '0 0 30px rgba(0, 0, 0, 0.3)',
+            overflow: 'scroll',
+            scrollbarWidth: 'none',       // Firefox
+            msOverflowStyle: 'none', // Internet Explorer and Edge
+          }}
+          animate={{
+            width: inView ? '100%' : '40%',
+            height: inView ? '100%' : '40%',
+            borderRadius: inView ? '0px' : '30px',
+            boxShadow: inView ? 'none' : '0 0 30px rgba(0, 0, 0, 0.3)',
+          }}
+          transition={{ duration: 1.5, ease: 'easeInOut' }}
+          style={{
+            backgroundColor: 'black',
+            position: 'relative',
+            zIndex: 10,
+            width: '80%',
+            height: '80%',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            zIndex: 5
+          }}
+        >
+        {/* <div style={{width: '90%'}}>
+            <p className='Righteous' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Explore my Portfolio</p>
+        </div> */}
+          <Canvas shadows>
+         
+            <Suspense fallback={null}>
                 <Hud>
                   <ambientLight intensity={5} />
-                  {/* <Perf position="top-left" /> */}
-                  <Html center>
+                  <Html center>                    
                     <div
                       style={{
                         display: showIframe ? 'flex' : 'none',
@@ -243,6 +257,7 @@ export default function App() {
                         position: 'relative',
                       }}
                     >
+                      {/* Close Button */}
                       <button
                         onClick={closeIframe}
                         style={{
@@ -260,6 +275,8 @@ export default function App() {
                       >
                         ✖
                       </button>
+
+                      {/* Iframe */}
                       <iframe
                         height={'100%'}
                         width={'100%'}
@@ -269,63 +286,61 @@ export default function App() {
                     </div>
                   </Html>
                 </Hud>
-                <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={70} />
-                <ScrollControls distance={5} pages={1} damping={1} enabled={scrollEnabled}>
-                  <Scroll>
-                    {!teleported && !contactPage && (
-                      <AboutMe
-                        portalEnd={portalEnd}
-                        startSpiralPortal={startSpiralPortal}
-                        startShockwave={startShockwave}
-                        waves={waves}
-                        setWaves={setWaves}
-                      />
-                    )}
-
-                    <Avatar
-                      contactPage={contactPage}
-                      setContactPage={setContactPage}
-                      setTeleported={setTeleported}
-                      setStartShockwave={setStartShockwave}
-                      scrollEnabled={scrollEnabled}
-                      ref={avatarRef}
-                      setPortalEnd={setPortalEnd}
-                      scale={2}
-                      position={[0, 0, 0]}
-                      rotation={[-Math.PI / 2, 0, 0]}
-                      static={false}
+              <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={70} />
+              <ScrollControls distance={5} pages={1} damping={1} enabled={scrollEnabled}>
+                <Scroll>
+                  {!teleported && !contactPage && (
+                    <AboutMe
+                      startSpiralPortal={startSpiralPortal}
+                      startShockwave={startShockwave}
+                      waves={waves}
+                      setWaves={setWaves}
                     />
+                  )}
 
-                    {teleported && !contactPage &&
-                      <Projects
-                        openIframe={openIframe}
-                      />}
+                  <Avatar
+                    contactPage={contactPage}
+                    setContactPage={setContactPage}
+                    setTeleported={setTeleported}
+                    setStartShockwave={setStartShockwave}
+                    scrollEnabled={scrollEnabled}
+                    ref={avatarRef}
+                    scale={2}
+                    position={[0, 0, 0]}
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    static={false}
+                  />
 
-                  </Scroll>
-                </ScrollControls>
-              </Suspense>
-            </Canvas>
-          </motion.div>
-        </section>
+                  {teleported && !contactPage && 
+                  <Projects
+                    openIframe={openIframe}
+                  />}
 
-        {/* Contact Section */}
-        <section id='contact'
-          ref={contactRef}
-          style={{
-            height: '100vh',
-            scrollSnapAlign: 'start',
-            background: 'black',
-            zIndex: 1000
-          }}
-        >
-          <Canvas>
-            <Suspense fallback={null}>
-              {/* <Perf position="top-left" /> */}
-              <Contact />
+                </Scroll>
+              </ScrollControls>
             </Suspense>
           </Canvas>
-        </section>
-      </div>
+        </motion.div>
+      </section>
+
+      {/* Contact Section */}
+      <section id='contact'
+        ref={contactRef}
+        style={{
+          height: '100vh',
+          scrollSnapAlign: 'start',
+          background: 'black',
+          zIndex: 1000
+        }}
+      >
+        <Canvas>
+          <Suspense fallback={null}>
+          <Contact />
+          </Suspense>
+        </Canvas>
+      </section>
+    </div>
+     )}
     </>
-  );
+  )
 }

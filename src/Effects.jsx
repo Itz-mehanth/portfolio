@@ -1,6 +1,6 @@
 import { EffectComposer, GodRays } from '@react-three/postprocessing'
+import * as THREE from 'three'
 import { useRef, useEffect, useState } from 'react'
-import { AdditiveBlending } from 'three'
 
 export default function Effects() {
   const sunRef = useRef()
@@ -18,7 +18,7 @@ export default function Effects() {
       {/* Sun mesh: This is what GodRays will sample */}
       <mesh ref={sunRef} position={[0, 0, 248]}>
         <sphereGeometry args={[0.3, 520, 520]} />
-        <meshBasicMaterial color="yellow" toneMapped={false} />
+        <meshBasicMaterial color="white" toneMapped={false} />
       </mesh>
 
       {/* Actual light source for the scene (optional) */}
@@ -29,7 +29,7 @@ export default function Effects() {
         <EffectComposer>
           <GodRays
             sun={sunRef}
-            blendFunction={AdditiveBlending}
+            blendFunction={THREE.AdditiveBlending}
             samples={100}
             density={0.96}
             decay={0.95}

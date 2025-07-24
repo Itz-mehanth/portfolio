@@ -1,8 +1,11 @@
+// src/App.jsx
+import { Clouds } from '@react-three/drei'
 import { Environment, Mask, Stars, Html} 
 from '@react-three/drei'
 import Portal from './Portal'
 import './App.css'
 import Shockwave from './Shockwave'
+import Enemy from './Enemy'
 import Terrain from './Terrain'
 import SplashParticles from './SplashParticles'
 import Planet from './Planet'
@@ -36,7 +39,6 @@ function TextOverlay() {
 
 export default function AboutMe(props) {
     const startSpiralPortal = props.startSpiralPortal
-    const portalEnd = props.portalEnd
     const startShockwave = props.startShockwave
     const waves = props.waves
     const setWaves = props.setWaves
@@ -67,25 +69,26 @@ export default function AboutMe(props) {
 
         {/* <Sparkles  color='white' count={80} size={180} scale={50} noise={1} speed={1} blending={AdditiveBlending}/> */}
 
-        <Portal end={portalEnd} count={10000}/>
+        <Portal count={10000}/>
         {/* <Planet textureUrl='Planets/mars.jpg' radius={20} position={[100,100,1000]}/> */}
 
-        <Planet textureUrl='Planets/earth.jpg' radius={80} position={[-50,10,300]}/>
+        <Planet textureUrl='Planets/earth.jpg' radius={80} position={[-50,100,500]}/>
 
         { startSpiralPortal &&
           <Mask>
             {/* <SpiralPortal position={[0, 4.5, 35]} scale={2} />
             <SpiralPortal position={[0, 4.5, 35]} scale={1.5} />
             <SpiralPortal position={[0, 4.5, 35]} scale={1} /> */}
-            <SplashParticles radius={1} count={500} position={[0,-35, 4.5]}/>
-            <SplashParticles radius={1} count={500} position={[0,-36, 4.5]}/>
-            {/* <SplashParticles radius={1} count={500} position={[0,-37, 4.5]}/> */}
-            {/* <SplashParticles radius={1} count={1000} position={[0,-38, 4.5]}/> */}
-            {/* <SplashParticles radius={1} count={1000} position={[0,-39, 4.5]}/> */}
+            <SplashParticles radius={1} count={1000} position={[0,-35, 4.5]}/>
+            <SplashParticles radius={1} count={1000} position={[0,-36, 4.5]}/>
+            <SplashParticles radius={1} count={1000} position={[0,-37, 4.5]}/>
+            <SplashParticles radius={1} count={1000} position={[0,-38, 4.5]}/>
+            <SplashParticles radius={1} count={1000} position={[0,-39, 4.5]}/>
           </Mask>
         }
 
         {/* Scene Elements */}
+        {/* <GroundPlane /> */}
         <Terrain />
 
         <Effects/>
@@ -105,8 +108,8 @@ export default function AboutMe(props) {
         {/* <OrbitControls enableZoom={false} /> */}
         <Environment preset="night" intensity={0}>
         </Environment>
-        {/* <Stars radius={200} depth={10} count={1000} factor={10} saturation={4} fade speed={1} /> */}
-        <Stars radius={100} depth={10} count={500} factor={10} saturation={7} fade speed={1} />
+        <Stars radius={200} depth={10} count={1000} factor={10} saturation={4} fade speed={1} />
+        <Stars radius={100} depth={10} count={1000} factor={10} saturation={7} fade speed={1} />
     </>
     )
 }
