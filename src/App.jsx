@@ -158,7 +158,7 @@ export default function App() {
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
         </div>
-        <IntroSection />
+        {/* <IntroSection /> */}
       </section>
 
         <section id='skills'

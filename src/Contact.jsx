@@ -98,7 +98,7 @@ function SteelRingsUpright({ count = 8 }) {
             ref={materialRef}
             transmission={1}
             thickness={1}
-            emissive={new THREE.Color("00ffff")}
+            emissive={new THREE.Color("#00ffff")}
             roughness={0}
             clearcoat={1}
             clearcoatRoughness={0.1}
@@ -107,7 +107,7 @@ function SteelRingsUpright({ count = 8 }) {
             iridescenceIOR={1.3}
             iridescenceThicknessRange={[100, 400]}
             reflectivity={0.8}
-            color="00ffff"
+            color="#00ffff"
           />
         </mesh>
       ))}
@@ -132,10 +132,10 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFo
       clearcoatRoughness: 0.1,
       metalness: 0,
       iridescence: 1,
-      emissive: new THREE.Color("00ffff"),
+      emissive: new THREE.Color("#00ffff"),
       iridescenceIOR: 1.3,
       reflectivity: 0.8,
-      color: new THREE.Color("00ffff"),
+      color: new THREE.Color("#00ffff"),
     });
   }, []);
 
