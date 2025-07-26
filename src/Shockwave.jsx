@@ -72,11 +72,6 @@ export default function Shockwave({ position = [0, 0.05, 25], onComplete }) {
           // emissiveIntensity={5} 
           side={THREE.DoubleSide} />
       </mesh>
-
-      {/* Lightning lines */}
-      <group ref={lightningGroup}>
-        {lightningLines}
-      </group>
     </group>
   )
 }

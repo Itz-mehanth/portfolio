@@ -240,10 +240,10 @@ export default function Contact(props) {
       <RockThrone />
 
       {/* Effects */}
-      {/* <EffectComposer>
+      <EffectComposer>
         <Bloom intensity={0.4} luminanceThreshold={0.3} luminanceSmoothing={0.6} />
         <DepthOfField focusDistance={0.001} focalLength={0.06} bokehScale={3} height={480} />
-      </EffectComposer> */}
+      </EffectComposer>
     </>
   )
 }

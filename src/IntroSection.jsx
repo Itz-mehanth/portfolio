@@ -174,122 +174,49 @@ export default function IntroSection() {
       >
       <Canvas shadows >
         <Suspense fallback={null}>
-        <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={50} />
-        <ambientLight intensity={50} />
-        {/* <OrbitControls enableZoom={false}/> */}
-        {/* <DeviceOrientationControls/> */}
+        <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={100} />
+        <ambientLight intensity={5} />
         <Controls />
         <EffectComposer>
           <Bloom></Bloom>
         </EffectComposer>
           <Center>
-                <Billboard position={[-10, 5, 25]}>
-                  <Text>
+                <Billboard follow position={[0, 0, 0]}>
+                  <Text
+                    position={[0, 10, -30]}
+                    fontSize={3}
+                    color={'white'}
+                    castShadow
+                    receiveShadow
+                  >
                     Look around and interact with the objects!
                   </Text>
                 </Billboard>
-                <Text3D
-                  // font={'/fonts/Calligraphy_Regular.typeface.json'}
-                  emissive={'white'}
-                  color={'white'}
-                  castShadow
-                  receiveShadow
-                  emissiveIntensity = {2}
-                  size={4}
-                  height={2}
-                  curveSegments={10}
-                  bevelEnabled
-                  bevelSegments={5}
-                  letterSpacing={0.1}
-                  position={[-10, 0, 30]}
-                  rotation={[0, Math.PI / 2, 0]}
-                  >
-                  Mehanth
-                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
-                  />
-                </Text3D>
-
-                <Billboard position={[40, 5, 25]}>
-                  <Text>
-                    Look around and interact with the objects!
-                  </Text>
-                </Billboard>
-
-                <Text3D
-                  // font={'/fonts/Calligraphy_Regular.typeface.json'}
-                  emissive={'white'}
-                  color={'white'}
-                  castShadow
-                  receiveShadow
-                  emissiveIntensity = {2}
-                  size={4}
-                  height={2}
-                  curveSegments={10}
-                  bevelEnabled
-                  bevelSegments={5}
-                  letterSpacing={0.1}
-                  position={[40, 0, 20]}
-                  rotation={[0, -Math.PI / 2, 0]}
-                  >
-                  Mehanth
-                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
-                  />
-                </Text3D>
-
-                <Billboard position={[15, 5, 0]}>
-                  <Text>
-                    Look around and interact with the objects!
-                  </Text>
-                </Billboard>
-
-                <Text3D
-                  // font={'/fonts/Calligraphy_Regular.typeface.json'}
-                  emissive={'white'}
-                  color={'white'}
-                  castShadow
-                  receiveShadow
-                  emissiveIntensity = {2}
-                  size={4}
-                  height={2}
-                  curveSegments={10}
-                  bevelEnabled
-                  bevelSegments={5}
-                  letterSpacing={0.1}
-                  position={[10, 0, 0]}
-                  >
-                  Mehanth
-                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
-                  />
-                </Text3D>
-
-                <Billboard position={[15, 5, 50]}>
-                  <Text>
-                    Look around and interact with the objects!
-                  </Text>
-                </Billboard>
-
-                <Text3D
-                  // font={'/fonts/Calligraphy_Regular.typeface.json'}
-                  emissive={'white'}
-                  color={'white'}
-                  castShadow
-                  receiveShadow
-                  emissiveIntensity = {2}
-                  size={4}
-                  height={2}
-                  curveSegments={10}
-                  bevelEnabled
-                  bevelSegments={5}
-                  letterSpacing={0.1}
-                  position={[20, 0, 50]}
-                  rotation={[0, Math.PI, 0]}
-                  >
-                  Mehanth
-                  <meshPhysicalMaterial color={'white'} ior={1.44} transmission={0.9} roughness={0.1} clearcoat={1} clearcoatRoughness={0.1} metalness={0.5} iridescence={1} iridescenceIOR={1.3} iridescenceThicknessRange={[100, 400]} reflectivity={0.8}
-                  />
-                </Text3D>
+                  <Text3D
+                    font={'/fonts/Calligraphy_Regular.typeface.json'}
+                    emissive={'white'}
+                    color={'white'}
+                    emissiveIntensity={5}
+                    castShadow
+                    receiveShadow
+                    size={10}
+                    height={2}
+                    letterSpacing={0.1}
+                    position={[20, 0, 10]}
+                    rotation={[0, Math.PI, 0]}
+                    >
+                    Mehanth
+                    <meshPhysicalMaterial
+                      emissive={'white'}
+                      emissiveIntensity={0.25}
+                      color={'white'}
+                      ior={1.44}
+                      transmission={0.9}
+                      reflectivity={0.8}
+                    />
+                  </Text3D>
           </Center>
-          <Sparkles count={50} size={10} scale={30} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
+          <Sparkles count={50} size={30} scale={30} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
 
           {/* Draggable Meshes */}
           <DraggableMeshes />
