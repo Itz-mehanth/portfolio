@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { Bloom, EffectComposer } from '@react-three/postprocessing'
 
 export default function Shockwave({ position = [0, 0.05, 25], onComplete }) {
   const ringRef = useRef()

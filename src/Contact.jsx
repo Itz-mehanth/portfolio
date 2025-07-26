@@ -1,11 +1,8 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
-import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Icosahedron, CubicBezierLine, Sparkles,  Html} from '@react-three/drei'
+import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Sparkles,  Html} from '@react-three/drei'
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import Effects from './Effects'
-import Avatar from './Avatar'
-
 
 // Rock throne
 function RockThrone() {
@@ -38,30 +35,6 @@ function RockThrone() {
           ior={1.4}
         />
       </mesh>
-
-      {/* Backrest */}
-      {/* <mesh position={[0, 1.2, -0.7]}>
-        <latheGeometry args={[lathePoints, 32]} />
-        <meshPhysicalMaterial
-          color="#88ccff"
-          transmission={1}
-          roughness={0}
-          metalness={0}
-          thickness={0.4}
-          clearcoat={1}
-          ior={1.45}
-        />
-      </mesh> */}
-
-      {/* Armrests */}
-      {/* <mesh position={[0.65, 0, -0.7]}>
-        <cylinderGeometry args={[0.1, 0.1, 1.6, 32]} />
-        <meshStandardMaterial color="#444" metalness={0.3} roughness={0.7} />
-      </mesh>
-      <mesh position={[0.65, 0, 0.7]}>
-        <cylinderGeometry args={[0.1, 0.1, 1.6, 32]} />
-        <meshStandardMaterial color="#444" metalness={0.3} roughness={0.7} />
-      </mesh> */}
 
       {/* Emissive edge glow */}
       <mesh position={[0, 0.08, 0]}>
@@ -230,8 +203,8 @@ export default function Contact(props) {
   return (
     <>
       <Environment preset="sunset"/>
-      <Stars radius={100} depth={500} count={100} factor={7} saturation={1} fade speed={5} />
-      <Stars radius={100} depth={50} count={500} factor={7} saturation={1} fade speed={1} />
+      <Stars radius={100} depth={500} count={50} factor={7} saturation={1} fade speed={5} />
+      <Stars radius={100} depth={50} count={100} factor={7} saturation={1} fade speed={1} />
 
       <PerspectiveCamera makeDefault position={[0, 4, 20]} fov={70} />
 
@@ -267,10 +240,10 @@ export default function Contact(props) {
       <RockThrone />
 
       {/* Effects */}
-      <EffectComposer>
+      {/* <EffectComposer>
         <Bloom intensity={0.4} luminanceThreshold={0.3} luminanceSmoothing={0.6} />
         <DepthOfField focusDistance={0.001} focalLength={0.06} bokehScale={3} height={480} />
-      </EffectComposer>
+      </EffectComposer> */}
     </>
   )
 }

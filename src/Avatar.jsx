@@ -1,15 +1,13 @@
 import { useGLTF, useFBX, useAnimations, useScroll } from '@react-three/drei'
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
-import { useFrame, useThree } from '@react-three/fiber'
-import { useAudio } from './context/AudioProvider'
+import { useFrame } from '@react-three/fiber'
 
 const  Avatar = forwardRef((props, ref) => {
   const scrollEnabled  = props.scrollEnabled
   const setStartShockwave = props.setStartShockwave
   const setTeleported = props.setTeleported
   const animationDisabled = props.static || false
-  const { playTrack } = useAudio()
 
   const group = useRef()
   const eyeRef = useRef()
@@ -160,9 +158,6 @@ const  Avatar = forwardRef((props, ref) => {
       scrubAnimation('Idle', 0)
     }
     
-    if(progress > 0 && progress < 0.01) {
-      playTrack('background')
-    }
     // Walk: 0 - 0.3
     if (progress < 0.3 && progress > 0) {
       const local = (progress - 0.01) / 0.29
@@ -260,9 +255,6 @@ const  Avatar = forwardRef((props, ref) => {
         group.current.position.z = progress * 20
       }
 
-      if (progress > 1.38) {
-        playTrack('whoosh')
-      }
     }else if(progress >= 1.39 && progress <= 2) {
       const wobbleAmplitude = 5; // how far it moves left and right
       const wobbleFrequency = 10; // how fast it wobbles (higher = faster)
@@ -274,20 +266,9 @@ const  Avatar = forwardRef((props, ref) => {
       camera.lookAt(group.current.position);
       // scrubAnimation('Flying', 0)
 
-      // if(actions['Flying'].isRunning() == false) {
         actions['Flying'].play();
         actions['Flying'].setEffectiveWeight(1);
         actions['Flying'].setEffectiveTimeScale(1);
-      // }
-
-      if(progress < 1.42) {
-        playTrack('space')
-      }
-      
-      // if (progress > 2.005) {
-      //   const zOffset = (progress - 1.39) * 402;
-      //   camera.position.set(wobbleX, 10 - (progress - 1.39), -15 + zOffset);
-      // }
     }
   })
 

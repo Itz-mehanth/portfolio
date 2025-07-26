@@ -5,13 +5,7 @@ import {
   Scroll,
   Html,
   PerspectiveCamera,
-  Billboard,
-  Text,
-  OrbitControls,
-  Splat,
-  AsciiRenderer,
-  Hud,
-  Box,
+  Hud
 } from '@react-three/drei'
 import Avatar from './Avatar'
 import { Suspense, useRef, useEffect, useState } from 'react'
@@ -20,7 +14,7 @@ import AboutMe from './AboutMe'
 import Projects from './Projects'
 import Contact from './Contact'
 import IntroSection from './IntroSection'
-import { motion, transform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import './Navbar.css'
 import { useAudio } from './context/AudioProvider'
@@ -29,7 +23,6 @@ import Skills from './Skills'
 
 const Navbar = ({ fontBlack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { isAudioEnabled, toggleAudio } = useAudio()
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
 
@@ -38,10 +31,6 @@ const Navbar = ({ fontBlack }) => {
       <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
         Mehanth
       </div>
-
-      <button onClick={toggleAudio}>
-        {isAudioEnabled ? '🔊 Music On' : '🔇 Music Off'}
-      </button>
 
       {/* Desktop menu */}
       <ul className="navbar-right desktop-menu">
@@ -82,7 +71,6 @@ export default function App() {
   const [teleported, setTeleported] = useState(false)
   const [contactPage, setContactPage] = useState(false)
   const [fontBlack, setFontBlack] = useState(true)
-  const { playTrack } = useAudio()
   const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
   const [showIframe, setShowIframe] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -112,7 +100,6 @@ export default function App() {
   useEffect(() => {
     if (introinView) {
       console.log('intro in view')
-      playTrack('happy')
     }
   }, [introinView])
 

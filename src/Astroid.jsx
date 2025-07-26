@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-import { Billboard, Hud, Text, PerspectiveCamera, Html } from '@react-three/drei';
+import { Billboard, Text} from '@react-three/drei';
 import * as THREE from 'three';
-import { Canvas } from '@react-three/fiber';
 
 export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title , description }) {
   const asteroidRef = useRef();

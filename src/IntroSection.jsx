@@ -1,6 +1,6 @@
 import { useBox, useSphere, Physics, usePlane } from '@react-three/cannon'
-import { OrbitControls, Center, Text3D, Box, Sparkles,CameraControls, Fisheye, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls, Center, Text3D, Box, Sparkles, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
+import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect} from 'react'
 import * as THREE from 'three'
@@ -131,7 +131,7 @@ function Ground() {
 }
 
 export function DraggableMeshes() {
-  const NUM_OBJECTS = 30
+  const NUM_OBJECTS = 10
   const randomPosition = () => [
     (Math.random() - 0.5) * 50, // X between -10 and 10
     Math.random() * 50 + 10,   // Y between 10 and 30 (height)
@@ -197,7 +197,7 @@ export default function IntroSection() {
                   emissiveIntensity = {2}
                   size={4}
                   height={2}
-                  curveSegments={32}
+                  curveSegments={10}
                   bevelEnabled
                   bevelSegments={5}
                   letterSpacing={0.1}
@@ -224,7 +224,7 @@ export default function IntroSection() {
                   emissiveIntensity = {2}
                   size={4}
                   height={2}
-                  curveSegments={32}
+                  curveSegments={10}
                   bevelEnabled
                   bevelSegments={5}
                   letterSpacing={0.1}
@@ -251,7 +251,7 @@ export default function IntroSection() {
                   emissiveIntensity = {2}
                   size={4}
                   height={2}
-                  curveSegments={32}
+                  curveSegments={10}
                   bevelEnabled
                   bevelSegments={5}
                   letterSpacing={0.1}
@@ -277,7 +277,7 @@ export default function IntroSection() {
                   emissiveIntensity = {2}
                   size={4}
                   height={2}
-                  curveSegments={32}
+                  curveSegments={10}
                   bevelEnabled
                   bevelSegments={5}
                   letterSpacing={0.1}
@@ -289,7 +289,7 @@ export default function IntroSection() {
                   />
                 </Text3D>
           </Center>
-          <Sparkles count={200} size={20} scale={50} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
+          <Sparkles count={50} size={10} scale={30} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
 
           {/* Draggable Meshes */}
           <DraggableMeshes />
