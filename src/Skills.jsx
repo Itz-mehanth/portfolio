@@ -266,9 +266,9 @@ export default function SciFiSkillCities() {
       </Suspense>
 
       {/* UI Elements */}
-      <Billboard position={[0, 2.5, 1.5]}>
-        <Text fontSize={0.4} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
-          🚩click to visit house
+      <Billboard position={[0, -2, 1.5]}>
+        <Text fontSize={1} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
+          🚩click any house
         </Text>
       </Billboard>
 

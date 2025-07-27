@@ -21,6 +21,7 @@ import { useAudio } from './context/AudioProvider'
 import SplashLoader from './SplashLoader'
 import Skills from './Skills'
 import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
+import Certificates from './Certificates'
 
 
 const Navbar = ({ fontBlack }) => {
@@ -39,6 +40,7 @@ const Navbar = ({ fontBlack }) => {
         <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
         <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
         <li><a href="#about" style={{ color: fontBlack ? 'black' : 'white' }}>About</a></li>
+        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
         <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
       </ul>
 
@@ -54,6 +56,7 @@ const Navbar = ({ fontBlack }) => {
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#about" onClick={toggleMenu}>About</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
       </div>
     </nav>
@@ -64,6 +67,7 @@ const Navbar = ({ fontBlack }) => {
 export default function App() {
   const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
   const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
   const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
   const avatarRef = useRef()
   const [scrollEnabled, setScrollEnabled] = useState(false)
@@ -163,39 +167,62 @@ export default function App() {
         }}
         ref = {introRef}
         >
-        <div style={{width: '90%'}}>
-          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
-          <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
-        <button
-                onClick={handleDownloadCV}
-                style={{
-                  width: '170px',
-                  padding: '5px 10px',
-                  backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
-                  color: 'black',
-                  border: '2px solid rgba(0, 0, 0, 0.3)',
-                  borderRadius: '25px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontFamily: 'Poppins',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
-                  e.target.style.transform = 'translateY(-2px)'
-                  e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
-                  e.target.style.transform = 'translateY(0px)'
-                  e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
-                }}
-              >
-                Download CV
-              </button>
-          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
-          <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+            width: '90%',
+            margin: '0 auto',
+          }}>
+          <div style={{width: '70%'}}>
+            <p className='Quicksand' style={{margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
+            <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
+          <button
+                  onClick={handleDownloadCV}
+                  style={{
+                    width: '170px',
+                    padding: '5px 10px',
+                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
+                    color: 'black',
+                    border: '2px solid rgba(0, 0, 0, 0.3)',
+                    borderRadius: '25px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    fontFamily: 'Poppins',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
+                    e.target.style.transform = 'translateY(-2px)'
+                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
+                    e.target.style.transform = 'translateY(0px)'
+                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
+                  }}
+                >
+                  Download CV
+                </button>
+            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
+            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+          </div>
+
+          {/* Right: Image */}
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <img
+              src='/logo.jpg' // Replace with actual image path
+              alt='Mehanth'
+              style={{
+                width: '100%',
+                maxWidth: '350px',
+                borderRadius: '15px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+              }}
+            />
+          </div>
         </div>
         <IntroSection />
       </section>
@@ -203,7 +230,7 @@ export default function App() {
         <section id='skills'
         style={{
           height: '100vh',
-          padding: '60px 0px 60px 0',
+          padding: '60px 0px 6px 0',
           width: '100vw',
           display: 'flex',
           justifyContent: 'center',
@@ -331,6 +358,21 @@ export default function App() {
             </Suspense>
           </Canvas>
         </div>
+      </section>
+
+      <section 
+        ref={certificateRef}
+        id='certificate'
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '2rem', 
+        height: '100%', 
+        padding: '80px 40px',
+        scrollSnapAlign: 'start'
+      }}>
+
+        <Certificates/>
       </section>
 
       {/* Contact Section */}
