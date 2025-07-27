@@ -9,7 +9,7 @@ const Certificates = () => {
       date: "2024",
       category: "Programming",
       color: "linear-gradient(135deg, #60a5fa, #2563eb)",
-      certificateUrl: "https://drive.google.com/file/d/1lSmxFqJepnsuDZl7FMHyx74-gEsETpmw/view?usp=sharing"
+      certificateUrl: "https://drive.google.com/file/d/1Dc06pz6NxOhE7vkxdaQvb31Cw6UYX-sh/view?usp=sharing"
     },
     {
       title: "Top 5% NPTEL Competitive Programming",
