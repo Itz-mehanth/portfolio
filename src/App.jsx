@@ -159,7 +159,6 @@ export default function App() {
           alignItems: 'center',
           flexDirection: 'column',
           background: 'white',
-          scrollSnapAlign: 'start',
         }}
         ref = {introRef}
         >
@@ -210,7 +209,6 @@ export default function App() {
           alignItems: 'center',
           flexDirection: 'column',
           background: 'white',
-          scrollSnapAlign: 'start',
           zIndex: -1
         }}
         >
@@ -231,7 +229,6 @@ export default function App() {
           alignItems: 'center',
           overflow: 'hidden',
           background: 'white',
-          scrollSnapAlign: 'start',
         }}
         ref={ref}
       >
@@ -338,7 +335,6 @@ export default function App() {
         ref={contactRef}
         style={{
           height: '100vh',
-          scrollSnapAlign: 'start',
           background: 'black',
           zIndex: 1000
         }}
@@ -362,7 +358,6 @@ export default function App() {
           <ContactSection/>
         </div>
       </section>
-
     </div>
      )}
     </>

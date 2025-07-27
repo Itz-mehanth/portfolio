@@ -4,9 +4,6 @@ html, body {
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
-.canvas-text-section {
-  scroll-snap-align: start;
-}
 
 .hide-scrollbar {
   overflow: scroll;
