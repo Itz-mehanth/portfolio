@@ -203,7 +203,7 @@ export default function App() {
         <section id='skills'
         style={{
           height: '100vh',
-          padding: '60px 0 0 0',
+          padding: '60px 0px 60px 0',
           width: '100vw',
           display: 'flex',
           justifyContent: 'center',
