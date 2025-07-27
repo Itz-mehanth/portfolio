@@ -687,7 +687,7 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
       width: '90vw',
       position: 'relative',
       overflow: 'hidden',
-      margin: '20px 20px',
+      margin: '10px 0px 70px 0',
       borderRadius: '12px',
       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       backgroundColor: '#F5F5F5',

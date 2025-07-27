@@ -164,6 +164,9 @@ export default function App() {
           flexDirection: 'column',
           background: 'white',
           scrollSnapAlign: 'start',
+          scrollSnapType: 'y mandatory', /* or y or both */
+          overflowX: 'scroll',
+          scrollBehavior: 'smooth',
         }}
         ref = {introRef}
         >
@@ -238,6 +241,9 @@ export default function App() {
           flexDirection: 'column',
           background: 'white',
           scrollSnapAlign: 'start',
+          scrollSnapType: 'y mandatory', /* or y or both */
+          overflowX: 'scroll',
+          scrollBehavior: 'smooth',
           zIndex: -1
         }}
         >
@@ -259,6 +265,9 @@ export default function App() {
           overflow: 'hidden',
           background: 'white',
           scrollSnapAlign: 'start',
+          scrollSnapType: 'y mandatory', /* or y or both */
+          overflowX: 'scroll',
+          scrollBehavior: 'smooth',
         }}
         ref={ref}
       >
@@ -369,7 +378,10 @@ export default function App() {
         gap: '2rem', 
         height: '100%', 
         padding: '80px 40px',
-        scrollSnapAlign: 'start'
+        scrollSnapAlign: 'start',
+        scrollSnapType: 'y mandatory', /* or y or both */
+        overflowX: 'scroll',
+        scrollBehavior: 'smooth',
       }}>
 
         <Certificates/>
@@ -381,13 +393,16 @@ export default function App() {
         style={{
           height: '100vh',
           scrollSnapAlign: 'start',
+          scrollSnapType: 'y mandatory', /* or y or both */
+          overflowX: 'scroll',
+          scrollBehavior: 'smooth',
           background: 'black',
           zIndex: 1000
         }}
       >
         <div
           style={{
-            height: '50vh',
+            height: '50%',
           }}
         >
         <Canvas>
@@ -398,7 +413,8 @@ export default function App() {
         </div>
         <div
           style={{
-            height: '50vh',
+            height: '50%',
+            backgroundColor: 'white',
           }}
         >
           <ContactSection/>
@@ -427,20 +443,20 @@ function ContactSection() {
   };
 
   const handleSubmit = () => {
-    const form = document.createElement('form');
-    form.action = 'https://formspree.io/f/xayrjzqg';
-    form.method = 'POST';
+    // const form = document.createElement('form');
+    // form.action = 'https://formspree.io/f/xayrjzqg';
+    // form.method = 'POST';
     
-    Object.entries(formData).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
+    // Object.entries(formData).forEach(([key, value]) => {
+    //   const input = document.createElement('input');
+    //   input.type = 'hidden';
+    //   input.name = key;
+    //   input.value = value;
+    //   form.appendChild(input);
+    // });
     
-    document.body.appendChild(form);
-    form.submit();
+    // document.body.appendChild(form);
+    // form.submit();
   };
 
   const socialLinks = [
@@ -482,7 +498,7 @@ function ContactSection() {
 
           {/* Right Column */}
           <div className="contact-right">
-            <form onSubmit={handleSubmit}>
+            <form>
               <input type="text" name="name" placeholder="Full name" required onChange={handleInputChange} />
               <input type="email" name="email" placeholder="Email address" required onChange={handleInputChange} />
               <textarea name="message" placeholder="Your message" rows={3} required onChange={handleInputChange}></textarea>
