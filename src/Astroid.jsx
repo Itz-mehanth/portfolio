@@ -1,75 +1,161 @@
-import { useRef, useState } from 'react';
-import { Billboard, Text} from '@react-three/drei';
+// Asteroid.jsx
+import { useRef, useState, useMemo } from 'react';
+import { Billboard, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
+import { Balloon } from './utils/models/Balloon';
 
-export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title , description }) {
+export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description }) {
   const asteroidRef = useRef();
   const [hovered, setHovered] = useState(false);
   const [hudVisible, setHudVisible] = useState(false);
 
+  // Generate random rotation and color for balloon
+  const balloonProps = useMemo(() => {
+    // Thick, vibrant colors array
+    const thickColors = [
+      '#FFD700', // Yellow
+      '#FF4444', // Red
+      '#FF8C00', // Orange
+      '#32CD32', // Green
+      '#FF69B4', // Pink
+      '#4169E1'  // Blue
+    ];
+    
+    const randomColor = thickColors[Math.floor(Math.random() * thickColors.length)];
+    
+    return {
+      rotation: [
+        (Math.random() - 0.5) * 0.5, // Random X rotation
+        Math.random() * Math.PI * 2,  // Random Y rotation (full 360°)
+        (Math.random() - 0.5) * 0.3   // Random Z rotation
+      ],
+      balloonColor: new THREE.Color(randomColor)
+    };
+  }, []);
+
   return (
     <group position={position}>
-      {/* Asteroid mesh */}
-      <mesh
-        ref={asteroidRef}
-        geometry={new THREE.IcosahedronGeometry(1, 2)}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        <meshStandardMaterial
-          color={hovered ? '#888888' : '#5a5a5a'}
-          roughness={1}
-          metalness={0.2}
-          flatShading
-        />
-      </mesh>
+      {/* Balloon with random rotation and color */}
+      <Balloon 
+        rotation={balloonProps.rotation}
+        balloonColor={balloonProps.balloonColor}
+      />
 
-      {/* Billboard UI above asteroid */}
-      <Billboard position={[0, 4, 0]}>
+      {/* Sky-themed Billboard UI */}
+      <Billboard position={[position[0] < 0 ? 2 : -2, 0, -5]}>
         <group>
-          {/* Background */}
-          <mesh>
-            <planeGeometry args={[5, 5]} />
-            <meshStandardMaterial color="#000" side={THREE.DoubleSide} />
+          {/* Cloud-like background with soft rounded edges */}
+          <RoundedBox args={[7, 4, 0.1]} radius={0.3} smoothness={4}>
+            <meshStandardMaterial 
+              color="#f0f8ff" 
+              transparent 
+              opacity={0.95}
+              side={THREE.DoubleSide}
+            />
+          </RoundedBox>
+
+          {/* Decorative cloud border */}
+          <RoundedBox args={[6.5, 3.7, 0.05]} radius={0.4} smoothness={4}>
+            <meshStandardMaterial 
+              color="#87ceeb" 
+              transparent 
+              opacity={0.4}
+              side={THREE.DoubleSide}
+            />
+          </RoundedBox>
+
+          {/* Sky gradient background (optional decorative element) */}
+          <mesh position={[0, 0, -0.02]}>
+            <planeGeometry args={[5.3, 3.3]} />
+            <meshStandardMaterial 
+              color="#e6f3ff"
+              transparent 
+              opacity={0.6}
+              side={THREE.DoubleSide}
+            />
           </mesh>
 
-          {/* Title */}
+          {/* Title with sky theme */}
           <Text
-            position={[-2.2, 2, 0]}
+            position={[-3, 1.2, 0.1]}
             fontSize={0.5}
-            color="#00ffd5"
+            color="#2c5aa0"
             anchorX="left"
             anchorY="top"
+            fontWeight={600}
           >
-            {title || 'Project Name'}
+            ☁️{title || 'Sky Project'}
           </Text>
 
           {/* Description */}
           <Text
-            position={[-2.3, 1, 0]}
-            fontSize={0.2}
-            color="#ffffff"
-            maxWidth={4.5}
-            lineHeight={1.5}
+            position={[-2.5, 0.5, 0.1]}
+            fontSize={0.3}
+            color="#1e3a8a"
+            maxWidth={4.8}
+            lineHeight={1.4}
             anchorX="left"
             anchorY="top"
           >
-            {description || 'This is a brief description of the project. Click to learn more.'}
+            {description || 'Floating high above the clouds, this project soars with innovative ideas. Click to explore the sky!'}
           </Text>
 
-          {/* Click Me */}
+          {/* Action button with balloon theme */}
+          <group position={[0, -1, 0.1]}>
+            {/* Button background */}
+            <RoundedBox args={[2.2, 0.8, 0.05]} radius={0.15} smoothness={4}>
+              <meshStandardMaterial 
+                color="#0099ffff" 
+                emissive={"#0099ffff"}
+                emissiveIntensity={1}
+              />
+            </RoundedBox>
+            
+            {/* Button text */}
+            <Text
+              position={[0, 0, 0.05]}
+              fontSize={0.25}
+              fontWeight={700}
+              color="#ffffffff"
+              anchorX="center"
+              anchorY="middle"
+              onClick={() => openIframe(iframeUrl)}
+              onPointerOver={() => (document.body.style.cursor = 'pointer')}
+              onPointerOut={() => (document.body.style.cursor = 'default')}
+            >
+              Live Site
+            </Text>
+          </group>
+
+          {/* Decorative elements - floating clouds */}
           <Text
-            position={[-0.8, -1.2, 0]}
-            fontSize={0.4}
-            fontWeight={700}
-            color="#00ffd5"
-            anchorX="left"
-            anchorY="top"
-            onClick={() => openIframe(iframeUrl)}
-            onPointerOver={() => (document.body.style.cursor = 'pointer')}
-            onPointerOut={() => (document.body.style.cursor = 'default')}
+            position={[2.2, 1.5, 0.05]}
+            fontSize={0.3}
+            color="#b8e6ff"
+            anchorX="center"
+            anchorY="middle"
           >
-            Click Me
+            ☁️
+          </Text>
+          
+          <Text
+            position={[-2.8, -0.5, 0.05]}
+            fontSize={0.25}
+            color="#d1f2ff"
+            anchorX="center"
+            anchorY="middle"
+          >
+            ☁️
+          </Text>
+
+          <Text
+            position={[2.5, -0.8, 0.05]}
+            fontSize={0.2}
+            color="#e8f4fd"
+            anchorX="center"
+            anchorY="middle"
+          >
+            ☁️
           </Text>
         </group>
       </Billboard>

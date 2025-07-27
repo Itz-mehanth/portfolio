@@ -97,7 +97,7 @@ export default function App() {
     } else {
       setFontBlack(true)
     }
-  }, [inView, contactinView])
+  }, [inView, contactinView, teleported])
   
   useEffect(() => {
     if (introinView) {
@@ -131,6 +131,16 @@ export default function App() {
     return () => clearTimeout(timeout)
   }, [])
 
+  const handleDownloadCV = () => {
+    // Create a link element and trigger download
+    const link = document.createElement('a')
+    link.href = 'https://drive.google.com/file/d/1jkPCERyK7Z8Vz_afloqAapmaYtPMBHFP/view?usp=sharing' // Update this path to your CV file
+    link.download = 'Mehanth_CV.pdf'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <>
      {loading && <SplashLoader setLoading={setLoading} />}
@@ -141,6 +151,7 @@ export default function App() {
       {/* Intro Section */}
       <section id='lander'
         style={{
+          padding: '40px 0',
           height: '100vh',
           width: '100vw',
           display: 'flex',
@@ -154,7 +165,35 @@ export default function App() {
         >
         <div style={{width: '90%'}}>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
-          <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left'}}>Mehanth</p>
+          <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
+        <button
+                onClick={handleDownloadCV}
+                style={{
+                  width: '170px',
+                  padding: '5px 10px',
+                  backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
+                  color: 'black',
+                  border: '2px solid rgba(0, 0, 0, 0.3)',
+                  borderRadius: '25px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontFamily: 'Poppins',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
+                  e.target.style.transform = 'translateY(-2px)'
+                  e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
+                  e.target.style.transform = 'translateY(0px)'
+                  e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
+                }}
+              >
+                Download CV
+              </button>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
           <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
         </div>
@@ -199,7 +238,7 @@ export default function App() {
           {/* Canvas Wrapper */}
         <div className='hide-scrollbar'
           style={{
-            backgroundColor: 'black',
+            backgroundColor: '#000',
             position: 'relative',
             zIndex: 10,
             width: '100%',
@@ -208,11 +247,11 @@ export default function App() {
             zIndex: 5
           }}
         >
-        {/* <div style={{width: '90%'}}>
-            <p className='Righteous' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Explore my Portfolio</p>
-        </div> */}
-          <Canvas shadows>
-         
+          <Canvas 
+            shadows
+            camera={{ position: [0, 4, 15], fov: 70 }}
+            style={{ width: '100%', height: '100%' }}
+          >
             <Suspense fallback={null}>
                 <Hud>
                   <ambientLight intensity={5} />
@@ -298,7 +337,7 @@ export default function App() {
       <section id='contact'
         ref={contactRef}
         style={{
-          height: '40vh',
+          height: '100vh',
           scrollSnapAlign: 'start',
           background: 'black',
           zIndex: 1000
@@ -306,7 +345,7 @@ export default function App() {
       >
         <div
           style={{
-            height: '40vh',
+            height: '50vh',
           }}
         >
         <Canvas>
@@ -317,7 +356,7 @@ export default function App() {
         </div>
         <div
           style={{
-            height: '60vh',
+            height: '50vh',
           }}
         >
           <ContactSection/>
@@ -380,188 +419,142 @@ function ContactSection() {
       <section style={{
         padding: '3rem 2rem',
         backgroundColor: '#fafafa',
-        height: '50vh',
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <div style={{
-          maxWidth: '800px',
-          width: '100%',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '4rem',
-          alignItems: 'center'
-        }}>
+        <div className="contact-container">
           
-          {/* Left Side - Typography & Social */}
-          <div>
-            <h2 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '2.5rem',
-              fontWeight: '400',
-              color: '#1a1a1a',
-              marginBottom: '1rem',
-              letterSpacing: '-0.02em',
-              lineHeight: '1.1'
-            }}>
-              Get in touch
-            </h2>
-            <p style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '16px',
-              color: '#666',
-              fontWeight: '400',
-              lineHeight: '1.6',
-              marginBottom: '2rem'
-            }}>
-              Let's discuss your next project
-            </p>
+          {/* Left Column */}
+          <div className="contact-left">
+            <h2>Get in touch</h2>
+            <p>Let's discuss your next project</p>
 
-            {/* Social Media Icons */}
-            <div style={{
-              display: 'flex',
-              gap: '1rem'
-            }}>
-              {socialLinks.map((link, index) => {
-                const IconComponent = link.icon;
-                return (
-                  <a
-                    key={index}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      backgroundColor: '#1a1a1a',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease',
-                      textDecoration: 'none'
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.backgroundColor = '#333';
-                      e.target.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.backgroundColor = '#1a1a1a';
-                      e.target.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <IconComponent size={20} color="#fff" />
-                  </a>
-                );
-              })}
+            <div className="social-links">
+              {socialLinks.map(({ href, icon: IconComponent, label }, index) => (
+                <a key={index} href={href} target="_blank" rel="noopener noreferrer" className="social-icon">
+                  <IconComponent size={20} color="#fff" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Right Side - Compact Form */}
-          <div>
-            <form
-              action={`mailto:itzmehanth@gmail.com?subject=Contact%20from%20Portfolio&body=Hi%20Mehanth,%0A%0AMy%20name%20is%20[Your%20Name].%0A%0A[Your%20Message]`}
-              method="POST"
-              encType="text/plain"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem'
-              }}
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Full name"
-                required
-                style={{
-                  width: '100%',
-                  padding: '1rem 0',
-                  border: 'none',
-                  borderBottom: '1px solid #e0e0e0',
-                  backgroundColor: 'transparent',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#1a1a1a',
-                  outline: 'none',
-                  transition: 'border-color 0.3s ease',
-                  boxSizing: 'border-box'
-                }}
-              />
-
-              <input
-                type="email"
-                name="email"
-                placeholder="Email address"
-                required
-                style={{
-                  width: '100%',
-                  padding: '1rem 0',
-                  border: 'none',
-                  borderBottom: '1px solid #e0e0e0',
-                  backgroundColor: 'transparent',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#1a1a1a',
-                  outline: 'none',
-                  transition: 'border-color 0.3s ease',
-                  boxSizing: 'border-box'
-                }}
-              />
-
-              <textarea
-                name="message"
-                placeholder="Your message"
-                rows={3}
-                required
-                style={{
-                  width: '100%',
-                  padding: '1rem 0',
-                  border: 'none',
-                  borderBottom: '1px solid #e0e0e0',
-                  backgroundColor: 'transparent',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#1a1a1a',
-                  outline: 'none',
-                  resize: 'none',
-                  transition: 'border-color 0.3s ease',
-                  boxSizing: 'border-box'
-                }}
-              />
-
-              <button
-                type="submit"
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  backgroundColor: '#1a1a1a',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontFamily: "'Inter', sans-serif",
-                  fontWeight: '500',
-                  letterSpacing: '0.5px',
-                  transition: 'all 0.3s ease',
-                  textTransform: 'uppercase',
-                  marginTop: '0.5rem'
-                }}
-              >
-                Send Message
-              </button>
+          {/* Right Column */}
+          <div className="contact-right">
+            <form onSubmit={handleSubmit}>
+              <input type="text" name="name" placeholder="Full name" required onChange={handleInputChange} />
+              <input type="email" name="email" placeholder="Email address" required onChange={handleInputChange} />
+              <textarea name="message" placeholder="Your message" rows={3} required onChange={handleInputChange}></textarea>
+              <button type="submit">Send Message</button>
             </form>
           </div>
         </div>
 
-        {/* Mobile Responsive Style */}
+        {/* ✅ Responsive styles */}
         <style>{`
+          .contact-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 3rem;
+            max-width: 900px;
+            width: 100%;
+          }
+
+          .contact-left,
+          .contact-right {
+            flex: 1 1 400px;
+          }
+
+          h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+          }
+
+          p {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 2rem;
+          }
+
+          .social-links {
+            display: flex;
+            gap: 1rem;
+          }
+
+          .social-icon {
+            width: 44px;
+            height: 44px;
+            background-color: #1a1a1a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+          }
+
+          .social-icon:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+          }
+
+          form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+          }
+
+          input, textarea {
+            padding: 1rem 0;
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            background: transparent;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            color: #1a1a1a;
+            outline: none;
+          }
+
+          button {
+            padding: 1rem;
+            background-color: #1a1a1a;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+          }
+
           @media (max-width: 768px) {
             .contact-container {
-              grid-template-columns: 1fr !important;
-              gap: 2rem !important;
+              flex-direction: column;
+              align-items: center;
+            }
+
+            .contact-left,
+            .contact-right {
+              flex: 1 1 100%;
+              width: 100%;
               text-align: center;
+            }
+
+            .social-links {
+              justify-content: center;
+            }
+
+            form {
+              align-items: center;
+            }
+
+            input, textarea, button {
+              width: 100%;
             }
           }
         `}</style>

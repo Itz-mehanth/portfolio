@@ -1,5 +1,5 @@
 // src/App.jsx
-import { Billboard, Clouds } from '@react-three/drei'
+import { Billboard, Clouds, Sky } from '@react-three/drei'
 import {  Environment, Cloud, Stars, Box } 
 from '@react-three/drei'
 import './App.css'
@@ -9,6 +9,7 @@ import Effects from './Effects'
 import  { useRef, useState } from "react"
 import { Html } from "@react-three/drei"
 import {Text} from "@react-three/drei"
+import { BackSide, DoubleSide } from 'three'
 
 function Dodecahedron({ time, ...props }) {
   return (
@@ -57,58 +58,94 @@ export default function Projects(props) {
 
     const asteroidData = [
       {
-        z: 170,
+        z: 60,
+        url: "https://retempla.xyz/",
+        title: "ReTempla",
+        description: "SaaS for smart document formatting and personalization."
+      },
+      {
+        z: 160,
         url: "https://sipandchat-91e6f.web.app/",
         title: "Sip & Chat",
-        description: "A social chat app designed for seamless conversations over coffee."
-      },
-      {
-        z: 150,
-        url: "https://virtual-herbal-garden-7a5e6.web.app/",
-        title: "Virtual Herbal Garden",
-        description: "Explore medicinal plants in an immersive 3D environment."
-      },
-      {
-        z: 120,
-        url: "https://medbot-12052.web.app/",
-        title: "MedBot",
-        description: "An AI-powered health assistant for quick and reliable medical advice."
+        description: "Digital ordering platform built for SSN Mela to streamline food and beverage service."
       },
       {
         z: 100,
+        url: "https://vrroom.netlify.app/",
+        title: "Virtual Herbal Garden",
+        description: "Immersive 3D exploration of medicinal plants and their traditional uses."
+      },
+      {
+        z: 140,
+        url: "https://medbot-12052.web.app/",
+        title: "MedBot",
+        description: "AI health assistant offering instant medical insights and symptom analysis."
+      },
+      {
+        z: 120,
         url: "https://healthboosters-dff5b.web.app/",
         title: "Health Boosters",
-        description: "Track your fitness, get tips, and boost your health every day."
+        description: "Comprehensive hospital management system for appointments, records, and billing."
       },
       {
         z: 80,
         url: "https://medicinal-plant-82aa9.web.app/",
         title: "Medicinal Plants Info",
-        description: "Discover uses and benefits of medicinal plants with images and data."
+        description: "CNN-based plant identifier with detailed medicinal uses and benefits."
       }
     ];
+
     
     return (
     <>
-        <Environment preset="night" intensity={0.1}></Environment>
-        <ambientLight intensity={0.1} />
         <Effects/>
-        <pointLight position={[0, 0, 500]} intensity={100} distance={100} decay={2} color="white" />
-
-        <Stars radius={200} depth={1} count={1000} factor={10} saturation={1} fade speed={1} />
-        <Stars radius={50} depth={10} count={1000} factor={10} saturation={1} fade speed={1} />
-        <Stars radius={100} depth={10} count={100} factor={10} saturation={1} fade speed={1} />
-        {/* <Stars radius={20} depth={1} count={1000} factor={10} saturation={1} fade speed={1} /> */}
+        <Environment 
+          background 
+          backgroundIntensity={2}
+          files="hdr/sky.hdr"
+        />
 
         <Clouds position={[0, 0, 0]} >
-          <Cloud segments={250} seed={8} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={7} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={6} scale={3} bounds={[100, -150, 300]} opacity={0.1} volume={250} color="white"  fade={100} />
-          <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 500]} opacity={0.1} volume={250} color="white"  fade={100} />
+          <Cloud segments={250} seed={8} scale={3} bounds={[100, -150, 300]} opacity={0.5} volume={250} color="white"  fade={100} />
+          <Cloud segments={250} seed={7} scale={3} bounds={[100, -150, 300]} opacity={0.5} volume={250} color="white"  fade={100} />
+          <Cloud segments={250} seed={6} scale={3} bounds={[100, -150, 300]} opacity={0.5} volume={250} color="white"  fade={100} />
+          <Cloud segments={250} seed={5} scale={3} bounds={[100, -150, 500]} opacity={0.5} volume={250} color="white"  fade={100} />
         </Clouds>
 
-        <Planet textureUrl='Planets/mars.jpg' radius={150} position={[0,-250,100]}/>
+        <Billboard position={[0, 0, -5]}>
+          <group position={[0, 5, -20]}>
+            {/* Notice Board Background */}
+            <mesh position={[0, 0, -0.05]}>
+              <planeGeometry args={[16, 10]} />
+              <meshStandardMaterial color="#1f2937" /> {/* Tailwind's gray-800 */}
+            </mesh>
 
+            {/* Main Title */}
+            <Text
+              fontSize={2.5}
+              color="#fbbf24" // Golden yellow
+              anchorX="center"
+              anchorY="middle"
+              position={[0, 2.5, 0.1]}
+            >
+              PROJECTS
+            </Text>
+
+            {/* Description */}
+            <Text
+              fontSize={0.6}
+              color="#d1d5db" // Tailwind's gray-300
+              anchorX="center"
+              anchorY="middle"
+              position={[0, -1, 0.1]}
+              maxWidth={12}
+              textAlign="center"
+            >
+              Click on the Live Site button to explore more about my projects!
+            </Text>
+          </group>
+        </Billboard>
+     
         {asteroidData.map((asteroid, index) => (
           <Asteroid
             key={index}
@@ -119,18 +156,6 @@ export default function Projects(props) {
             description={asteroid.description}
           />
         ))}
-
-        {showBillboard && (
-          <Billboard position={[0, 3, 120]} follow>
-              <planeGeometry args={[3.2, 1.5]} />
-              <meshStandardMaterial color="#fff" transparent opacity={0.97} />
-          </Billboard>
-        )}
-
-        {/* <Content /> */}
-
-        {/* <GroundPlane /> */}
-        {/* <OrbitControls/> */}
     </>
     )
 }

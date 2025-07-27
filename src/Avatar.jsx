@@ -262,7 +262,7 @@ const  Avatar = forwardRef((props, ref) => {
       const wobbleX = Math.sin(progress * Math.PI * wobbleFrequency) * wobbleAmplitude;
 
       group.current.position.z = zOffset;
-      camera.position.set(wobbleX, 10, -15 + zOffset);
+      camera.position.set(wobbleX, 10, -35 + zOffset);
       camera.lookAt(group.current.position);
       // scrubAnimation('Flying', 0)
 

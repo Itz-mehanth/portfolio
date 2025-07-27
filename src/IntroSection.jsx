@@ -159,6 +159,8 @@ export function DraggableMeshes() {
 }
 
 export default function IntroSection() {
+
+
   return (
     <div
     style={{
@@ -172,6 +174,7 @@ export default function IntroSection() {
         margin: '10px auto',
       }}
       >
+
       <Canvas shadows >
         <Suspense fallback={null}>
         <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={100} />
