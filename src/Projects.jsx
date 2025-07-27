@@ -61,39 +61,68 @@ export default function Projects(props) {
         z: 60,
         url: "https://retempla.xyz/",
         title: "ReTempla",
-        description: "SaaS for smart document formatting and personalization."
+        description: "SaaS for smart document formatting and personalization.",
+        type: "live"
       },
       {
         z: 160,
         url: "https://sipandchat-91e6f.web.app/",
         title: "Sip & Chat",
-        description: "Digital ordering platform built for SSN Mela to streamline food and beverage service."
+        description: "Digital ordering platform built for SSN Mela.",
+        type: "live"
       },
       {
         z: 100,
         url: "https://vrroom.netlify.app/",
         title: "Virtual Herbal Garden",
-        description: "Immersive 3D exploration of medicinal plants and their traditional uses."
+        description: "Immersive 3D exploration of medicinal plants.",
+        type: "live"
       },
       {
         z: 140,
         url: "https://medbot-12052.web.app/",
         title: "MedBot",
-        description: "AI health assistant offering instant medical insights and symptom analysis."
+        description: "AI health assistant offering medical insights.",
+        type: "live"
       },
       {
         z: 120,
         url: "https://healthboosters-dff5b.web.app/",
         title: "Health Boosters",
-        description: "Comprehensive hospital management system for appointments, records, and billing."
+        description: "Hospital management system for appointments and billing.",
+        type: "live"
       },
       {
         z: 80,
         url: "https://medicinal-plant-82aa9.web.app/",
         title: "Medicinal Plants Info",
-        description: "CNN-based plant identifier with detailed medicinal uses and benefits."
+        description: "CNN-based plant identifier with medicinal insights.",
+        type: "live"
+      },
+      {
+        z: 180,
+        url: "https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7261266876800868355?collapsed=1", // <-- Replace with your real URL
+        title: "Galaxy Strike",
+        description: "A retro-style 2D Java game built from scratch using Swing. Features real-time collisions, scoring, and keyboard controls.",
+        type: "linkedin"
+      },
+      {
+        z: 200,
+        url: "https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7298710253531971584?collapsed=1", // Replace with your actual LinkedIn embed URL for the AR Ludo post
+        title: "AR Ludo Game",
+        description: "An augmented reality version of the classic Ludo game built with Unity and Vuforia. Enables real-world surface tracking and interactive multiplayer gameplay using physical markers.",
+        type: "linkedin"
+      },
+      {
+        z: 220,
+        url: "https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7213766114437156864?collapsed=1", // Replace with your actual LinkedIn embed URL for the AR Ludo post
+        title: "C Food Delivery app",
+        description: "An augmented reality version of the classic Ludo game built with Unity and Vuforia. Enables real-world surface tracking and interactive multiplayer gameplay using physical markers.",
+        type: "linkedin"
       }
     ];
+
+
 
     
     return (
@@ -151,6 +180,7 @@ export default function Projects(props) {
             key={index}
             openIframe={props.openIframe}
             iframeUrl={asteroid.url}
+            type={asteroid.type} // pass the type
             position={[index % 2 === 0 ? 5 : -5, 0, asteroid.z]}
             title={asteroid.title}
             description={asteroid.description}

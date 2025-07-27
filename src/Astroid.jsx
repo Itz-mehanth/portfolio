@@ -4,7 +4,7 @@ import { Billboard, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { Balloon } from './utils/models/Balloon';
 
-export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description }) {
+export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description, type='live' }) {
   const asteroidRef = useRef();
   const [hovered, setHovered] = useState(false);
   const [hudVisible, setHudVisible] = useState(false);
@@ -45,7 +45,7 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
       <Billboard position={[position[0] < 0 ? 2 : -2, 0, -5]}>
         <group>
           {/* Cloud-like background with soft rounded edges */}
-          <RoundedBox args={[7, 4, 0.1]} radius={0.3} smoothness={4}>
+          <RoundedBox args={[7, 6, 0.1]} radius={0.3} smoothness={4}>
             <meshStandardMaterial 
               color="#f0f8ff" 
               transparent 
@@ -55,7 +55,7 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
           </RoundedBox>
 
           {/* Decorative cloud border */}
-          <RoundedBox args={[6.5, 3.7, 0.05]} radius={0.4} smoothness={4}>
+          <RoundedBox args={[6.5, 5.7, 0.05]} radius={0.4} smoothness={4}>
             <meshStandardMaterial 
               color="#87ceeb" 
               transparent 
@@ -77,7 +77,7 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
 
           {/* Title with sky theme */}
           <Text
-            position={[-3, 1.2, 0.1]}
+            position={[-3, 2, 0.1]}
             fontSize={0.5}
             color="#2c5aa0"
             anchorX="left"
@@ -89,7 +89,7 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
 
           {/* Description */}
           <Text
-            position={[-2.5, 0.5, 0.1]}
+            position={[-2.5, 1.4, 0.1]}
             fontSize={0.3}
             color="#1e3a8a"
             maxWidth={4.8}
@@ -101,12 +101,20 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
           </Text>
 
           {/* Action button with balloon theme */}
-          <group position={[0, -1, 0.1]}>
+          <group position={[0, -2, 0.1]}>
             {/* Button background */}
             <RoundedBox args={[2.2, 0.8, 0.05]} radius={0.15} smoothness={4}>
               <meshStandardMaterial 
-                color="#0099ffff" 
-                emissive={"#0099ffff"}
+                color={
+                  type === 'github' ? '#24292e' : 
+                  type === 'linkedin' ? '#ffd000ff' : 
+                  '#0099ff'
+                }
+                emissive={
+                  type === 'github' ? '#24292e' : 
+                  type === 'linkedin' ? '#ffee00ff' : 
+                  '#0099ff'
+                }
                 emissiveIntensity={1}
               />
             </RoundedBox>
@@ -116,14 +124,19 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
               position={[0, 0, 0.05]}
               fontSize={0.25}
               fontWeight={700}
-              color="#ffffffff"
+              color="#000000ff"
               anchorX="center"
               anchorY="middle"
-              onClick={() => openIframe(iframeUrl)}
+              onClick={() => {
+                if (type === 'live') openIframe(iframeUrl)
+                else window.open(iframeUrl, '_blank')
+              }}
               onPointerOver={() => (document.body.style.cursor = 'pointer')}
               onPointerOut={() => (document.body.style.cursor = 'default')}
             >
-              Live Site
+              {type === 'github' && 'View GitHub'}
+              {type === 'linkedin' && 'View Post'}
+              {type === 'live' && 'Live Site'}
             </Text>
           </group>
 

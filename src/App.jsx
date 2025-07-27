@@ -217,7 +217,7 @@ export default function App() {
               alt='Mehanth'
               style={{
                 width: '100%',
-                maxWidth: '350px',
+                maxWidth: '200px',
                 borderRadius: '15px',
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
               }}
