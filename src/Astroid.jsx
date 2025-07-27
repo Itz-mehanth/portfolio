@@ -5,10 +5,6 @@ import * as THREE from 'three';
 import { Balloon } from './utils/models/Balloon';
 
 export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description, type='live' }) {
-  const asteroidRef = useRef();
-  const [hovered, setHovered] = useState(false);
-  const [hudVisible, setHudVisible] = useState(false);
-
   // Generate random rotation and color for balloon
   const balloonProps = useMemo(() => {
     // Thick, vibrant colors array

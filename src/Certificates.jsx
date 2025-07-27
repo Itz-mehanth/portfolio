@@ -9,7 +9,7 @@ const Certificates = () => {
       date: "2024",
       category: "Programming",
       color: "linear-gradient(135deg, #60a5fa, #2563eb)",
-      certificateUrl: "https://archive.nptel.ac.in/noc/Ecertificate/?q=NPTEL24CS34S1234567890"
+      certificateUrl: "https://drive.google.com/file/d/1lSmxFqJepnsuDZl7FMHyx74-gEsETpmw/view?usp=sharing"
     },
     {
       title: "Top 5% NPTEL Competitive Programming",
@@ -18,7 +18,7 @@ const Certificates = () => {
       date: "2024",
       category: "Programming",
       color: "linear-gradient(135deg, #4ade80, #16a34a)",
-      certificateUrl: "https://archive.nptel.ac.in/noc/Ecertificate/?q=NPTEL24CS98S0987654321"
+      certificateUrl: "https://drive.google.com/file/d/1jfdlSOyMnJAaJryDomnqpMPpksZzx7QV/view?usp=sharing"
     },
     {
       title: "UI/UX Design Figma Certification",
@@ -27,7 +27,7 @@ const Certificates = () => {
       date: "2024",
       category: "Design",
       color: "linear-gradient(135deg, #a78bfa, #7c3aed)",
-      certificateUrl: "https://cybernaut.com/certificates/figma-ui-ux-design-cert-12345"
+      certificateUrl: "https://drive.google.com/file/d/1lSmxFqJepnsuDZl7FMHyx74-gEsETpmw/view?usp=sharing"
     }
   ];
 
