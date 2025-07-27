@@ -6,7 +6,7 @@ import './App.css'
 import Planet from './Planet'
 import Asteroid from './Astroid'
 import Effects from './Effects'
-import  { useRef } from "react"
+import  { useRef, useState } from "react"
 import { Html } from "@react-three/drei"
 import {Text} from "@react-three/drei"
 
@@ -53,6 +53,8 @@ function Content() {
 }
 
 export default function Projects(props) {
+    const [showBillboard, setShowBillboard] = useState(true);
+
     const asteroidData = [
       {
         z: 170,
@@ -117,6 +119,13 @@ export default function Projects(props) {
             description={asteroid.description}
           />
         ))}
+
+        {showBillboard && (
+          <Billboard position={[0, 3, 120]} follow>
+              <planeGeometry args={[3.2, 1.5]} />
+              <meshStandardMaterial color="#fff" transparent opacity={0.97} />
+          </Billboard>
+        )}
 
         {/* <Content /> */}
 

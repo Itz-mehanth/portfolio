@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo, useState } from 'react'
-import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Sparkles,  Html} from '@react-three/drei'
+import { Environment, OrbitControls, Stars, PerspectiveCamera, Cloud, Clouds, Sparkles,  Html, Billboard, Text} from '@react-three/drei'
 import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -194,7 +194,7 @@ function RandomOrbitingRocks({ count = 50, speedMultiplier = 3, fontBlack, setFo
 export default function Contact(props) {
   const fontBlack = props.fontBlack
   const setFontBlack = props.setFontBlack
-  const spotlightRef = useRef()
+  const [showBillboard, setShowBillboard] = useState(true)
 
   useEffect(() => {
     console.log("Contact loaded")
@@ -202,6 +202,7 @@ export default function Contact(props) {
 
   return (
     <>
+      {/* Billboard Popup (3D, not HTML) */}
       <Environment preset="sunset"/>
       <Stars radius={100} depth={500} count={50} factor={7} saturation={1} fade speed={5} />
       <Stars radius={100} depth={50} count={100} factor={7} saturation={1} fade speed={1} />

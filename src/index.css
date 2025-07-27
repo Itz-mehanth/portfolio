@@ -11,7 +11,15 @@
   padding: 0;
 }
 
-html, body, #root, .canvas-container {
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#root {
   margin: 0;
   padding: 0px;
   font-family: 'Poppins', sans-serif;
@@ -21,6 +29,7 @@ html, body, #root, .canvas-container {
   scrollbar-width: none; /* For Firefox */
   -ms-overflow-style: none; /* For Internet Explorer and Edge */
 }
+
 
 #root::-webkit-scrollbar {
   display: none; /* For Chrome, Safari, and Opera */
