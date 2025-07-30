@@ -138,7 +138,7 @@ export default function App() {
   const handleDownloadCV = () => {
     // Create a link element and trigger download
     const link = document.createElement('a')
-    link.href = 'https://drive.google.com/file/d/1jkPCERyK7Z8Vz_afloqAapmaYtPMBHFP/view?usp=sharing' // Update this path to your CV file
+    link.href = 'https://drive.google.com/file/d/16bIGswFxA5NoaxCCXp_R-UAoUm8EmeKQ/view?usp=sharing' // Update this path to your CV file
     link.download = 'Mehanth_CV.pdf'
     document.body.appendChild(link)
     link.click()
