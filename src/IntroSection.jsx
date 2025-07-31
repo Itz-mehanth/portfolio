@@ -177,7 +177,7 @@ export default function IntroSection() {
 
       <Canvas shadows >
         <Suspense fallback={null}>
-        <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={100} />
+        <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={40} />
         <ambientLight intensity={5} />
         <Controls />
         <EffectComposer>
@@ -205,8 +205,8 @@ export default function IntroSection() {
                     size={10}
                     height={2}
                     letterSpacing={0.1}
-                    position={[20, 0, 10]}
-                    rotation={[0, Math.PI, 0]}
+                    position={[-10, 0, -150]}
+                    rotation={[0, 0, 0]}
                     >
                     Mehanth
                     <meshPhysicalMaterial
@@ -219,7 +219,7 @@ export default function IntroSection() {
                     />
                   </Text3D>
           </Center>
-          <Sparkles count={50} size={30} scale={30} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
+          <Sparkles count={50} size={5} scale={10} noise={1} speed={1} blending={THREE.AdditiveBlending} color={'yellow'}/>
 
           {/* Draggable Meshes */}
           <DraggableMeshes />

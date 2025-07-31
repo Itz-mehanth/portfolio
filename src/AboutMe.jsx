@@ -105,8 +105,7 @@ export default function AboutMe(props) {
 
         {/* Controls */}
         {/* <OrbitControls enableZoom={false} /> */}
-        <Environment preset="night" intensity={0}>
-        </Environment>
+  
         <Stars radius={200} depth={10} count={1000} factor={10} saturation={4} fade speed={1} />
         <Stars radius={100} depth={10} count={1000} factor={10} saturation={7} fade speed={1} />
     </>

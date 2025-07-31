@@ -335,14 +335,14 @@ export default function App() {
               <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={70} />
               <ScrollControls distance={5} pages={1} damping={1} enabled={scrollEnabled}>
                 <Scroll>
-                  {!teleported && !contactPage && (
-                    <AboutMe
-                      startSpiralPortal={startSpiralPortal}
-                      startShockwave={startShockwave}
-                      waves={waves}
-                      setWaves={setWaves}
-                    />
-                  )}
+                  <group visible={!teleported && !contactPage}>
+                      <AboutMe
+                        startSpiralPortal={startSpiralPortal}
+                        startShockwave={startShockwave}
+                        waves={waves}
+                        setWaves={setWaves}
+                      />
+                  </group>
 
                   <Avatar
                     contactPage={contactPage}
@@ -357,10 +357,11 @@ export default function App() {
                     static={false}
                   />
 
-                  {teleported && !contactPage && 
-                  <Projects
-                    openIframe={openIframe}
-                  />}
+                  <group visible={teleported && !contactPage}>
+                    <Projects
+                      openIframe={openIframe}
+                    />
+                  </group>
 
                 </Scroll>
               </ScrollControls>

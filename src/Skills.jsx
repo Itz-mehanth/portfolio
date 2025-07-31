@@ -225,7 +225,7 @@ export default function SciFiSkillCities() {
     <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}>
       {/* Basic scene setup - always available */}
       <ambientLight intensity={0.3} />
-      <Environment preset='sunset' environmentIntensity={0.4} background={false} />
+      {/* <Environment preset='sunset' environmentIntensity={0.4} background={false} /> */}
       <directionalLight
         castShadow
         position={[10, 10, 10]}
