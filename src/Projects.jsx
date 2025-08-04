@@ -126,7 +126,7 @@ export default function Projects(props) {
 
     
     return (
-    <>
+    <group>
         <Effects/>
         <Environment 
           background 
@@ -186,6 +186,6 @@ export default function Projects(props) {
             description={asteroid.description}
           />
         ))}
-    </>
+    </group>
     )
 }

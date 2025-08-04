@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, Environment, useGLTF } from '@react-three/drei';
+import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground'; // Adjust the import path as necessary
 import { Suspense } from 'react';
@@ -225,7 +225,6 @@ export default function SciFiSkillCities() {
     <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}>
       {/* Basic scene setup - always available */}
       <ambientLight intensity={0.3} />
-      {/* <Environment preset='sunset' environmentIntensity={0.4} background={false} /> */}
       <directionalLight
         castShadow
         position={[10, 10, 10]}
