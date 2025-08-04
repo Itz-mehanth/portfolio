@@ -372,17 +372,18 @@ export default function App() {
       <section 
         ref={certificateRef}
         id='certificate'
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '2rem', 
-        height: '100%', 
-        padding: '80px 40px',
-        scrollSnapAlign: 'start',
-        scrollSnapType: 'y mandatory', /* or y or both */
-        overflowX: 'scroll',
-        scrollBehavior: 'smooth',
-      }}>
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+          height: '100%',
+          padding: '80px 40px',
+          scrollSnapAlign: 'start',
+          scrollSnapType: 'y mandatory', /* or y or both */
+          overflowX: 'scroll',
+          scrollBehavior: 'smooth',
+        }
+      }>
         <Certificates/>
       </section>
 
