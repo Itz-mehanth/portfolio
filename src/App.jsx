@@ -534,11 +534,102 @@ function ContactSection() {
     message: ''
   });
 
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState('');
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Message validation
+    if (!formData.message.trim()) {
+      newErrors.message = 'Message is required';
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('');
+
+    // IMPORTANT: Replace this with your actual Google Apps Script deployment URL
+    // It should look like: https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdWxMgLRjgkewx0pxxqcwu0swJ4TxEE6htZdW-Yagjo5vDb_sKHNs7YmSLD-2gA39R/exec';
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Required for Google Apps Script
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim(),
+          timestamp: new Date().toISOString(),
+          source: 'Portfolio Website'
+        })
+      });
+
+      // With no-cors, we can't read the response, so we assume success
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+      setErrors({});
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus('');
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const socialLinks = [
@@ -562,7 +653,35 @@ function ContactSection() {
           <div className="contact-content">
             {/* Contact Form */}
             <div className="contact-form-container">
-              <form className="contact-form">
+              <form className="contact-form" onSubmit={handleSubmit}>
+                {submitStatus === 'success' && (
+                  <div style={{
+                    background: '#d4edda',
+                    border: '1px solid #c3e6cb',
+                    color: '#155724',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    textAlign: 'center'
+                  }}>
+                    ✅ Message sent successfully! I'll get back to you soon.
+                  </div>
+                )}
+
+                {submitStatus === 'error' && (
+                  <div style={{
+                    background: '#f8d7da',
+                    border: '1px solid #f5c6cb',
+                    color: '#721c24',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    textAlign: 'center'
+                  }}>
+                    ❌ Error sending message. Please try again.
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label htmlFor="name">Your Name</label>
                   <input 
@@ -572,8 +691,17 @@ function ContactSection() {
                     placeholder="Enter your full name" 
                     required 
                     value={formData.name}
-                    onChange={handleInputChange} 
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    style={{
+                      borderColor: errors.name ? '#dc3545' : undefined
+                    }}
                   />
+                  {errors.name && (
+                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                      {errors.name}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="form-group">
@@ -585,8 +713,17 @@ function ContactSection() {
                     placeholder="your.email@example.com" 
                     required 
                     value={formData.email}
-                    onChange={handleInputChange} 
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    style={{
+                      borderColor: errors.email ? '#dc3545' : undefined
+                    }}
                   />
+                  {errors.email && (
+                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="form-group">
@@ -599,15 +736,34 @@ function ContactSection() {
                     required 
                     value={formData.message}
                     onChange={handleInputChange}
-                  ></textarea>
+                    disabled={isSubmitting}
+                    style={{
+                      borderColor: errors.message ? '#dc3545' : undefined
+                    }}
+                  />
+                  {errors.message && (
+                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                      {errors.message}
+                    </span>
+                  )}
                 </div>
                 
-                <button type="submit" className="submit-btn">
-                  <span>Send Message</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <button 
+                  type="submit" 
+                  className="submit-btn" 
+                  disabled={isSubmitting}
+                  style={{
+                    opacity: isSubmitting ? 0.7 : 1,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
+                  {!isSubmitting && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
                 </button>
               </form>
             </div>
@@ -628,7 +784,7 @@ function ContactSection() {
 
               <div className="social-section">
                 <h4>Follow Me</h4>
-            <div className="social-links">
+                <div className="social-links">
                   {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
                     <a 
                       key={index} 
@@ -640,10 +796,10 @@ function ContactSection() {
                     >
                       <IconComponent size={20} />
                       <span>{label}</span>
-                </a>
-              ))}
-            </div>
-          </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
