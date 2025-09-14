@@ -391,7 +391,7 @@ export default function App() {
                       style={{
                         display: showIframe ? 'flex' : 'none',
                         width: '350px',
-                        height: '750px',
+                        height: '650px',
                         borderRadius: '10px',
                         overflow: 'hidden',
                         boxShadow: '0 0 15px rgba(0,0,0,0.3)',
@@ -774,7 +774,7 @@ function ContactSection() {
                 <h3>Get in Touch</h3>
                 <div className="contact-item">
                   <Mail size={20} />
-                  <span>itzmehanth@gmail.com</span>
+                  <span>mehanth362@gmail.com</span>
                 </div>
                 <div className="contact-item">
                   <Linkedin size={20} />
