@@ -221,8 +221,30 @@ export default function SciFiSkillCities() {
 
   return (
     <>
-    <div style={{width: '90vw', height: '60vh', border: '15px ridge black', borderRadius: '10px'}}>
-    <Canvas camera={{ position: [0, 6, 20], fov: 60 }} shadows gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}>
+    <div 
+      style={{
+        width: '90vw', 
+        height: '60vh', 
+        border: '15px ridge black', 
+        borderRadius: '10px',
+        position: 'relative',
+        zIndex: 10, // Ensure it's above other elements
+        pointerEvents: 'auto', // Ensure mouse events work
+        cursor: 'grab' // Show grab cursor
+      }}
+      onClick={() => console.log('Canvas container clicked!')}
+    >
+    <Canvas 
+      camera={{ position: [0, 6, 20], fov: 60 }} 
+      shadows 
+      gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}
+      style={{ 
+        width: '100%', 
+        height: '100%',
+        display: 'block',
+        pointerEvents: 'auto' // Ensure canvas receives mouse events
+      }}
+    >
       {/* Basic scene setup - always available */}
       <ambientLight intensity={0.3} />
       <directionalLight
@@ -237,7 +259,16 @@ export default function SciFiSkillCities() {
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
       />
-      <OrbitControls enableZoom={true} enablePan={true} maxPolarAngle={Math.PI / 2.3} />
+      <OrbitControls 
+        enableZoom={true} 
+        enablePan={true} 
+        enableRotate={true}
+        maxPolarAngle={Math.PI / 2.3}
+        minDistance={5}
+        maxDistance={50}
+        enableDamping={true}
+        dampingFactor={0.05}
+      />
 
       {/* Post-processing effects */}
       <Suspense fallback={null}>
@@ -316,391 +347,292 @@ export default function SciFiSkillCities() {
 }
 
 const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
-  const canvasRef = useRef(null);
-  const animationRef = useRef(null);
-  const skillsRef = useRef([]);
-  const ballRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0, isPressed: false });
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const skillsRef = useRef([]);
+  const ballRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0, isPressed: false });
 
-  // Physics properties
-  const friction = 0.99;
-  const bounce = 0.7;
-  const gravity = 0.15;
-  const repelForce = 60;
-  const ballSpeed = 3;
+  // Physics properties
+  const friction = 0.99;
+  const bounce = 0.7;
+  const gravity = 0.15;
+  const repelForce = 60;
+  const ballSpeed = 3;
 
-  // Ball physics object
-  class Ball {
-    constructor(x, y, radius) {
-      this.x = x;
-      this.y = y;
-      this.radius = radius;
-      this.vx = ballSpeed;
-      this.vy = ballSpeed;
-    }
+  // Ball physics object
+  class Ball {
+    constructor(x, y, radius) {
+      this.x = x;
+      this.y = y;
+      this.radius = radius;
+      this.vx = ballSpeed;
+      this.vy = ballSpeed;
+    }
 
-    update(canvas, skills) {
-      // Move ball
-      this.x += this.vx;
-      this.y += this.vy;
+    update(canvas, skills) {
+      // Move ball
+      this.x += this.vx;
+      this.y += this.vy;
 
-      // Bounce off walls
-      if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
-        this.vx = -this.vx;
-        this.x = this.x - this.radius <= 0 ? this.radius : canvas.width - this.radius;
-      }
-      if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
-        this.vy = -this.vy;
-        this.y = this.y - this.radius <= 0 ? this.radius : canvas.height - this.radius;
-      }
+      // Bounce off walls
+      if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
+        this.vx = -this.vx;
+        this.x = this.x - this.radius <= 0 ? this.radius : canvas.width - this.radius;
+      }
+      if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
+        this.vy = -this.vy;
+        this.y = this.y - this.radius <= 0 ? this.radius : canvas.height - this.radius;
+      }
 
-      // Check collision with skills
-      for (let skill of skills) {
-        if (this.isCollidingWithRect(skill)) {
-          this.resolveRectCollision(skill);
-        }
-      }
+      // Check collision with skills
+      for (let skill of skills) {
+        if (this.isCollidingWithRect(skill)) {
+          this.resolveRectCollision(skill);
+        }
+      }
 
-      // Maintain constant speed
-      const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-      this.vx = (this.vx / currentSpeed) * ballSpeed;
-      this.vy = (this.vy / currentSpeed) * ballSpeed;
-    }
+      // Maintain constant speed
+      const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      this.vx = (this.vx / currentSpeed) * ballSpeed;
+      this.vy = (this.vy / currentSpeed) * ballSpeed;
+    }
 
-    isCollidingWithRect(rect) {
-      const closestX = Math.max(rect.x, Math.min(this.x, rect.x + rect.width));
-      const closestY = Math.max(rect.y, Math.min(this.y, rect.y + rect.height));
-      const distanceX = this.x - closestX;
-      const distanceY = this.y - closestY;
-      return (distanceX * distanceX + distanceY * distanceY) < (this.radius * this.radius);
-    }
+    isCollidingWithRect(rect) {
+      const closestX = Math.max(rect.x, Math.min(this.x, rect.x + rect.width));
+      const closestY = Math.max(rect.y, Math.min(this.y, rect.y + rect.height));
+      const distanceX = this.x - closestX;
+      const distanceY = this.y - closestY;
+      return (distanceX * distanceX + distanceY * distanceY) < (this.radius * this.radius);
+    }
 
-    resolveRectCollision(rect) {
-      const rectCenterX = rect.x + rect.width / 2;
-      const rectCenterY = rect.y + rect.height / 2;
-      
-      const dx = this.x - rectCenterX;
-      const dy = this.y - rectCenterY;
-      
-      const absX = Math.abs(dx);
-      const absY = Math.abs(dy);
-      
-      // Determine which side of the rectangle we hit
-      if (absX / rect.width > absY / rect.height) {
-        // Hit left or right side
-        this.vx = -this.vx;
-        this.x = dx > 0 ? rect.x + rect.width + this.radius : rect.x - this.radius;
-      } else {
-        // Hit top or bottom side
-        this.vy = -this.vy;
-        this.y = dy > 0 ? rect.y + rect.height + this.radius : rect.y - this.radius;
-      }
+    resolveRectCollision(rect) {
+      const rectCenterX = rect.x + rect.width / 2;
+      const rectCenterY = rect.y + rect.height / 2;
+      
+      const dx = this.x - rectCenterX;
+      const dy = this.y - rectCenterY;
+      
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      
+      // Determine which side of the rectangle we hit
+      if (absX / rect.width > absY / rect.height) {
+        // Hit left or right side
+        this.vx = -this.vx;
+        this.x = dx > 0 ? rect.x + rect.width + this.radius : rect.x - this.radius;
+      } else {
+        // Hit top or bottom side
+        this.vy = -this.vy;
+        this.y = dy > 0 ? rect.y + rect.height + this.radius : rect.y - this.radius;
+      }
 
-      // Give the skill a little push
-      const pushForce = 2;
-      rect.vx += (dx / Math.sqrt(dx * dx + dy * dy)) * pushForce;
-      rect.vy += (dy / Math.sqrt(dx * dx + dy * dy)) * pushForce;
-    }
+      // Give the skill a little push
+      const pushForce = 2;
+      rect.vx += (dx / Math.sqrt(dx * dx + dy * dy)) * pushForce;
+      rect.vy += (dy / Math.sqrt(dx * dx + dy * dy)) * pushForce;
+    }
 
-    draw(ctx) {
-      ctx.fillStyle = '#FF4444';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Black border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-  }
+    draw(ctx) {
+      ctx.fillStyle = '#FF4444';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Black border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
 
-  // Simplified skill physics object
-  class SkillBox {
-    constructor(skill, x, y, width, height) {
-      this.skill = skill;
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-      this.vx = 0;
-      this.vy = 0;
-      this.radius = 8;
-      this.isDragging = false;
-    }
+  // Simplified skill physics object
+  class SkillBox {
+    constructor(skill, x, y, width, height) {
+      this.skill = skill;
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      // Set initial velocity
+      this.vx = (Math.random() - 0.5) * 2;
+      this.vy = (Math.random() - 0.5) * 2;
+      this.radius = 8;
+      this.isDragging = false;
+    }
 
-    update(canvas) {
-      if (!this.isDragging) {
-        this.vy += gravity;
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vx *= friction;
-        this.vy *= friction;
-        
-        // Boundary collisions
-        if (this.x <= 0) {
-          this.x = 0;
-          this.vx *= -bounce;
-        }
-        if (this.x + this.width >= canvas.width) {
-          this.x = canvas.width - this.width;
-          this.vx *= -bounce;
-        }
-        if (this.y <= 0) {
-          this.y = 0;
-          this.vy *= -bounce;
-        }
-        if (this.y + this.height >= canvas.height) {
-          this.y = canvas.height - this.height;
-          this.vy *= -bounce;
-        }
-      }
-    }
+    update(canvas) {
+      if (!this.isDragging) {
+        this.vy += gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= friction;
+        this.vy *= friction;
+        
+        // Boundary collisions
+        if (this.x <= 0) {
+          this.x = 0;
+          this.vx *= -bounce;
+        }
+        if (this.x + this.width >= canvas.width) {
+          this.x = canvas.width - this.width;
+          this.vx *= -bounce;
+        }
+        if (this.y <= 0) {
+          this.y = 0;
+          this.vy *= -bounce;
+        }
+        if (this.y + this.height >= canvas.height) {
+          this.y = canvas.height - this.height;
+          this.vy *= -bounce;
+        }
+      }
+    }
 
-    draw(ctx) {
-      // Simple white rounded rectangle
-      ctx.fillStyle = '#FFFFFF';
-      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
-      ctx.fill();
-      
-      // Black border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
-      ctx.stroke();
-      
-      // Text
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(this.skill.name, this.x + this.width / 2, this.y + this.height / 2 - 8);
-      
-      // Description
-      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const maxChars = Math.floor(this.width / 7);
-      const truncatedDesc = this.skill.description.length > maxChars 
-        ? this.skill.description.substring(0, maxChars - 3) + '...'
-        : this.skill.description;
-      ctx.fillText(truncatedDesc, this.x + this.width / 2, this.y + this.height / 2 + 12);
-    }
+    draw(ctx) {
+      // Simple white rounded rectangle
+      ctx.fillStyle = '#FFFFFF';
+      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
+      ctx.fill();
+      
+      // Black border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
+      ctx.stroke();
+      
+      // Text
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(this.skill.name, this.x + this.width / 2, this.y + this.height / 2 - 8);
+      
+      // Description
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const maxChars = Math.floor(this.width / 7);
+      const truncatedDesc = this.skill.description.length > maxChars 
+        ? this.skill.description.substring(0, maxChars - 3) + '...'
+        : this.skill.description;
+      ctx.fillText(truncatedDesc, this.x + this.width / 2, this.y + this.height / 2 + 12);
+    }
 
-    drawRoundedRect(ctx, x, y, width, height, radius) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.arcTo(x + width, y, x + width, y + height, radius);
-      ctx.arcTo(x + width, y + height, x, y + height, radius);
-      ctx.arcTo(x, y + height, x, y, radius);
-      ctx.arcTo(x, y, x + width, y, radius);
-      ctx.closePath();
-    }
+    drawRoundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, radius);
+      ctx.arcTo(x + width, y + height, x, y + height, radius);
+      ctx.arcTo(x, y + height, x, y, radius);
+      ctx.arcTo(x, y, x + width, y, radius);
+      ctx.closePath();
+    }
+  }
 
-    isPointInside(x, y) {
-      return x >= this.x && x <= this.x + this.width && 
-             y >= this.y && y <= this.y + this.height;
-    }
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    const resizeCanvas = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-    applyRepelForce(mouseX, mouseY) {
-      const centerX = this.x + this.width / 2;
-      const centerY = this.y + this.height / 2;
-      const dx = centerX - mouseX;
-      const dy = centerY - mouseY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (distance < 100 && distance > 0) {
-        const force = repelForce / distance;
-        this.vx += (dx / distance) * force;
-        this.vy += (dy / distance) * force;
-      }
-    }
-  }
+    // Initialize skills with random velocity
+    const skills = skillsByCity[selectedCity] || [];
+    skillsRef.current = skills.map((skill, index) => {
+      const width = Math.max(70, skill.name.length * 8 + 40);
+      const height = 50;
+      const x = Math.random() * (canvas.width - width);
+      const y = Math.random() * (canvas.height - height);
+      return new SkillBox(skill, x, y, width, height);
+    });
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    const resizeCanvas = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    // Initialize ball
+    ballRef.current = new Ball(50, 50, 10);
 
-    // Initialize skills
-    const skills = skillsByCity[selectedCity] || [];
-    skillsRef.current = skills.map((skill, index) => {
-      const width = Math.max(70, skill.name.length * 8 + 40);
-      const height = 50;
-      const x = Math.random() * (canvas.width - width);
-      const y = Math.random() * (canvas.height - height);
-      return new SkillBox(skill, x, y, width, height);
-    });
+    const animate = () => {
+      // Light gray background
+      ctx.fillStyle = '#F5F5F5';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw ball
+      ballRef.current.update(canvas, skillsRef.current);
+      ballRef.current.draw(ctx);
+      
+      // Update and draw skills
+      for (let skill of skillsRef.current) {
+        skill.update(canvas);
+        skill.draw(ctx);
+      }
+      
+      // Simple collision detection between skills
+      for (let i = 0; i < skillsRef.current.length; i++) {
+        for (let j = i + 1; j < skillsRef.current.length; j++) {
+          const skillA = skillsRef.current[i];
+          const skillB = skillsRef.current[j];
+          
+          if (!skillA.isDragging && !skillB.isDragging) {
+            const dx = (skillA.x + skillA.width / 2) - (skillB.x + skillB.width / 2);
+            const dy = (skillA.y + skillA.height / 2) - (skillB.y + skillB.height / 2);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = (skillA.width + skillB.width) / 2 + 5;
+            
+            if (distance < minDistance) {
+              const overlap = minDistance - distance;
+              const separationX = (dx / distance) * overlap * 0.5;
+              const separationY = (dy / distance) * overlap * 0.5;
+              
+              skillA.x += separationX;
+              skillA.y += separationY;
+              skillB.x -= separationX;
+              skillB.y -= separationY;
+              
+              skillA.vx += separationX * 0.1;
+              skillA.vy += separationY * 0.1;
+              skillB.vx -= separationX * 0.1;
+              skillB.vy -= separationY * 0.1;
+            }
+          }
+        }
+      }
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
 
-    // Initialize ball
-    ballRef.current = new Ball(50, 50, 10);
+    animate();
 
-    const handleMouseDown = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      
-      mouseRef.current = { x: mouseX, y: mouseY, isPressed: true };
-      
-      for (let skill of skillsRef.current) {
-        if (skill.isPointInside(mouseX, mouseY)) {
-          skill.isDragging = true;
-          skill.vx = 0;
-          skill.vy = 0;
-          break;
-        }
-      }
-    };
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [selectedCity]);
 
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      
-      mouseRef.current.x = mouseX;
-      mouseRef.current.y = mouseY;
-      
-      for (let skill of skillsRef.current) {
-        if (skill.isDragging) {
-          skill.x = mouseX - skill.width / 2;
-          skill.y = mouseY - skill.height / 2;
-        }
-      }
-    };
-
-    const handleMouseUp = () => {
-      mouseRef.current.isPressed = false;
-      
-      for (let skill of skillsRef.current) {
-        if (skill.isDragging) {
-          skill.isDragging = false;
-          skill.vx = (Math.random() - 0.5) * 4;
-          skill.vy = (Math.random() - 0.5) * 4;
-        }
-      }
-    };
-
-    const handleTouchStart = (e) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches[0];
-      handleMouseDown({ clientX: touch.clientX, clientY: touch.clientY });
-    };
-
-    const handleTouchMove = (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
-    };
-
-    const handleTouchEnd = (e) => {
-      e.preventDefault();
-      handleMouseUp();
-    };
-
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('touchstart', handleTouchStart);
-    canvas.addEventListener('touchmove', handleTouchMove);
-    canvas.addEventListener('touchend', handleTouchEnd);
-
-    const animate = () => {
-      // Light gray background
-      ctx.fillStyle = '#F5F5F5';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Update and draw ball
-      ballRef.current.update(canvas, skillsRef.current);
-      ballRef.current.draw(ctx);
-      
-      // Update and draw skills
-      for (let skill of skillsRef.current) {
-        skill.update(canvas);
-        
-        if (mouseRef.current.isPressed && !skill.isDragging) {
-          skill.applyRepelForce(mouseRef.current.x, mouseRef.current.y);
-        }
-        
-        skill.draw(ctx);
-      }
-      
-      // Simple collision detection between skills
-      for (let i = 0; i < skillsRef.current.length; i++) {
-        for (let j = i + 1; j < skillsRef.current.length; j++) {
-          const skillA = skillsRef.current[i];
-          const skillB = skillsRef.current[j];
-          
-          if (!skillA.isDragging && !skillB.isDragging) {
-            const dx = (skillA.x + skillA.width / 2) - (skillB.x + skillB.width / 2);
-            const dy = (skillA.y + skillA.height / 2) - (skillB.y + skillB.height / 2);
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const minDistance = (skillA.width + skillB.width) / 2 + 5;
-            
-            if (distance < minDistance) {
-              const overlap = minDistance - distance;
-              const separationX = (dx / distance) * overlap * 0.5;
-              const separationY = (dy / distance) * overlap * 0.5;
-              
-              skillA.x += separationX;
-              skillA.y += separationY;
-              skillB.x -= separationX;
-              skillB.y -= separationY;
-              
-              skillA.vx += separationX * 0.1;
-              skillA.vy += separationY * 0.1;
-              skillB.vx -= separationX * 0.1;
-              skillB.vy -= separationY * 0.1;
-            }
-          }
-        }
-      }
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('touchstart', handleTouchStart);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [selectedCity]);
-
-  return (
-    <div style={{
-      height: '40vh',
-      width: '90vw',
-      position: 'relative',
-      overflow: 'hidden',
-      margin: '10px 0px 70px 0',
-      borderRadius: '12px',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      backgroundColor: '#F5F5F5',
-      border: '2px solid #000000'
-    }}>
-      <canvas
-        ref={canvasRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          cursor: 'pointer',
-          display: 'block'
-        }}
-      />
-    </div>
-  );
+  return (
+    <div style={{
+      height: '40vh',
+      width: '90vw',
+      position: 'relative',
+      overflow: 'hidden',
+      margin: '10px 0px 70px 0',
+      borderRadius: '12px',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      backgroundColor: '#F5F5F5',
+      border: '2px solid #000000'
+    }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          cursor: 'pointer',
+          display: 'block'
+        }}
+      />
+    </div>
+  );
 };

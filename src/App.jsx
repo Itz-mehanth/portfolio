@@ -1,16 +1,15 @@
 // src/App.jsx
 import { Canvas } from '@react-three/fiber'
 import {
-  ScrollControls,
-  Scroll,
-  Html,
-  PerspectiveCamera,
-  Hud
+  ScrollControls,
+  Scroll,
+  Html,
+  PerspectiveCamera,
+  Hud
 } from '@react-three/drei'
 import Avatar from './Avatar'
-import { Suspense, useRef, useEffect, useState } from 'react'
+import { Suspense, useRef, useEffect, useState, memo } from 'react'
 import './App.css'
-import AboutMe from './AboutMe'
 import Projects from './Projects'
 import Contact from './Contact'
 import IntroSection from './IntroSection'
@@ -25,268 +24,364 @@ import Certificates from './Certificates'
 
 
 const Navbar = ({ fontBlack }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleMenu = () => setMenuOpen(prev => !prev);
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
-  return (
-    <nav className="navbar">
-      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
-        Mehanth
-      </div>
+  return (
+    <nav className="navbar">
+      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
+        Mehanth
+      </div>
 
-      {/* Desktop menu */}
-      <ul className="navbar-right desktop-menu">
-        <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
-        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
-        <li><a href="#about" style={{ color: fontBlack ? 'black' : 'white' }}>About</a></li>
-        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
-        <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
-      </ul>
+      {/* Desktop menu */}
+      <ul className="navbar-right desktop-menu">
+        <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
+        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
+        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
+        <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
+      </ul>
 
-      {/* Hamburger icon */}
-      <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-      </div>
+      {/* Hamburger icon */}
+      <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
+        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
+      </div>
 
-      {/* Mobile menu overlay */}
-      <div  style={{backgroundColor: fontBlack ? 'black' : 'white'}} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#about" onClick={toggleMenu}>About</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
-      </div>
-    </nav>
-  );
+      {/* Mobile menu overlay */}
+      <div  style={{backgroundColor: fontBlack ? 'black' : 'white'}} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
+      </div>
+    </nav>
+  );
 };
 
 
 export default function App() {
-  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const avatarRef = useRef()
-  const [scrollEnabled, setScrollEnabled] = useState(false)
-  const [waves, setWaves] = useState([])
-  const [startShockwave, setStartShockwave] = useState(false)
-  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
-  const [teleported, setTeleported] = useState(false)
-  const [contactPage, setContactPage] = useState(false)
-  const [fontBlack, setFontBlack] = useState(true)
-  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
-  const [showIframe, setShowIframe] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const avatarRef = useRef()
+  const [scrollEnabled, setScrollEnabled] = useState(false)
+  const [waves, setWaves] = useState([])
+  const [startShockwave, setStartShockwave] = useState(false)
+  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
+  const [teleported, setTeleported] = useState(false)
+  const [contactPage, setContactPage] = useState(false)
+  const [fontBlack, setFontBlack] = useState(true)
+  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
+  const [showIframe, setShowIframe] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isCanvasScrollLocked, setIsCanvasScrollLocked] = useState(false);
 
-  const openIframe = (url) => {
-    setIframeUrl(url);
-    setShowIframe(true);
-  };
+  const openIframe = (url) => {
+    setIframeUrl(url);
+    setShowIframe(true);
+  };
 
-  const closeIframe = () => {
-    setShowIframe(false);
-    setIframeUrl(null);
-  };
+  const closeIframe = () => {
+    setShowIframe(false);
+    setIframeUrl(null);
+  };
 
-  const triggerShockwave = (pos) => {
-    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
-  }
+  const triggerShockwave = (pos) => {
+    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
+  }
 
-  useEffect(() => {
-    if (inView || contactinView) {
-      setFontBlack(false)
+  useEffect(() => {
+    if (inView || contactinView) {
+      setFontBlack(false)
+    } else {
+      setFontBlack(true)
+    }
+  }, [inView, contactinView, teleported])
+  
+  useEffect(() => {
+    if (introinView) {
+      console.log('intro in view')
+    }
+  }, [introinView])
+
+  useEffect(() => {
+    if (startShockwave) {
+      console.log('triggered shockwave')
+      triggerShockwave([0, 0, 25])
+      setStartShockwave(false)
+      setTimeout(() => {
+        setStartSpiralPortal(true)
+      }, 1000)
+    } else {
+      setStartSpiralPortal(false)
+    }
+  }, [startShockwave])
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    const timeout = setTimeout(() => {
+      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
+      avatarRef.current?.playSequence(['Idle', 'Stretch'])
+      setTimeout(() => {
+        document.body.style.overflow = 'auto'
+        setScrollEnabled(true)
+      }, 5000)
+    }, 2000)
+    return () => clearTimeout(timeout)
+  }, [])
+
+    useEffect(() => {
+    if (inView) {
+        document.body.style.overflow = "hidden";   // stop page scrolling
     } else {
-      setFontBlack(true)
+        document.body.style.overflow = "auto";     // restore normal page scroll
     }
-  }, [inView, contactinView, teleported])
-  
-  useEffect(() => {
-    if (introinView) {
-      console.log('intro in view')
-    }
-  }, [introinView])
-
-  useEffect(() => {
-    if (startShockwave) {
-      console.log('triggered shockwave')
-      triggerShockwave([0, 0, 25])
-      setStartShockwave(false)
-      setTimeout(() => {
-        setStartSpiralPortal(true)
-      }, 1000)
-    } else {
-      setStartSpiralPortal(false)
-    }
-  }, [startShockwave])
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const timeout = setTimeout(() => {
-      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
-      avatarRef.current?.playSequence(['Idle', 'Stretch'])
-      setTimeout(() => {
-        document.body.style.overflow = 'auto'
-        setScrollEnabled(true)
-      }, 5000)
-    }, 2000)
-    return () => clearTimeout(timeout)
-  }, [])
+    }, [inView]);
+  
 
   const handleDownloadCV = () => {
-    // Create a link element and trigger download
-    const link = document.createElement('a')
-    link.href = 'https://drive.google.com/file/d/16bIGswFxA5NoaxCCXp_R-UAoUm8EmeKQ/view?usp=sharing' // Update this path to your CV file
-    link.download = 'Mehanth_CV.pdf'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+      const link = document.createElement('a')
+      link.href = 'https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing' // CV link
+      link.target = '_blank' // Open in new tab
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
   }
 
-  return (
-    <>
-     {loading && <SplashLoader setLoading={setLoading} />}
-    {!loading && (
-    <div style={{ scrollSnapType: 'y mandatory',  height: '100vh', overflowX: 'hidden' }}>
-      {/* <CustomCursor /> */}
-      <Navbar fontBlack = {fontBlack}/>
-      {/* Intro Section */}
-      <section id='lander'
+  return (
+    <div
         style={{
-          padding: '40px 0',
-          height: '100vh',
-          width: '100vw',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          background: 'white',
-          scrollSnapAlign: 'start',
-          scrollSnapType: 'y mandatory', /* or y or both */
-          overflowX: 'scroll',
-          scrollBehavior: 'smooth',
+            overflowY: 'scroll',
+            height: '100vh',
+            scrollBehavior: 'smooth',
+            position: 'relative',
+            // scrollSnapType: 'y mandatory',
+            zIndex: 0
         }}
-        ref = {introRef}
-        >
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-            width: '90%',
-            margin: '0 auto',
-          }}>
-          <div style={{width: '70%'}}>
-            <p className='Quicksand' style={{margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
-            <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
-          <button
-                  onClick={handleDownloadCV}
-                  style={{
-                    width: '170px',
-                    padding: '5px 10px',
-                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
-                    color: 'black',
-                    border: '2px solid rgba(0, 0, 0, 0.3)',
-                    borderRadius: '25px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: 'Poppins',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
-                    e.target.style.transform = 'translateY(-2px)'
-                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
-                    e.target.style.transform = 'translateY(0px)'
-                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
-                  }}
-                >
-                  Download CV
-                </button>
-            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
-            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
-          </div>
+    >
+     {loading && <SplashLoader setLoading={setLoading} />}
+    {!loading && (
+    <div 
+        style={{ 
+            overflowX: 'hidden',
+            scrollBehavior: 'smooth',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'start',
+            justifyContent: 'normal'
+        }}>
+      {/* <CustomCursor /> */}
+      <Navbar fontBlack = {fontBlack}/>
+      {/* Intro Section */}
+      <section id='lander'
+        style={{
+          padding: '40px 0',
+          height: '100vh',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          background: 'white',
+          overflowX: 'hidden',
+          scrollBehavior: 'smooth',
+        }}
+        ref = {introRef}
+        >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+            width: '90%',
+            margin: '0 auto',
+          }}>
+          <div style={{width: '70%'}}>
+            <p className='Quicksand' style={{margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
+            <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
+          <button
+                  onClick={handleDownloadCV}
+                  style={{
+                    width: '170px',
+                    padding: '5px 10px',
+                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
+                    color: 'black',
+                    border: '2px solid rgba(0, 0, 0, 0.3)',
+                    borderRadius: '25px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    fontFamily: 'Poppins',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
+                    e.target.style.transform = 'translateY(-2px)'
+                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
+                    e.target.style.transform = 'translateY(0px)'
+                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
+                  }}
+                >
+                  Download CV
+                </button>
+            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
+            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+          </div>
 
-          {/* Right: Image */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <img
-              src='/logo.jpg' // Replace with actual image path
-              alt='Mehanth'
-              style={{
-                width: '100%',
-                maxWidth: '200px',
-                borderRadius: '15px',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              }}
-            />
-          </div>
-        </div>
-        <IntroSection />
-      </section>
+          {/* Right: Image */}
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <img
+              src='/logo.jpg' // Replace with actual image path
+              alt='Mehanth'
+              style={{
+                width: '100%',
+                maxWidth: '200px',
+                borderRadius: '15px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+              }}
+            />
+          </div>
+        </div>
+        <IntroSection />
+      </section>
 
-        <section id='skills'
-        style={{
-          height: '100vh',
-          padding: '60px 0px 6px 0',
-          width: '100vw',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          background: 'white',
-          scrollSnapAlign: 'start',
-          scrollSnapType: 'y mandatory', /* or y or both */
-          overflowX: 'scroll',
-          scrollBehavior: 'smooth',
-          zIndex: -1
+        <section id='skills'
+        style={{
+          height: '100vh',
+          padding: '60px 0px 6px 0',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+          background: 'white',
+          overflowX: 'hidden',
+          zIndex: 1, // Changed from -1 to 1 to bring it forward
+          position: 'relative', // Ensure proper stacking
+        }}
+        >
+          <h1 style={{fontSize: '80px', fontWeight: '500'}} className='Barrio'>Skill Town</h1>
+          <Skills/>
+      </section>
+
+    
+      {/* 3D Section */}
+      {/* 3D Section */}
+      <section
+        onWheel={(e) => {
+          // Only prevent default when hovering over canvas
+          if (e.target.closest('.canvas-wrapper')) {
+            e.stopPropagation();
+          }
         }}
-        >
-          <h1 style={{fontSize: '80px', fontWeight: '500'}} className='Barrio'>Skill Town</h1>
-          <Skills/>
-      </section>
-
-      {/* 3D Section */}
-      <section id='about'
+        id="projects"
         className="canvas-text-section hide-scrollbar"
         style={{
-          height: '100vh',
-          width: '100vw',
-          position: 'relative', // Important to contain absolute children
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'hidden',
-          background: 'white',
-          scrollSnapAlign: 'start',
-          scrollSnapType: 'y mandatory', /* or y or both */
-          overflowX: 'scroll',
-          scrollBehavior: 'smooth',
+            margin: "20px", // Added margin back for container
+            borderRadius: "30px", // Added border radius back
+            position: "relative",
+            display: "flex",
+            height: "100vh", // Back to original height
+            flexDirection: "column-reverse",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "20px", // Added padding back for container
+            gap: "30px", // Added gap back
+            width: "calc(100vw - 40px)", // Full width minus margins
         }}
         ref={ref}
-      >
-          {/* Canvas Wrapper */}
-        <div className='hide-scrollbar'
-          style={{
-            backgroundColor: '#000',
-            position: 'relative',
-            zIndex: 10,
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            zIndex: 5
-          }}
         >
+        {/* TV Screen Container */}
+        <div
+            className="hide-scrollbar canvas-wrapper"
+            style={{
+            flex: 3, // Back to 3 for larger canvas proportion
+            backgroundColor: "#1a1a1a", // Dark TV bezel color
+            borderRadius: "15px", // TV-like rounded corners
+            height: "calc(85vh - 40px)", // Back to original height
+            width: "100%", // Full width of container
+            maxWidth: "100%", // Ensure it fits container
+            boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)", // TV-like shadow with inner highlight
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            overflow: "hidden", // Prevent any overflow issues
+            position: "relative",
+            padding: "15px", // TV bezel padding
+            border: "3px solid #333", // TV bezel border
+            }}
+            onMouseEnter={() => {
+              // Disable page scroll when hovering canvas
+              document.body.style.overflow = 'hidden';
+            }}
+            onMouseLeave={() => {
+              // Re-enable page scroll when leaving canvas
+              if (!inView) {
+                document.body.style.overflow = 'auto';
+              }
+            }}
+        >
+            {/* TV Screen */}
+            <div
+                style={{
+                width: "100%",
+                height: "100%",
+                backgroundColor: "#000",
+                borderRadius: "8px", // Inner screen radius
+                overflow: "hidden",
+                position: "relative",
+                boxShadow: "inset 0 0 20px rgba(0,0,0,0.8)", // Inner screen shadow
+                }}
+            >
+                {/* TV Stand */}
+                <div
+                    style={{
+                    position: "absolute",
+                    bottom: "-25px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "60%",
+                    height: "25px",
+                    backgroundColor: "#2a2a2a",
+                    borderRadius: "0 0 10px 10px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+                    }}
+                />
+                {/* TV Stand Base */}
+                <div
+                    style={{
+                    position: "absolute",
+                    bottom: "-35px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "80%",
+                    height: "10px",
+                    backgroundColor: "#1a1a1a",
+                    borderRadius: "5px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    }}
+                />
           <Canvas 
             shadows
-            camera={{ position: [0, 4, 15], fov: 70 }}
-            style={{ width: '100%', height: '100%' }}
+                  camera={{ position: [0, 4, 15], fov: 100 }}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+              display: 'block' // Ensure proper display
+            }}
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: "high-performance"
+            }}
           >
             <Suspense fallback={null}>
                 <Hud>
@@ -332,21 +427,22 @@ export default function App() {
                     </div>
                   </Html>
                 </Hud>
-              <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={70} />
-              <ScrollControls distance={5} pages={1} damping={1} enabled={scrollEnabled}>
+              <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
+              <ScrollControls 
+                maxSpeed={0.05} 
+                distance={6} 
+                pages={1} // Increase pages for more scroll distance
+                damping={0.8} 
+                enabled={scrollEnabled}
+                infinite={true}
+                horizontal={false}
+              >
                 <Scroll>
-                  {!teleported && !contactPage && (
-                    <AboutMe
-                      startSpiralPortal={startSpiralPortal}
-                      startShockwave={startShockwave}
-                      waves={waves}
-                      setWaves={setWaves}
-                    />
-                  )}
 
                   <Avatar
                     contactPage={contactPage}
                     setContactPage={setContactPage}
+                    setIsCanvasScrollLocked={setIsCanvasScrollLocked}
                     setTeleported={setTeleported}
                     setStartShockwave={setStartShockwave}
                     scrollEnabled={scrollEnabled}
@@ -357,75 +453,78 @@ export default function App() {
                     static={false}
                   />
 
-                  {teleported && !contactPage && 
-                  <Projects
-                    openIframe={openIframe}
-                  />}
+                  {!contactPage ? (
+                    <Projects
+                      openIframe={openIframe}
+                    />
+                  ) : null}
 
                 </Scroll>
               </ScrollControls>
             </Suspense>
           </Canvas>
         </div>
-      </section>
-
-      <section 
-        ref={certificateRef}
-        id='certificate'
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2rem',
-          height: '100%',
-          padding: '80px 40px',
-          scrollSnapAlign: 'start',
-          scrollSnapType: 'y mandatory', /* or y or both */
-          overflowX: 'scroll',
-          scrollBehavior: 'smooth',
-        }
-      }>
-        <Certificates/>
-      </section>
-
-      {/* Contact Section */}
-      <section id='contact'
-        ref={contactRef}
-        style={{
-          height: '100vh',
-          scrollSnapAlign: 'start',
-          scrollSnapType: 'y mandatory', /* or y or both */
-          overflowX: 'scroll',
-          scrollBehavior: 'smooth',
-          background: 'black',
-          zIndex: 1000
-        }}
-      >
-        <div
-          style={{
-            height: '50%',
-          }}
-        >
-        <Canvas>
-          <Suspense fallback={null}>
-          <Contact />
-          </Suspense>
-        </Canvas>
-        </div>
-        <div
-          style={{
-            height: '50%',
-            backgroundColor: 'white',
-          }}
-        >
-          <ContactSection/>
         </div>
       </section>
 
-    </div>
-     )}
-    </>
-  )
+      <section 
+        ref={certificateRef}
+        id='certificate'
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+          height: '100%',
+          padding: '80px 40px',
+          scrollBehavior: 'smooth',
+        }}
+      >
+        <Certificates/>
+      </section>
+
+      {/* Contact Section */}
+      <section id='contact'
+        ref={contactRef}
+        style={{
+          height: '100vh',
+          width: '100vw', // Full viewport width
+          overflowX: 'hidden',
+          scrollBehavior: 'smooth',
+          background: 'black',
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            height: '50%',
+            width: '100%', // Full width
+          }}
+        >
+        <Canvas style={{ width: '100%', height: '100%' }}>
+          <Suspense fallback={null}>
+          <Contact />
+          </Suspense>
+        </Canvas>
+        </div>
+        <div
+          style={{
+            height: '50%',
+            width: '100%', // Full width
+            backgroundColor: 'white',
+          }}
+        >
+          <ContactSection/>
+        </div>
+      </section>
+
+    </div>
+     )}
+    </div>
+  )
 }
+
+const MemoizedProjects = memo(Projects);
+const MemoizedContact = memo(Contact);
 
 
 function ContactSection() {
@@ -442,177 +541,366 @@ function ContactSection() {
     });
   };
 
-  const handleSubmit = () => {
-    // const form = document.createElement('form');
-    // form.action = 'https://formspree.io/f/xayrjzqg';
-    // form.method = 'POST';
-    
-    // Object.entries(formData).forEach(([key, value]) => {
-    //   const input = document.createElement('input');
-    //   input.type = 'hidden';
-    //   input.name = key;
-    //   input.value = value;
-    //   form.appendChild(input);
-    // });
-    
-    // document.body.appendChild(form);
-    // form.submit();
-  };
-
   const socialLinks = [
-    { href: "mailto:itzmehanth@gmail.com", icon: Mail, label: "Email" },
-    { href: "https://linkedin.com/in/mehanth-776892279", icon: Linkedin, label: "LinkedIn" },
-    { href: "https://github.com/itz-mehanth", icon: Github, label: "GitHub" },
-    { href: "https://instagram.com/itz_mehanth", icon: Instagram, label: "Instagram" }
+    { href: "mailto:mehanth362@gmail.com", icon: Mail, label: "Email", color: "#EA4335" },
+    { href: "https://linkedin.com/in/mehanth-776892279", icon: Linkedin, label: "LinkedIn", color: "#0077B5" },
+    { href: "https://github.com/itz-mehanth", icon: Github, label: "GitHub", color: "#333" },
+    { href: "https://instagram.com/itz_mehanth", icon: Instagram, label: "Instagram", color: "#E4405F" }
   ];
 
   return (
     <>
-      {/* Premium Typography */}
       <link 
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" 
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" 
         rel="stylesheet" 
       />
       
-      <section style={{
-        padding: '3rem 2rem',
-        backgroundColor: '#fafafa',
-        display: 'flex',
-        justifyContent: 'center'
-      }}>
+      <section className="contact-section">
         <div className="contact-container">
           
-          {/* Left Column */}
-          <div className="contact-left">
-            <h2>Get in touch</h2>
-            <p>Let's discuss your next project</p>
+          {/* Main Content */}
+          <div className="contact-content">
+            {/* Contact Form */}
+            <div className="contact-form-container">
+              <form className="contact-form">
+                <div className="form-group">
+                  <label htmlFor="name">Your Name</label>
+                  <input 
+                    type="text" 
+                    id="name"
+                    name="name" 
+                    placeholder="Enter your full name" 
+                    required 
+                    value={formData.name}
+                    onChange={handleInputChange} 
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="email">Email Address</label>
+                  <input 
+                    type="email" 
+                    id="email"
+                    name="email" 
+                    placeholder="your.email@example.com" 
+                    required 
+                    value={formData.email}
+                    onChange={handleInputChange} 
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="message">Project Details</label>
+                  <textarea 
+                    id="message"
+                    name="message" 
+                    placeholder="Tell me about your project, timeline, and any specific requirements..." 
+                    rows={4} 
+                    required 
+                    value={formData.message}
+                    onChange={handleInputChange}
+                  ></textarea>
+                </div>
+                
+                <button type="submit" className="submit-btn">
+                  <span>Send Message</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
 
+            {/* Contact Info & Social */}
+            <div className="contact-info">
+              <div className="contact-details">
+                <h3>Get in Touch</h3>
+                <div className="contact-item">
+                  <Mail size={20} />
+                  <span>itzmehanth@gmail.com</span>
+                </div>
+                <div className="contact-item">
+                  <Linkedin size={20} />
+                  <span>LinkedIn Profile</span>
+                </div>
+              </div>
+
+              <div className="social-section">
+                <h4>Follow Me</h4>
             <div className="social-links">
-              {socialLinks.map(({ href, icon: IconComponent, label }, index) => (
-                <a key={index} href={href} target="_blank" rel="noopener noreferrer" className="social-icon">
-                  <IconComponent size={20} color="#fff" />
+                  {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
+                    <a 
+                      key={index} 
+                      href={href} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="social-link"
+                      style={{ '--brand-color': color }}
+                    >
+                      <IconComponent size={20} />
+                      <span>{label}</span>
                 </a>
               ))}
             </div>
           </div>
-
-          {/* Right Column */}
-          <div className="contact-right">
-            <form>
-              <input type="text" name="name" placeholder="Full name" required onChange={handleInputChange} />
-              <input type="email" name="email" placeholder="Email address" required onChange={handleInputChange} />
-              <textarea name="message" placeholder="Your message" rows={3} required onChange={handleInputChange}></textarea>
-              <button type="submit">Send Message</button>
-            </form>
+            </div>
           </div>
         </div>
 
-        {/* ✅ Responsive styles */}
-        <style>{`
-          .contact-container {
+        <style jsx>{`
+          .contact-section {
+            padding: 4rem 2rem;
+            background: #fafafa;
+            min-height: 100vh;
             display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 3rem;
-            max-width: 900px;
+            align-items: center;
+            position: relative;
+          }
+
+          .contact-container {
+            max-width: 1200px;
             width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
           }
 
-          .contact-left,
-          .contact-right {
-            flex: 1 1 400px;
+          .contact-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #1a1a1a;
           }
 
-          h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 400;
+          .contact-header h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
             margin-bottom: 1rem;
             color: #1a1a1a;
           }
 
-          p {
+          .contact-header p {
             font-family: 'Inter', sans-serif;
-            font-size: 16px;
+            font-size: 1.2rem;
             color: #666;
-            margin-bottom: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
           }
 
-          .social-links {
-            display: flex;
-            gap: 1rem;
+          .contact-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            align-items: start;
           }
 
-          .social-icon {
-            width: 44px;
-            height: 44px;
-            background-color: #1a1a1a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
+          .contact-form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
           }
 
-          .social-icon:hover {
-            background-color: #333;
-            transform: translateY(-2px);
-          }
-
-          form {
+          .contact-form {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
           }
 
-          input, textarea {
-            padding: 1rem 0;
-            border: none;
-            border-bottom: 1px solid #e0e0e0;
-            background: transparent;
-            font-size: 15px;
+          .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
+          .form-group label {
             font-family: 'Inter', sans-serif;
-            color: #1a1a1a;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .form-group input,
+          .form-group textarea {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: #374151;
+            background: white;
+            transition: all 0.3s ease;
             outline: none;
           }
 
-          button {
-            padding: 1rem;
-            background-color: #1a1a1a;
-            color: #fff;
+          .form-group input:focus,
+          .form-group textarea:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+          }
+
+          .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+          }
+
+          .submit-btn {
+            background: #4f46e5;
+            color: white;
             border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+          }
+
+          .submit-btn:hover {
+            background: #4338ca;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+          }
+
+          .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+          }
+
+          .contact-details {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+          }
+
+          .contact-details h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+          }
+
+          .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #374151;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+          }
+
+          .social-section h4 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+          }
+
+          .social-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+          }
+
+          .social-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            background: white;
+            border-radius: 12px;
+            color: #374151;
+            text-decoration: none;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
             transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          }
+
+          .social-link:hover {
+            background: var(--brand-color);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
           }
 
           @media (max-width: 768px) {
-            .contact-container {
-              flex-direction: column;
-              align-items: center;
+            .contact-section {
+              padding: 2rem 1rem;
             }
 
-            .contact-left,
-            .contact-right {
-              flex: 1 1 100%;
-              width: 100%;
-              text-align: center;
+            .contact-header h2 {
+              font-size: 2.2rem;
+            }
+
+            .contact-header p {
+              font-size: 1rem;
+            }
+
+            .contact-content {
+              grid-template-columns: 1fr;
+              gap: 2rem;
+            }
+
+            .contact-form-container {
+              padding: 1.5rem;
+            }
+
+            .contact-details,
+            .social-section {
+              padding: 1.5rem;
             }
 
             .social-links {
+              flex-direction: row;
+              flex-wrap: wrap;
+            }
+
+            .social-link {
+              flex: 1;
+              min-width: 120px;
               justify-content: center;
             }
+          }
 
-            form {
-              align-items: center;
+          @media (max-width: 480px) {
+            .contact-header h2 {
+              font-size: 1.8rem;
             }
 
-            input, textarea, button {
-              width: 100%;
+            .contact-form-container {
+              padding: 1rem;
+            }
+
+            .contact-details,
+            .social-section {
+              padding: 1rem;
+            }
+
+            .social-links {
+              flex-direction: column;
+            }
+
+            .social-link {
+              min-width: auto;
             }
           }
         `}</style>

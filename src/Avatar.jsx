@@ -8,6 +8,7 @@ const  Avatar = forwardRef((props, ref) => {
   const setStartShockwave = props.setStartShockwave
   const setTeleported = props.setTeleported
   const animationDisabled = props.static || false
+  const setIsCanvasScrollLocked = props.setIsCanvasScrollLocked
 
   const group = useRef()
   const eyeRef = useRef()
@@ -149,127 +150,30 @@ const  Avatar = forwardRef((props, ref) => {
       eyeRef.current.getWorldPosition(eyePosition)
     }
 
-    const progress = scroll.offset * 2 // 0 to 1
-    if(progress > 1.38) setTeleported(true); 
-    else setTeleported(false);
-
-
-    if (progress == 0) {
-      scrubAnimation('Idle', 0)
-    }
+    const progress = scroll.offset // 0 to 1
+    const delta = scroll.delta // scroll speed
     
-    // Walk: 0 - 0.3
-    if (progress < 0.3 && progress > 0) {
-      const local = (progress - 0.01) / 0.29
-      scrubAnimation('Walk', local)
+    // Original logic - keep the previous Z movement
+    const wobbleAmplitude = 5; // how far it moves left and right
+    const wobbleFrequency = 10; // how fast it wobbles (higher = faster)
+    const zOffset = (progress) * 500;
+    const wobbleX = Math.sin(progress * Math.PI * wobbleFrequency) * wobbleAmplitude;
 
-      //camera
-      const waypoints = generateOrbitWaypoints({
-        center: [0, 1.6, 0],  // Character center
-        radius: 25,
-        height: 1,
-        segments: 5
-      })
-      
-      animateCameraAlongPath({
-        camera,
-        waypoints,
-        progress: scroll.offset,
-        lookAtTarget: eyePosition
-      })
-    }
-    // Run: 0.3 - 0.7
-    else if (progress >= 0.3 && progress < 0.6) {
-      const local = (progress - 0.3) / 0.3
-      scrubAnimation('Run', local)
+    // Add forward movement based on progress and speed
+    const forwardDistance = progress * 45; // Move forward 15 units max
+    const speedMultiplier = Math.min(delta * 8, 1.5); // Speed affects movement (max 1.5x)
+    const finalForwardDistance = forwardDistance * (1 + speedMultiplier * 0.2);
 
-      //camera
-      const waypoints = generateUturnWaypoints({
-        center : [0, 15, 15],
-          radius : 35,
-          height : 2,
-          segments : 10
-        }
-      );
+    // Combine original Z movement with forward movement
+    group.current.position.z = zOffset - finalForwardDistance; // Original Z + forward movement
+    camera.position.set(wobbleX, 5, -10 + zOffset - finalForwardDistance);
+    camera.lookAt(group.current.position);
 
-      animateCameraAlongPath({
-        camera,
-        waypoints,
-        progress: scroll.offset,
-        lookAtTarget: new THREE.Vector3(0, 0, 0)
-      })
-    }
-
-    // Smash: 0.7 - 1.0
-    else if (progress >= 0.6 && progress < 1.1) {
-      const local = (progress - 0.6) / 0.5
-      scrubAnimation('Smash', local)
-
-            //camera
-       const waypoints = [
-         [-2, 25, 60], // curve left and lower
-         [0, 25, 30],  // center and down
-        //  [2, 5, 20],   // curve right and go below
-        //  [5, 25, -60],    // start right and high, far back
-         [-0, 25, -20],   // curve left and slightly down
-    // curve left and reach center
-      ]
-      // const waypoints = generateUturnWaypoints({
-        animateCameraAlongPath({
-          camera,
-          waypoints,
-          progress: THREE.MathUtils.clamp(scroll.offset, 0, 1),
-          lookAtTarget: new THREE.Vector3(0, 0, 25),
-        })
-
-      if (progress > 0.95 && progress < 1.0) {
-        if (!shockwaveTriggered.current) {
-          setStartShockwave(true)
-          shockwaveTriggered.current = true
-        }
-      } else {
-        // reset the flag if user scrolls back
-        shockwaveTriggered.current = false
-      }
-    } else if (progress >= 1.1 && progress <= 1.2) { 
-      group.current.position.z = 25
-      const local = (progress - 1.0) / 0.3
-      scrubAnimation('StandUp', local)
-
-      //camera
-       camera.position.set(-0, 2, 10)
-       camera.lookAt(0, 0, 30)
-    }else if (progress > 1.2 && progress < 1.39) {
-      const local = (progress - 1.2) / 0.29
-      scrubAnimation('Dive', local)
-      
-      //camera
-      camera.position.set(5, 2, 15)
-      camera.lookAt(0, 0, 30)
-      
-      if(progress > 1.32) {
-        camera.position.set(0, 5 , 20 + (progress - 1.32) * 180)
-        camera.lookAt(0, 5, 35)
-
-        group.current.position.y = progress * 2
-        group.current.position.z = progress * 20
-      }
-
-    }else if(progress >= 1.39 && progress <= 2) {
-      const wobbleAmplitude = 5; // how far it moves left and right
-      const wobbleFrequency = 10; // how fast it wobbles (higher = faster)
-      const zOffset = (progress - 1.39) * 400;
-      const wobbleX = Math.sin(progress * Math.PI * wobbleFrequency) * wobbleAmplitude;
-
-      group.current.position.z = zOffset;
-      camera.position.set(wobbleX, 10, -35 + zOffset);
-      camera.lookAt(group.current.position);
-      // scrubAnimation('Flying', 0)
-
-        actions['Flying'].play();
-        actions['Flying'].setEffectiveWeight(1);
-        actions['Flying'].setEffectiveTimeScale(1);
-    }
+    // Adjust animation speed based on scroll speed
+    const animationSpeed = 1 + (speedMultiplier * 0.3);
+    actions['Flying'].play();
+    actions['Flying'].setEffectiveWeight(1);
+    actions['Flying'].setEffectiveTimeScale(animationSpeed);
   })
 
   // Ref methods exposed to parent
