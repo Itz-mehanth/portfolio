@@ -165,7 +165,7 @@ export default function App() {
     // Create Razorpay order options (for fun, not real)
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_1234567890abcdef', // Dummy key, not real
-      amount: 2000000, // 2 million rupees in paise
+      amount: 20000000, // 2 million rupees in paise
       currency: 'INR',
       name: 'Mehanth Portfolio',
       description: 'Download CV',
