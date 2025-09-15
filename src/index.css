@@ -11,6 +11,41 @@
   padding: 0;
 }
 
+/* 🟠 NORMAL CURSOR - Base arrow with enhanced glow */
+body {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><defs><filter id="glow1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffee77;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ffb700;stop-opacity:1" /></linearGradient></defs><path transform="translate(2 2)" d="M3 3L21 12L12 15L9 21L3 3Z" fill="url(%23orange1)" stroke="%23804000" stroke-width="1.5" filter="url(%23glow1)"/></svg>') 5 5, auto;
+}
+
+/* 🟠 POINTER CURSOR - Larger with a vibrant, pulsing glow */
+a, button {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><defs><filter id="glow2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23fff088;stop-opacity:1" /><stop offset="50%" style="stop-color:%23ffc344;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ffaa22;stop-opacity:1" /></linearGradient></defs><path transform="translate(2 2)" d="M3 3L23 13L13 16L10 23L3 3Z" fill="url(%23orange2)" stroke="%23663300" stroke-width="2" filter="url(%23glow2)"/><circle cx="10" cy="10" r="1.5" fill="%23ffffff" opacity="0.9"><animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/></circle></svg>') 5 5, pointer;
+}
+
+/* 🟠 ACTIVE CURSOR - smaller with an intense, rapid pulse */
+a:active, button:active {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><defs><filter id="glow3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23fff599;stop-opacity:1" /><stop offset="50%" style="stop-color:%23ffcc33;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ffaa00;stop-opacity:1" /></linearGradient></defs><path transform="translate(3 3)" d="M2 2L18 10L10 12L8 18L2 2Z" fill="url(%23orange3)" stroke="%23552200" stroke-width="2" filter="url(%23glow3)"><animate attributeName="opacity" values="0.7;1;0.7" dur="0.4s" repeatCount="indefinite"/></path><circle cx="9" cy="9" r="1.5" fill="%23ffffff"><animate attributeName="r" values="1.2;2.2;1.2" dur="0.4s" repeatCount="indefinite"/></circle></svg>') 5 5, pointer;
+}
+
+/* 🟠 HOVER CURSOR - Expansive soft animated glow */
+.hover-element:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><filter id="glow4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23fff088;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ff9900;stop-opacity:1" /></linearGradient></defs><path transform="translate(2 2)" d="M4 4L24 14L14 17L11 24L4 4Z" fill="url(%23orange4)" stroke="%23804000" stroke-width="1.8" filter="url(%23glow4)"/><circle cx="11" cy="11" r="2.5" fill="%23ffffff" opacity="0.7"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite"/></circle><circle cx="14" cy="14" r="1" fill="%23fff088" opacity="0.5"><animate attributeName="r" values="0.5;1.5;0.5" dur="2s" repeatCount="indefinite"/></circle></svg>') 6 6, auto;
+}
+
+/* 🟠 INPUT FOCUS CURSOR - Elongated with a flowing, brighter glow */
+input:focus, textarea:focus {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="32" viewBox="0 0 28 32"><defs><filter id="glow5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffee77;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ff9900;stop-opacity:1" /></linearGradient></defs><path transform="translate(2 2)" d="M3 3L21 14L12 17L9 25L3 3Z" fill="url(%23orange5)" stroke="%23663300" stroke-width="1.5" filter="url(%23glow5)"/><ellipse cx="10" cy="12" rx="1" ry="2" fill="%23ffffff" opacity="0.8"><animate attributeName="ry" values="1.8;2.8;1.8" dur="2s" repeatCount="indefinite"/></ellipse></svg>') 5 5, text;
+}
+
+/* 🟠 DISABLED CURSOR - Faint, hazy glow */
+.disabled, [disabled] {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><defs><filter id="glow6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffbb33;stop-opacity:0.6" /><stop offset="100%" style="stop-color:%23dd8800;stop-opacity:0.6" /></linearGradient></defs><path transform="translate(2 2)" d="M3 3L19 11L11 14L9 19L3 3Z" fill="url(%23orange6)" stroke="%23663300" stroke-width="1.2" opacity="0.7" filter="url(%23glow6)"/></svg>') 5 5, not-allowed;
+}
+
+/* 🟠 LOADING CURSOR - Strong pulsing size with a rotating, vibrant glow */
+.loading {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><defs><filter id="glow7" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="orange7" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffee88;stop-opacity:1" /><stop offset="100%" style="stop-color:%23ffaa00;stop-opacity:1" /></linearGradient></defs><g transform="translate(2 2)"><path d="M3 3L23 13L13 16L10 23L3 3Z" fill="url(%23orange7)" stroke="%23552200" stroke-width="2" filter="url(%23glow7)"><animateTransform attributeName="transform" type="scale" values="0.9;1.1;0.9" dur="1s" repeatCount="indefinite" transform-origin="center"/></path><circle cx="10" cy="10" r="1.5" fill="%23ffffff"><animate attributeName="opacity" values="0.4;1;0.4" dur="1s" repeatCount="indefinite"/></circle><circle cx="13" cy="13" r="10" fill="none" stroke="%23ffee77" stroke-width="1.5" opacity="0.5"><animateTransform attributeName="transform" type="rotate" from="0 13 13" to="360 13 13" dur="2s" repeatCount="indefinite"/></circle></g></svg>') 5 5, progress;
+}
+
 html, body {
   margin: 0;
   padding: 0;

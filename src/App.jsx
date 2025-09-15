@@ -17,10 +17,21 @@ import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import './Navbar.css'
 import { useAudio } from './context/AudioProvider'
+// Razorpay script loader
+function loadRazorpayScript(src) {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 import SplashLoader from './SplashLoader'
 import Skills from './Skills'
 import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
 import Certificates from './Certificates'
+import Cursor from "./Cursor";
 
 
 const Navbar = ({ fontBlack }) => {
@@ -142,13 +153,49 @@ export default function App() {
     }, [inView]);
   
 
-  const handleDownloadCV = () => {
-      const link = document.createElement('a')
-      link.href = 'https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing' // CV link
-      link.target = '_blank' // Open in new tab
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+  // Razorpay fun payment before CV download
+  const handleDownloadCV = async () => {
+    // Load Razorpay script if not already loaded
+    const res = await loadRazorpayScript('https://checkout.razorpay.com/v1/checkout.js');
+    if (!res) {
+      alert('Razorpay SDK failed to load. Please check your connection.');
+      return;
+    }
+
+    // Create Razorpay order options (for fun, not real)
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_1234567890abcdef', // Dummy key, not real
+      amount: 2000000, // 2 million rupees in paise
+      currency: 'INR',
+      name: 'Mehanth Portfolio',
+      description: 'Download CV',
+      image: '/logo.jpg',
+      handler: function (response) {
+        // After payment, allow download
+        setTimeout(() => {
+          const link = document.createElement('a');
+          link.href = 'https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing';
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }, 500);
+      },
+      prefill: {
+        name: 'Mehanth',
+        email: 'mehanth362@gmail.com',
+      },
+      theme: {
+        color: '#FEC601',
+      },
+      modal: {
+        ondismiss: function () {
+          alert('Payment required to download CV!');
+        }
+      }
+    };
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   }
 
   return (
@@ -162,6 +209,7 @@ export default function App() {
             zIndex: 0
         }}
     >
+      <Cursor />
      {loading && <SplashLoader setLoading={setLoading} />}
     {!loading && (
     <div 

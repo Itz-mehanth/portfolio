@@ -7,7 +7,7 @@ export default function Ground(props) {
 
   return (
     <group {...props} dispose={null}>
-      <group position={[5.278, 0.419, 0.25]} scale={[4.044, 1, 0.506]}>
+      <group position={[4.278, 0.3, 0.25]} scale={[4.044, 1, 0.506]}>
         <mesh
           castShadow
           receiveShadow
