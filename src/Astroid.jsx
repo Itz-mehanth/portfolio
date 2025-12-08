@@ -1,10 +1,10 @@
 // Asteroid.jsx
 import { useRef, useState, useMemo } from 'react';
-import { Billboard, Text, RoundedBox } from '@react-three/drei';
+import { Billboard, Text, RoundedBox, Image, Outlines } from '@react-three/drei';
 import * as THREE from 'three';
 import { Balloon } from './utils/models/Balloon';
 
-export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description, type='live' }) {
+export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl, title, description, type = 'live' }) {
   // Generate random rotation and color for balloon
   const balloonProps = useMemo(() => {
     // Thick, vibrant colors array
@@ -16,9 +16,9 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
       '#FF69B4', // Pink
       '#4169E1'  // Blue
     ];
-    
+
     const randomColor = thickColors[Math.floor(Math.random() * thickColors.length)];
-    
+
     return {
       rotation: [
         (Math.random() - 0.5) * 0.5, // Random X rotation
@@ -29,145 +29,109 @@ export default function Asteroid({ position = [0, 0, 150], openIframe, iframeUrl
     };
   }, []);
 
+  const [hovered, setHovered] = useState(false);
+
   return (
     <group position={position}>
       {/* Balloon with random rotation and color */}
-      <Balloon 
+      <Balloon
         rotation={balloonProps.rotation}
         balloonColor={balloonProps.balloonColor}
       />
 
-      {/* Sky-themed Billboard UI */}
-      <Billboard position={[position[0] < 0 ? 2 : -2, 0, -5]}>
+
+      {/* Modern Glassmorphic Billboard UI */}
+      <Billboard position={[position[0] < 0 ? -2 : 2, -2, 0]} follow={true} lockX={false} lockY={false} lockZ={false}>
         <group>
-          {/* Cloud-like background with soft rounded edges */}
-          <RoundedBox args={[7, 6, 0.1]} radius={0.3} smoothness={4}>
-            <meshStandardMaterial 
-              color="#f0f8ff" 
-              transparent 
+          {/* Main Card (Toon Style) */}
+          <RoundedBox args={[6, 4, 0.1]} radius={0.2} smoothness={4}>
+            <meshToonMaterial
+              color="#ffffff"
+              transparent
               opacity={0.95}
               side={THREE.DoubleSide}
             />
+            <Outlines thickness={0.05} color="black" />
           </RoundedBox>
 
-          {/* Decorative cloud border */}
-          <RoundedBox args={[6.5, 5.7, 0.05]} radius={0.4} smoothness={4}>
-            <meshStandardMaterial 
-              color="#87ceeb" 
-              transparent 
-              opacity={0.4}
-              side={THREE.DoubleSide}
-            />
-          </RoundedBox>
-
-          {/* Sky gradient background (optional decorative element) */}
-          <mesh position={[0, 0, -0.02]}>
-            <planeGeometry args={[5.3, 3.3]} />
-            <meshStandardMaterial 
-              color="#e6f3ff"
-              transparent 
-              opacity={0.6}
-              side={THREE.DoubleSide}
-            />
+          {/* Inner Content Container */}
+          <mesh position={[0, 0, 0.06]}>
+            <planeGeometry args={[5.8, 3.8]} />
+            <meshBasicMaterial color="#ffffff" />
           </mesh>
 
-          {/* Title with sky theme */}
+          {/* Border Outline Style */}
+          <RoundedBox args={[6.05, 4.05, 0.08]} radius={0.2} smoothness={4}>
+            <meshBasicMaterial color="black" wireframe={true} />
+          </RoundedBox>
+
+          {/* Title */}
           <Text
-            position={[-3, 2, 0.1]}
+            position={[-2.6, 1.4, 0.1]}
             fontSize={0.5}
-            color="#2c5aa0"
+            color="#1a1a1a"
             anchorX="left"
             anchorY="top"
-            fontWeight={600}
+            fontWeight={800}
           >
-            ☁️{title || 'Sky Project'}
+            {title || 'Project Title'}
           </Text>
 
-          {/* Description */}
+          {/* Divider Line */}
+          <mesh position={[-0.05, 0.9, 0.1]}>
+            <planeGeometry args={[5.2, 0.02]} />
+            <meshBasicMaterial color="#333" transparent opacity={0.2} />
+          </mesh>
+
+          {/* Content Text */}
           <Text
-            position={[-2.5, 1.4, 0.1]}
-            fontSize={0.3}
-            color="#1e3a8a"
-            maxWidth={4.8}
-            lineHeight={1.4}
+            position={[-2.6, 0.6, 0.1]}
+            fontSize={0.25}
+            color="#333333"
+            maxWidth={5.2}
+            lineHeight={1.5}
             anchorX="left"
             anchorY="top"
+            fontWeight={400}
           >
-            {description || 'Floating high above the clouds, this project soars with innovative ideas. Click to explore the sky!'}
+            {description || 'Project description goes here.'}
           </Text>
 
-          {/* Action button with balloon theme */}
-          <group position={[0, -2, 0.1]}>
-            {/* Button background */}
-            <RoundedBox args={[2.2, 0.8, 0.05]} radius={0.15} smoothness={4}>
-              <meshStandardMaterial 
-                color={
-                  type === 'github' ? '#24292e' : 
-                  type === 'linkedin' ? '#ffd000ff' : 
-                  '#0099ff'
-                }
-                emissive={
-                  type === 'github' ? '#24292e' : 
-                  type === 'linkedin' ? '#ffee00ff' : 
-                  '#0099ff'
-                }
-                emissiveIntensity={1}
+          {/* Action Button */}
+          <group
+            position={[0, -1.2, 0.15]}
+            onPointerOver={() => { document.body.style.cursor = 'pointer'; setHovered(true); }}
+            onPointerOut={() => { document.body.style.cursor = 'default'; setHovered(false); }}
+            onClick={() => {
+              if (type === 'live') openIframe(iframeUrl)
+              else window.open(iframeUrl, '_blank')
+            }}
+          >
+            {/* Shadow/Outline Layer (Black) */}
+            <RoundedBox args={[2.55, 0.75, 0.01]} radius={0.35} position={[0.05, -0.05, -0.01]}>
+              <meshBasicMaterial color="black" />
+            </RoundedBox>
+
+            {/* Main Button Layer (Flat Color) */}
+            <RoundedBox args={[2.5, 0.7, 0.02]} radius={0.35} smoothness={4}>
+              <meshBasicMaterial
+                color={hovered ? "#2563eb" : "#3b82f6"} // Blue accent
               />
             </RoundedBox>
-            
-            {/* Button text */}
             <Text
-              position={[0, 0, 0.05]}
+              position={[0, 0, 0.06]}
               fontSize={0.25}
               fontWeight={700}
-              color="#000000ff"
+              color="white"
               anchorX="center"
               anchorY="middle"
-              onClick={() => {
-                if (type === 'live') openIframe(iframeUrl)
-                else window.open(iframeUrl, '_blank')
-              }}
-              onPointerOver={() => (document.body.style.cursor = 'pointer')}
-              onPointerOut={() => (document.body.style.cursor = 'default')}
             >
-              {type === 'github' && 'View GitHub'}
-              {type === 'linkedin' && 'View Post'}
-              {type === 'live' && 'Live Site'}
+              {type === 'github' ? 'View Code' : type === 'linkedin' ? 'View Post' : 'Visit Live Site'}
             </Text>
           </group>
-
-          {/* Decorative elements - floating clouds */}
-          <Text
-            position={[2.2, 1.5, 0.05]}
-            fontSize={0.3}
-            color="#b8e6ff"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ☁️
-          </Text>
-          
-          <Text
-            position={[-2.8, -0.5, 0.05]}
-            fontSize={0.25}
-            color="#d1f2ff"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ☁️
-          </Text>
-
-          <Text
-            position={[2.5, -0.8, 0.05]}
-            fontSize={0.2}
-            color="#e8f4fd"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ☁️
-          </Text>
         </group>
       </Billboard>
+
     </group>
   );
 }

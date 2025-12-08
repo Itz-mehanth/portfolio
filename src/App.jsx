@@ -1,13 +1,16 @@
 // src/App.jsx
 import { Canvas } from '@react-three/fiber'
 import {
-  ScrollControls,
-  Scroll,
-  Html,
-  PerspectiveCamera,
-  Hud
+  ScrollControls,
+  Scroll,
+  Html,
+  PerspectiveCamera,
+  Hud,
+  AdaptiveDpr,
+  AdaptiveEvents,
+  BakeShadows
 } from '@react-three/drei'
-import Avatar from './Avatar'
+import Airplane from './Airplane'
 import { Suspense, useRef, useEffect, useState, memo } from 'react'
 import './App.css'
 import Projects from './Projects'
@@ -32,126 +35,144 @@ import Skills from './Skills'
 import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
 import Certificates from './Certificates'
 import Cursor from "./Cursor";
+import { Joystick } from 'react-joystick-component';
 
 
 const Navbar = ({ fontBlack }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleMenu = () => setMenuOpen(prev => !prev);
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
-  return (
-    <nav className="navbar">
-      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
-        Mehanth
-      </div>
+  return (
+    <nav className="navbar">
+      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
+        Mehanth
+      </div>
 
-      {/* Desktop menu */}
-      <ul className="navbar-right desktop-menu">
-        <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
-        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
-        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
-        <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
-      </ul>
+      {/* Desktop menu */}
+      <ul className="navbar-right desktop-menu">
+        <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
+        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
+        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
+        <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
+      </ul>
 
-      {/* Hamburger icon */}
-      <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-        <div style={{backgroundColor: fontBlack ? 'black' : 'white'}}/>
-      </div>
+      {/* Hamburger icon */}
+      <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+      </div>
 
-      {/* Mobile menu overlay */}
-      <div  style={{backgroundColor: fontBlack ? 'black' : 'white'}} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
-      </div>
-    </nav>
-  );
+      {/* Mobile menu overlay */}
+      <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
+        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
+      </div>
+    </nav>
+  );
 };
 
 
 export default function App() {
-  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const avatarRef = useRef()
-  const [scrollEnabled, setScrollEnabled] = useState(false)
-  const [waves, setWaves] = useState([])
-  const [startShockwave, setStartShockwave] = useState(false)
-  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
-  const [teleported, setTeleported] = useState(false)
-  const [contactPage, setContactPage] = useState(false)
-  const [fontBlack, setFontBlack] = useState(true)
-  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
-  const [showIframe, setShowIframe] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+
+  // Performance optimization refs
+  const [projectCanvasRef, projectCanvasInView] = useInView({ threshold: 0 })
+  const [contactCanvasRef, contactCanvasInView] = useInView({ threshold: 0 })
+
+  const avatarRef = useRef()
+  const [scrollEnabled, setScrollEnabled] = useState(false)
+  const [waves, setWaves] = useState([])
+  const [startShockwave, setStartShockwave] = useState(false)
+  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
+  const [teleported, setTeleported] = useState(false)
+  const [contactPage, setContactPage] = useState(false)
+  const [fontBlack, setFontBlack] = useState(true)
+  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
+  const [showIframe, setShowIframe] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isCanvasScrollLocked, setIsCanvasScrollLocked] = useState(false);
+  const joystickDataRef = useRef({ x: 0, y: 0 });
+  const verticalControlRef = useRef(0); // Add this ref
+  const [isMobile, setIsMobile] = useState(false);
 
-  const openIframe = (url) => {
-    setIframeUrl(url);
-    setShowIframe(true);
-  };
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  const closeIframe = () => {
-    setShowIframe(false);
-    setIframeUrl(null);
-  };
+  const openIframe = (url) => {
+    setIframeUrl(url);
+    setShowIframe(true);
+  };
 
-  const triggerShockwave = (pos) => {
-    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
-  }
+  const closeIframe = () => {
+    setShowIframe(false);
+    setIframeUrl(null);
+  };
 
-  useEffect(() => {
-    if (inView || contactinView) {
-      setFontBlack(false)
-    } else {
-      setFontBlack(true)
-    }
-  }, [inView, contactinView, teleported])
-  
-  useEffect(() => {
-    if (introinView) {
-      console.log('intro in view')
-    }
-  }, [introinView])
+  const triggerShockwave = (pos) => {
+    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
+  }
 
-  useEffect(() => {
-    if (startShockwave) {
-      console.log('triggered shockwave')
-      triggerShockwave([0, 0, 25])
-      setStartShockwave(false)
-      setTimeout(() => {
-        setStartSpiralPortal(true)
-      }, 1000)
-    } else {
-      setStartSpiralPortal(false)
-    }
-  }, [startShockwave])
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const timeout = setTimeout(() => {
-      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
-      avatarRef.current?.playSequence(['Idle', 'Stretch'])
-      setTimeout(() => {
-        document.body.style.overflow = 'auto'
-        setScrollEnabled(true)
-      }, 5000)
-    }, 2000)
-    return () => clearTimeout(timeout)
-  }, [])
-
-    useEffect(() => {
-    if (inView) {
-        document.body.style.overflow = "hidden";   // stop page scrolling
+  useEffect(() => {
+    if (inView || contactinView) {
+      setFontBlack(false)
     } else {
-        document.body.style.overflow = "auto";     // restore normal page scroll
+      setFontBlack(true)
     }
-    }, [inView]);
-  
+  }, [inView, contactinView, teleported])
+
+  useEffect(() => {
+    if (introinView) {
+      console.log('intro in view')
+    }
+  }, [introinView])
+
+  useEffect(() => {
+    if (startShockwave) {
+      console.log('triggered shockwave')
+      triggerShockwave([0, 0, 25])
+      setStartShockwave(false)
+      setTimeout(() => {
+        setStartSpiralPortal(true)
+      }, 1000)
+    } else {
+      setStartSpiralPortal(false)
+    }
+  }, [startShockwave])
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    const timeout = setTimeout(() => {
+      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
+      avatarRef.current?.playSequence(['Idle', 'Stretch'])
+      setTimeout(() => {
+        document.body.style.overflow = 'auto'
+        setScrollEnabled(true)
+      }, 5000)
+    }, 2000)
+    return () => clearTimeout(timeout)
+  }, [])
+
+  useEffect(() => {
+    if (inView) {
+      document.body.style.overflow = "hidden";   // stop page scrolling
+    } else {
+      document.body.style.overflow = "auto";     // restore normal page scroll
+    }
+  }, [inView]);
+
 
   // Razorpay fun payment before CV download
   const handleDownloadCV = async () => {
@@ -198,198 +219,199 @@ export default function App() {
     rzp.open();
   }
 
-  return (
-    <div
-        style={{
-            overflowY: 'scroll',
-            height: '100vh',
-            scrollBehavior: 'smooth',
-            position: 'relative',
-            // scrollSnapType: 'y mandatory',
-            zIndex: 0
-        }}
+  return (
+    <div
+      style={{
+        overflowY: 'scroll',
+        height: '100vh',
+        scrollBehavior: 'smooth',
+        position: 'relative',
+        // scrollSnapType: 'y mandatory',
+        zIndex: 0
+      }}
     >
       <Cursor />
-     {loading && <SplashLoader setLoading={setLoading} />}
-    {!loading && (
-    <div 
-        style={{ 
+      {loading && <SplashLoader setLoading={setLoading} />}
+      {!loading && (
+        <div
+          style={{
             overflowX: 'hidden',
             scrollBehavior: 'smooth',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'start',
             justifyContent: 'normal'
-        }}>
-      {/* <CustomCursor /> */}
-      <Navbar fontBlack = {fontBlack}/>
-      {/* Intro Section */}
-      <section id='lander'
-        style={{
-          padding: '40px 0',
-          height: '100vh',
-          width: '100vw',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          background: 'white',
-          overflowX: 'hidden',
-          scrollBehavior: 'smooth',
-        }}
-        ref = {introRef}
-        >
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-            width: '90%',
-            margin: '0 auto',
-          }}>
-          <div style={{width: '70%'}}>
-            <p className='Quicksand' style={{margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>Hi, I'm</p>
-            <p className='Silkscreen' style={{margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black'}}>Mehanth</p>
-          <button
-                  onClick={handleDownloadCV}
-                  style={{
-                    width: '170px',
-                    padding: '5px 10px',
-                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
-                    color: 'black',
-                    border: '2px solid rgba(0, 0, 0, 0.3)',
-                    borderRadius: '25px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: 'Poppins',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
-                    e.target.style.transform = 'translateY(-2px)'
-                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
-                    e.target.style.transform = 'translateY(0px)'
-                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
-                  }}
-                >
-                  Download CV
-                </button>
-            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '24px', textAlign: 'left'}}>a Computer Science Engineering student </p>
-            <p className='Quicksand' style={{margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey'}}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
-          </div>
-
-          {/* Right: Image */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <img
-              src='/logo.jpg' // Replace with actual image path
-              alt='Mehanth'
-              style={{
-                width: '100%',
-                maxWidth: '200px',
-                borderRadius: '15px',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              }}
-            />
-          </div>
-        </div>
-        <IntroSection />
-      </section>
-
-        <section id='skills'
-        style={{
-          height: '100vh',
-          padding: '60px 0px 6px 0',
-          width: '100vw',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          background: 'white',
-          overflowX: 'hidden',
-          zIndex: 1, // Changed from -1 to 1 to bring it forward
-          position: 'relative', // Ensure proper stacking
-        }}
-        >
-          <h1 style={{fontSize: '80px', fontWeight: '500'}} className='Barrio'>Skill Town</h1>
-          <Skills/>
-      </section>
-
-    
-      {/* 3D Section */}
-      {/* 3D Section */}
-      <section
-        onWheel={(e) => {
-          // Only prevent default when hovering over canvas
-          if (e.target.closest('.canvas-wrapper')) {
-            e.stopPropagation();
-          }
-        }}
-        id="projects"
-        className="canvas-text-section hide-scrollbar"
-        style={{
-            margin: "20px", // Added margin back for container
-            borderRadius: "30px", // Added border radius back
-            position: "relative",
-            display: "flex",
-            height: "100vh", // Back to original height
-            flexDirection: "column-reverse",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "20px", // Added padding back for container
-            gap: "30px", // Added gap back
-            width: "calc(100vw - 40px)", // Full width minus margins
-        }}
-        ref={ref}
-        >
-        {/* TV Screen Container */}
-        <div
-            className="hide-scrollbar canvas-wrapper"
+          }}>
+          {/* <CustomCursor /> */}
+          <Navbar fontBlack={fontBlack} />
+          {/* Intro Section */}
+          <section id='lander'
             style={{
-            flex: 3, // Back to 3 for larger canvas proportion
-            backgroundColor: "#1a1a1a", // Dark TV bezel color
-            borderRadius: "15px", // TV-like rounded corners
-            height: "calc(85vh - 40px)", // Back to original height
-            width: "100%", // Full width of container
-            maxWidth: "100%", // Ensure it fits container
-            boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)", // TV-like shadow with inner highlight
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            overflow: "hidden", // Prevent any overflow issues
-            position: "relative",
-            padding: "15px", // TV bezel padding
-            border: "3px solid #333", // TV bezel border
+              padding: '40px 0',
+              height: '100vh',
+              width: '100vw',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+              background: 'white',
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
             }}
-            onMouseEnter={() => {
-              // Disable page scroll when hovering canvas
-              document.body.style.overflow = 'hidden';
+            ref={introRef}
+          >
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '90%',
+              margin: '0 auto',
+            }}>
+              <div style={{ width: '70%' }}>
+                <p className='Quicksand' style={{ margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>Hi, I'm</p>
+                <p className='Silkscreen' style={{ margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black' }}>Mehanth</p>
+                <button
+                  onClick={handleDownloadCV}
+                  style={{
+                    width: '170px',
+                    padding: '5px 10px',
+                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
+                    color: 'black',
+                    border: '2px solid rgba(0, 0, 0, 0.3)',
+                    borderRadius: '25px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    fontFamily: 'Poppins',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
+                    e.target.style.transform = 'translateY(-2px)'
+                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
+                    e.target.style.transform = 'translateY(0px)'
+                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
+                  }}
+                >
+                  Download CV
+                </button>
+                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '24px', textAlign: 'left' }}>a Computer Science Engineering student </p>
+                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+              </div>
+
+              {/* Right: Image */}
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <img
+                  src='/logo.jpg' // Replace with actual image path
+                  alt='Mehanth'
+                  style={{
+                    width: '100%',
+                    maxWidth: '200px',
+                    borderRadius: '15px',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+                  }}
+                />
+              </div>
+            </div>
+            <IntroSection />
+          </section>
+
+          <section id='skills'
+            style={{
+              height: '100vh',
+              padding: '60px 0px 6px 0',
+              width: '100vw',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+              background: 'white',
+              overflowX: 'hidden',
+              zIndex: 1, // Changed from -1 to 1 to bring it forward
+              position: 'relative', // Ensure proper stacking
             }}
-            onMouseLeave={() => {
-              // Re-enable page scroll when leaving canvas
-              if (!inView) {
-                document.body.style.overflow = 'auto';
+          >
+            <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
+            <Skills />
+          </section>
+
+
+          {/* 3D Section */}
+          {/* 3D Section */}
+          <section
+            onWheel={(e) => {
+              // Only prevent default when hovering over canvas
+              if (e.target.closest('.canvas-wrapper')) {
+                e.stopPropagation();
               }
             }}
-        >
-            {/* TV Screen */}
+            id="projects"
+            className="canvas-text-section hide-scrollbar"
+            style={{
+              margin: "20px", // Added margin back for container
+              borderRadius: "30px", // Added border radius back
+              position: "relative",
+              display: "flex",
+              height: "100vh", // Back to original height
+              flexDirection: "column-reverse",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "20px", // Added padding back for container
+              gap: "30px", // Added gap back
+              width: "calc(100vw - 40px)", // Full width minus margins
+            }}
+            ref={ref}
+          >
+            {/* TV Screen Container */}
             <div
-                style={{
-                width: "100%",
-                height: "100%",
-                backgroundColor: "#000",
-                borderRadius: "8px", // Inner screen radius
-                overflow: "hidden",
+              className="hide-scrollbar canvas-wrapper"
+              style={{
+                flex: 3, // Back to 3 for larger canvas proportion
+                backgroundColor: "#1a1a1a", // Dark TV bezel color
+                borderRadius: "15px", // TV-like rounded corners
+                height: "calc(85vh - 40px)", // Back to original height
+                width: "100%", // Full width of container
+                maxWidth: "100%", // Ensure it fits container
+                boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)", // TV-like shadow with inner highlight
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                overflow: "hidden", // Prevent any overflow issues
                 position: "relative",
-                boxShadow: "inset 0 0 20px rgba(0,0,0,0.8)", // Inner screen shadow
-                }}
+                padding: "15px", // TV bezel padding
+                border: "3px solid #333", // TV bezel border
+              }}
+              onMouseEnter={() => {
+                // Disable page scroll when hovering canvas
+                document.body.style.overflow = 'hidden';
+              }}
+              onMouseLeave={() => {
+                // Re-enable page scroll when leaving canvas
+                if (!inView) {
+                  document.body.style.overflow = 'auto';
+                }
+              }}
             >
+              {/* TV Screen */}
+              <div
+                ref={projectCanvasRef}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#5cabff",
+                  borderRadius: "8px", // Inner screen radius
+                  overflow: "hidden",
+                  position: "relative",
+                  boxShadow: "inset 0 0 20px rgba(0,0,0,0.8)", // Inner screen shadow
+                }}
+              >
                 {/* TV Stand */}
                 <div
-                    style={{
+                  style={{
                     position: "absolute",
                     bottom: "-25px",
                     left: "50%",
@@ -399,11 +421,11 @@ export default function App() {
                     backgroundColor: "#2a2a2a",
                     borderRadius: "0 0 10px 10px",
                     boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
-                    }}
+                  }}
                 />
                 {/* TV Stand Base */}
                 <div
-                    style={{
+                  style={{
                     position: "absolute",
                     bottom: "-35px",
                     left: "50%",
@@ -413,162 +435,246 @@ export default function App() {
                     backgroundColor: "#1a1a1a",
                     borderRadius: "5px",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                    }}
+                  }}
                 />
-          <Canvas 
-            shadows
+                <Canvas
+                  frameloop={projectCanvasInView ? 'always' : 'never'}
+                  dpr={[1, 2]}
                   camera={{ position: [0, 4, 15], fov: 100 }}
-            style={{ 
-              width: '100%', 
-              height: '100%',
+                  style={{
+                    width: '100%',
+                    height: '100%',
                     maxWidth: '100%',
                     maxHeight: '100%',
-              display: 'block' // Ensure proper display
-            }}
-            gl={{
-              antialias: true,
-              alpha: true,
-              powerPreference: "high-performance"
+                    display: 'block' // Ensure proper display
+                  }}
+                  gl={{
+                    antialias: true,
+                    alpha: false,
+                    powerPreference: "high-performance"
+                  }}
+                >
+                  <AdaptiveDpr pixelated />
+                  <AdaptiveEvents />
+                  <ambientLight intensity={5} />
+                  <Suspense fallback={null}>
+                    <Hud>
+                      <Html center>
+                        <div
+                          style={{
+                            display: showIframe ? 'flex' : 'none',
+                            width: '350px',
+                            height: '650px',
+                            borderRadius: '10px',
+                            overflow: 'hidden',
+                            boxShadow: '0 0 15px rgba(0,0,0,0.3)',
+                            position: 'relative',
+                          }}
+                        >
+                          {/* Close Button */}
+                          <button
+                            onClick={closeIframe}
+                            style={{
+                              position: 'absolute',
+                              top: '10px',
+                              right: '10px',
+                              background: 'rgba(0,0,0,0.7)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '4px 8px',
+                              cursor: 'pointer',
+                              zIndex: 10,
+                            }}
+                          >
+                            ✖
+                          </button>
+
+                          {/* Iframe */}
+                          <iframe
+                            height={'100%'}
+                            width={'100%'}
+                            src={iframeUrl}
+                            title="Dynamic Iframe"
+                          />
+                        </div>
+                      </Html>
+                    </Hud>
+                    <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
+                    <ScrollControls
+                      maxSpeed={0.05}
+                      distance={6}
+                      pages={1} // Increase pages for more scroll distance
+                      damping={0.8}
+                      enabled={scrollEnabled}
+                      infinite={true}
+                      horizontal={false}
+                    >
+                      <Scroll>
+
+                        <Airplane
+                          contactPage={contactPage}
+                          setContactPage={setContactPage}
+                          setIsCanvasScrollLocked={setIsCanvasScrollLocked}
+                          setTeleported={setTeleported}
+                          setStartShockwave={setStartShockwave}
+                          scrollEnabled={scrollEnabled}
+                          ref={avatarRef}
+                          scale={7.5}
+                          position={[0, 0, 0]}
+                          rotation={[0, Math.PI, 0]}
+                          static={false}
+                          isMobile={isMobile}
+                          joystickDataRef={joystickDataRef}
+                          verticalControlRef={verticalControlRef}
+                        />
+
+                        {!contactPage ? (
+                          <Projects
+                            openIframe={openIframe}
+                            contactPage={contactPage}
+                          />
+                        ) : null}
+
+                      </Scroll>
+                    </ScrollControls>
+                  </Suspense>
+                </Canvas>
+                <div style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  left: '20px',
+                  zIndex: 9999
+                }}>
+                  <Joystick
+                    size={80}
+                    sticky={false}
+                    baseColor="rgba(255, 255, 255, 0.2)"
+                    stickColor="rgba(255, 255, 255, 0.5)"
+                    move={(e) => {
+                      joystickDataRef.current = { x: e.x / 2, y: e.y / 2 }
+                    }}
+                    stop={() => {
+                      joystickDataRef.current = { x: 0, y: 0 }
+                    }}
+                  />
+                </div>
+
+                <div style={{
+                  position: 'absolute',
+                  bottom: '40px',
+                  right: '20px',
+                  zIndex: 9999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '15px'
+                }}>
+                  <button
+                    onPointerDown={() => { verticalControlRef.current = 1 }}
+                    onPointerUp={() => { verticalControlRef.current = 0 }}
+                    onPointerLeave={() => { verticalControlRef.current = 0 }}
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                      color: 'white',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      userSelect: 'none'
+                    }}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    onPointerDown={() => { verticalControlRef.current = -1 }}
+                    onPointerUp={() => { verticalControlRef.current = 0 }}
+                    onPointerLeave={() => { verticalControlRef.current = 0 }}
+                    style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                      color: 'white',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      userSelect: 'none'
+                    }}
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            ref={certificateRef}
+            id='certificate'
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2rem',
+              height: '100%',
+              padding: '80px 40px',
+              scrollBehavior: 'smooth',
             }}
           >
-            <Suspense fallback={null}>
-                <Hud>
-                  <ambientLight intensity={5} />
-                  <Html center>                    
-                    <div
-                      style={{
-                        display: showIframe ? 'flex' : 'none',
-                        width: '350px',
-                        height: '650px',
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        boxShadow: '0 0 15px rgba(0,0,0,0.3)',
-                        position: 'relative',
-                      }}
-                    >
-                      {/* Close Button */}
-                      <button
-                        onClick={closeIframe}
-                        style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          background: 'rgba(0,0,0,0.7)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          padding: '4px 8px',
-                          cursor: 'pointer',
-                          zIndex: 10,
-                        }}
-                      >
-                        ✖
-                      </button>
+            <Certificates />
+          </section>
 
-                      {/* Iframe */}
-                      <iframe
-                        height={'100%'}
-                        width={'100%'}
-                        src={iframeUrl}
-                        title="Dynamic Iframe"
-                      />
-                    </div>
-                  </Html>
-                </Hud>
-              <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
-              <ScrollControls 
-                maxSpeed={0.05} 
-                distance={6} 
-                pages={1} // Increase pages for more scroll distance
-                damping={0.8} 
-                enabled={scrollEnabled}
-                infinite={true}
-                horizontal={false}
+          {/* Contact Section */}
+          <section id='contact'
+            ref={contactRef}
+            style={{
+              height: '100vh',
+              width: '100vw', // Full viewport width
+              overflowX: 'hidden',
+              scrollBehavior: 'smooth',
+              background: 'black',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              ref={contactCanvasRef}
+              style={{
+                height: '50%',
+                width: '100%', // Full width
+              }}
+            >
+              <Canvas
+                frameloop={contactCanvasInView ? 'always' : 'never'}
+                style={{ width: '100%', height: '100%' }}
               >
-                <Scroll>
+                <Suspense fallback={null}>
+                  <Contact />
+                </Suspense>
+              </Canvas>
+            </div>
+            <div
+              style={{
+                height: '50%',
+                width: '100%', // Full width
+                backgroundColor: 'white',
+              }}
+            >
+              <ContactSection />
+            </div>
+          </section>
 
-                  <Avatar
-                    contactPage={contactPage}
-                    setContactPage={setContactPage}
-                    setIsCanvasScrollLocked={setIsCanvasScrollLocked}
-                    setTeleported={setTeleported}
-                    setStartShockwave={setStartShockwave}
-                    scrollEnabled={scrollEnabled}
-                    ref={avatarRef}
-                    scale={2}
-                    position={[0, 0, 0]}
-                    rotation={[-Math.PI / 2, 0, 0]}
-                    static={false}
-                  />
-
-                  {!contactPage ? (
-                    <Projects
-                      openIframe={openIframe}
-                    />
-                  ) : null}
-
-                </Scroll>
-              </ScrollControls>
-            </Suspense>
-          </Canvas>
         </div>
-        </div>
-      </section>
+      )}
 
-      <section 
-        ref={certificateRef}
-        id='certificate'
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2rem',
-          height: '100%',
-          padding: '80px 40px',
-          scrollBehavior: 'smooth',
-        }}
-      >
-        <Certificates/>
-      </section>
-
-      {/* Contact Section */}
-      <section id='contact'
-        ref={contactRef}
-        style={{
-          height: '100vh',
-          width: '100vw', // Full viewport width
-          overflowX: 'hidden',
-          scrollBehavior: 'smooth',
-          background: 'black',
-          zIndex: 1000,
-        }}
-      >
-        <div
-          style={{
-            height: '50%',
-            width: '100%', // Full width
-          }}
-        >
-        <Canvas style={{ width: '100%', height: '100%' }}>
-          <Suspense fallback={null}>
-          <Contact />
-          </Suspense>
-        </Canvas>
-        </div>
-        <div
-          style={{
-            height: '50%',
-            width: '100%', // Full width
-            backgroundColor: 'white',
-          }}
-        >
-          <ContactSection/>
-        </div>
-      </section>
-
-    </div>
-     )}
-    </div>
-  )
+    </div>
+  )
 }
 
 const MemoizedProjects = memo(Projects);
@@ -633,7 +739,7 @@ function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     if (!validateForm()) {
       return;
@@ -666,12 +772,12 @@ function ContactSection() {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', message: '' });
       setErrors({});
-      
+
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setSubmitStatus('');
       }, 5000);
-      
+
     } catch (error) {
       console.error('Error submitting form:', error);
       setSubmitStatus('error');
@@ -689,14 +795,14 @@ function ContactSection() {
 
   return (
     <>
-      <link 
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" 
-        rel="stylesheet" 
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
       />
-      
+
       <section className="contact-section">
         <div className="contact-container">
-          
+
           {/* Main Content */}
           <div className="contact-content">
             {/* Contact Form */}
@@ -732,12 +838,12 @@ function ContactSection() {
 
                 <div className="form-group">
                   <label htmlFor="name">Your Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     id="name"
-                    name="name" 
-                    placeholder="Enter your full name" 
-                    required 
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
                     value={formData.name}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
@@ -751,15 +857,15 @@ function ContactSection() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="email">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     id="email"
-                    name="email" 
-                    placeholder="your.email@example.com" 
-                    required 
+                    name="email"
+                    placeholder="your.email@example.com"
+                    required
                     value={formData.email}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
@@ -773,15 +879,15 @@ function ContactSection() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="message">Project Details</label>
-                  <textarea 
+                  <textarea
                     id="message"
-                    name="message" 
-                    placeholder="Tell me about your project, timeline, and any specific requirements..." 
-                    rows={4} 
-                    required 
+                    name="message"
+                    placeholder="Tell me about your project, timeline, and any specific requirements..."
+                    rows={4}
+                    required
                     value={formData.message}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
@@ -795,10 +901,10 @@ function ContactSection() {
                     </span>
                   )}
                 </div>
-                
-                <button 
-                  type="submit" 
-                  className="submit-btn" 
+
+                <button
+                  type="submit"
+                  className="submit-btn"
                   disabled={isSubmitting}
                   style={{
                     opacity: isSubmitting ? 0.7 : 1,
@@ -808,8 +914,8 @@ function ContactSection() {
                   <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
                   {!isSubmitting && (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
                 </button>
@@ -834,11 +940,11 @@ function ContactSection() {
                 <h4>Follow Me</h4>
                 <div className="social-links">
                   {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
-                    <a 
-                      key={index} 
-                      href={href} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      key={index}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="social-link"
                       style={{ '--brand-color': color }}
                     >

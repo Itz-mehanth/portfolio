@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF } from '@react-three/drei';
+import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, BakeShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground';
 import { Suspense } from 'react';
@@ -9,10 +9,13 @@ import WaterTank from './utils/models/WaterTank';
 import Tank from './utils/models/Tank';
 import WindMills from './utils/models/WIndMill';
 import Tree from './utils/models/Tree';
+import { RGBELoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
+
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
-import { useThree } from '@react-three/fiber';
+import { useInView } from 'react-intersection-observer';
+import { Environment } from '@react-three/drei';
 
 // Preload all models at the start
 useGLTF.preload('models/house.glb');
@@ -56,14 +59,74 @@ function LoadingFallback() {
   );
 }
 
+const InstancedContext = React.createContext(null);
+
+function Instances({ children }) {
+  const { nodes: houseNodes, materials: houseMaterials } = useGLTF('models/house.glb');
+  const { nodes: tankNodes, materials: tankMaterials } = useGLTF('models/water tank.glb');
+
+  // Apply Toon Material to loaded nodes
+  React.useMemo(() => {
+    [houseNodes, tankNodes].forEach(nodes => {
+      Object.values(nodes).forEach(node => {
+        if (node.isMesh) {
+          node.material = new THREE.MeshToonMaterial({
+            color: node.material.color,
+            map: node.material.map,
+            gradientMap: null
+          });
+        }
+      });
+    });
+  }, [houseNodes, tankNodes]);
+
+  const instances = React.useMemo(() => ({
+    HouseCube: houseNodes.Cube,
+    HouseCube1: houseNodes.Cube_1,
+    HouseCube2: houseNodes.Cube_2,
+    HouseCube3: houseNodes.Cube_3,
+    TankCyl1: tankNodes.Cylinder_1,
+    TankCyl2: tankNodes.Cylinder_2,
+    TankCyl3: tankNodes.Cylinder_3,
+    TankPath1: tankNodes.NurbsPath,
+    TankPath2: tankNodes.NurbsPath001,
+  }), [houseNodes, tankNodes]);
+
+  return (
+    <Merged meshes={instances}>
+      {(models) => <InstancedContext.Provider value={models}>{children}</InstancedContext.Provider>}
+    </Merged>
+  );
+}
+
 function City({ id, name, position, onClick, isSelected, color }) {
+  const instances = React.useContext(InstancedContext);
   return (
     <group position={position} onClick={() => onClick(id)}>
       <Suspense fallback={<LoadingFallback />}>
-        <House scale={1}/>
+        {instances ? (
+          <group position={[0, 0, 0]}>
+            <group position={[0, 0, 2.412]} scale={[0.53, 0.284, 0.284]}>
+              <instances.HouseCube />
+              <instances.HouseCube1 />
+              <instances.HouseCube2 />
+              <instances.HouseCube3 />
+            </group>
+          </group>
+        ) : <House scale={1} />}
       </Suspense>
       <Suspense fallback={<LoadingFallback />}>
-        <WaterTank position={[1,-0.5,-1]}/>
+        {instances ? (
+          <group position={[1, -0.5, -1]}>
+            {/* Instanced WaterTank partial implementation */}
+            <group position={[-0.001, 0.904, 3.351]} scale={[0.165, 0.712, 0.165]}>
+              <instances.TankCyl1 />
+              <instances.TankCyl2 />
+              <instances.TankCyl3 />
+            </group>
+            {/* Simplified WaterTank extra pipes to save calls if needed, or implement all paths */}
+          </group>
+        ) : <WaterTank position={[1, -0.5, -1]} />}
       </Suspense>
 
       {!isSelected && (
@@ -92,9 +155,9 @@ function City({ id, name, position, onClick, isSelected, color }) {
 function Scroll({ open, skills }) {
   return (
     <group position={[0, 4.5, 5]} visible={open}>
-      <mesh rotation={[0, 0, 0]}> 
+      <mesh rotation={[0, 0, 0]}>
         <planeGeometry args={[5, 2.5]} />
-        <meshStandardMaterial color={'black'}  />
+        <meshStandardMaterial color={'black'} />
       </mesh>
       {skills.map((skill, index) => (
         <Text
@@ -129,16 +192,16 @@ const getCityToCityPath = (fromId, toId) => {
   const fromIndex = cityOrder.indexOf(fromId);
   const toIndex = cityOrder.indexOf(toId);
   if (fromIndex === -1 || toIndex === -1 || fromId == toId) return null;
-  
+
   const pathSlice = cityOrder.slice(
     Math.min(fromIndex, toIndex),
     Math.max(fromIndex, toIndex) + 1
   );
-  
+
   const orderedPoints = (fromIndex <= toIndex ? pathSlice : pathSlice.reverse()).map(
     (id) => cityPathPoints[id]
   );
-  
+
   return new THREE.CatmullRomCurve3(orderedPoints, false, 'catmullrom', 0.5);
 };
 
@@ -146,7 +209,11 @@ export default function SciFiSkillCities() {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
-    
+  const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
+
+  const texture = useLoader(RGBELoader, '/hdr/anime_sky.hdr');
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+
   const handleCityClick = (id) => {
     setSelectedCity(id);
 
@@ -265,138 +332,151 @@ export default function SciFiSkillCities() {
 
   return (
     <>
-    <div 
-      style={{
-        width: '90vw', 
-        height: '60vh', 
-        border: '15px ridge black', 
-        borderRadius: '10px',
-        position: 'relative',
-        zIndex: 10,
-        pointerEvents: 'auto',
-        cursor: 'grab'
-      }}
-      onClick={() => console.log('Canvas container clicked!')}
-    >
-    <Canvas 
-      camera={{ position: [0, 6, 20], fov: 60 }} 
-      shadows 
-      gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}
-      style={{ 
-        width: '100%', 
-        height: '100%',
-        display: 'block',
-        pointerEvents: 'auto'
-      }}
-    >
-      {/* Basic scene setup */}
-      <ambientLight intensity={0.3} />
-      <directionalLight
-        castShadow
-        position={[10, 10, 10]}
-        intensity={1.4}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={50}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-      />
-      <OrbitControls 
-        enableZoom={true} 
-        enablePan={true} 
-        enableRotate={true}
-        maxPolarAngle={Math.PI / 2.3}
-        minDistance={5}
-        maxDistance={60}
-        enableDamping={true}
-        dampingFactor={0.05}
-      />
-
-      {/* Post-processing effects */}
-      <Suspense fallback={null}>
-        <EffectComposer>
-          <Outline edgeStrength={5} visibleEdgeColor="black" hiddenEdgeColor="gray" blur />
-        </EffectComposer>
-      </Suspense>
-
-      {/* Ground */}
-      <Suspense fallback={null}>
-        <Ground scale={4} />
-      </Suspense>
-
-      {/* Car with camera */}
-      <Suspense fallback={null}>
-        <PerspectiveCamera makeDefault position={[0, 6, 10]} />
-        <Car
-          position={cityPathPoints[currentCity].toArray()}
-          path={path}
-          onReachEnd={() => {
-            console.log('Reached:', selectedCity);
-            setCurrentCity(selectedCity);
+      <div
+        ref={ref}
+        style={{
+          width: '90vw',
+          height: '60vh',
+          border: '15px ridge black',
+          borderRadius: '10px',
+          position: 'relative',
+          zIndex: 10,
+          pointerEvents: 'auto',
+          cursor: 'grab'
+        }}
+        onClick={() => console.log('Canvas container clicked!')}
+      >
+        <Canvas
+          frameloop={inView ? 'always' : 'never'}
+          camera={{ position: [0, 6, 20], fov: 60 }}
+          shadows
+          gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            pointerEvents: 'auto'
           }}
-        />
-      </Suspense>
+        >
+          <Suspense fallback={null}>
 
-      {/* UI Elements */}
-      <Billboard position={[0, -2, 1.5]}>
-        <Text fontSize={1} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
-          🚩 Click any house to explore skills
-        </Text>
-      </Billboard>
+            <AdaptiveDpr pixelated />
+            <AdaptiveEvents />
+            <BakeShadows />
 
-      {/* Decorative elements */}
-      <group>
-        {/* Windmills */}
-        {Object.entries(windmillPositions).map(([id, pos]) => (
-          <Suspense key={id} fallback={<LoadingFallback />}>
-            <WindMills position={pos} />
+            {/* Anime Sky Environment */}
+            <Environment map={texture} />
+
+            {/* Anime Sky Sphere with Parallax */}
+            <mesh position={[0, 0, -50]} scale={[-1, 1, 1]}>
+              <sphereGeometry args={[200, 60, 40]} />
+              <meshBasicMaterial map={texture} side={THREE.BackSide} />
+            </mesh>
+
+            {/* Basic scene setup */}
+            <ambientLight intensity={1.2} />
+            <directionalLight
+              castShadow
+              position={[10, 10, 10]}
+              intensity={1.4}
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+              shadow-camera-far={50}
+              shadow-camera-left={-20}
+              shadow-camera-right={20}
+              shadow-camera-top={10}
+              shadow-camera-bottom={-10}
+            />
+            <OrbitControls
+              enableZoom={true}
+              enablePan={true}
+              enableRotate={true}
+              maxPolarAngle={Math.PI / 2.3}
+              minDistance={5}
+              maxDistance={60}
+              enableDamping={true}
+              dampingFactor={0.05}
+            />
+
+            {/* Ground */}
+            <Suspense fallback={null}>
+              <Ground scale={4} />
+            </Suspense>
+
+            {/* Car with camera */}
+            <Suspense fallback={null}>
+              <PerspectiveCamera makeDefault position={[0, 6, 10]} />
+              <Car
+                position={cityPathPoints[currentCity].toArray()}
+                path={path}
+                onReachEnd={() => {
+                  console.log('Reached:', selectedCity);
+                  setCurrentCity(selectedCity);
+                }}
+              />
+            </Suspense>
+
+            {/* UI Elements */}
+            <Billboard position={[0, -2, 1.5]}>
+              <Text fontSize={1} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
+                🚩 Click any house to explore skills
+              </Text>
+            </Billboard>
+
+            {/* Decorative elements */}
+            <group>
+              {/* Windmills */}
+              {Object.entries(windmillPositions).map(([id, pos]) => (
+                <Suspense key={id} fallback={<LoadingFallback />}>
+                  <WindMills position={pos} />
+                </Suspense>
+              ))}
+
+              {/* Trees */}
+              {Object.entries(treePositions).map(([id, pos]) => (
+                <Suspense key={id} fallback={<LoadingFallback />}>
+                  <Tree position={pos} scale={1} />
+                </Suspense>
+              ))}
+
+              {/* Tanks */}
+              {Object.entries(tankPositions).map(([id, pos]) => (
+                <Suspense key={id} fallback={<LoadingFallback />}>
+                  <Tank position={pos} />
+                </Suspense>
+              ))}
+
+              {/* Cities */}
+              {Object.entries(cityPositions).map(([id, pos]) => (
+                <City
+                  key={id}
+                  id={id}
+                  name={id.toUpperCase()}
+                  position={pos}
+                  onClick={handleCityClick}
+                  isSelected={selectedCity === id}
+                  color={cityColors[id]}
+                />
+              ))}
+            </group>
+
+
           </Suspense>
-        ))}
+        </Canvas>
+      </div>
 
-        {/* Trees */}
-        {Object.entries(treePositions).map(([id, pos]) => (
-          <Suspense key={id} fallback={<LoadingFallback />}>
-            <Tree position={pos} scale={1} />
-          </Suspense>
-        ))}
-
-        {/* Tanks */}
-        {Object.entries(tankPositions).map(([id, pos]) => (
-          <Suspense key={id} fallback={<LoadingFallback />}>
-            <Tank position={pos} />
-          </Suspense>
-        ))}
-
-        {/* Cities */}
-        {Object.entries(cityPositions).map(([id, pos]) => (
-          <City 
-            key={id} 
-            id={id} 
-            name={id.toUpperCase()} 
-            position={pos} 
-            onClick={handleCityClick} 
-            isSelected={selectedCity === id}
-            color={cityColors[id]}
-          />
-        ))}
-      </group>
-
-    </Canvas>
-    </div>
-
-      <PhysicsSkillsContainer skillsByCity={skillsByCity} selectedCity={selectedCity}/>
+      <PhysicsSkillsContainer skillsByCity={skillsByCity} selectedCity={selectedCity} />
     </>
   );
 }
 
-const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
+const PhysicsSkillsContainer = ({ skillsByCity, selectedCity }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const skillsRef = useRef([]);
   const ballRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0, isPressed: false });
+  const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 2D keys
 
   // Physics properties
   const friction = 0.99;
@@ -454,13 +534,13 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
     resolveRectCollision(rect) {
       const rectCenterX = rect.x + rect.width / 2;
       const rectCenterY = rect.y + rect.height / 2;
-      
+
       const dx = this.x - rectCenterX;
       const dy = this.y - rectCenterY;
-      
+
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
-      
+
       // Determine which side of the rectangle we hit
       if (absX / rect.width > absY / rect.height) {
         // Hit left or right side
@@ -483,7 +563,7 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
-      
+
       // Black border
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
@@ -513,7 +593,7 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
         this.y += this.vy;
         this.vx *= friction;
         this.vy *= friction;
-        
+
         // Boundary collisions
         if (this.x <= 0) {
           this.x = 0;
@@ -539,24 +619,24 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
       ctx.fillStyle = '#FFFFFF';
       this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
       ctx.fill();
-      
+
       // Black border
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
       this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
       ctx.stroke();
-      
+
       // Text
       ctx.fillStyle = '#000000';
       ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(this.skill.name, this.x + this.width / 2, this.y + this.height / 2 - 8);
-      
+
       // Description
       ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       const maxChars = Math.floor(this.width / 7);
-      const truncatedDesc = this.skill.description.length > maxChars 
+      const truncatedDesc = this.skill.description.length > maxChars
         ? this.skill.description.substring(0, maxChars - 3) + '...'
         : this.skill.description;
       ctx.fillText(truncatedDesc, this.x + this.width / 2, this.y + this.height / 2 + 12);
@@ -576,12 +656,12 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    
+
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
     };
-    
+
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
@@ -602,39 +682,39 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
       // Light gray background
       ctx.fillStyle = '#F5F5F5';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Update and draw ball
       ballRef.current.update(canvas, skillsRef.current);
       ballRef.current.draw(ctx);
-      
+
       // Update and draw skills
       for (let skill of skillsRef.current) {
         skill.update(canvas);
         skill.draw(ctx);
       }
-      
+
       // Simple collision detection between skills
       for (let i = 0; i < skillsRef.current.length; i++) {
         for (let j = i + 1; j < skillsRef.current.length; j++) {
           const skillA = skillsRef.current[i];
           const skillB = skillsRef.current[j];
-          
+
           if (!skillA.isDragging && !skillB.isDragging) {
             const dx = (skillA.x + skillA.width / 2) - (skillB.x + skillB.width / 2);
             const dy = (skillA.y + skillA.height / 2) - (skillB.y + skillB.height / 2);
             const distance = Math.sqrt(dx * dx + dy * dy);
             const minDistance = (skillA.width + skillB.width) / 2 + 5;
-            
+
             if (distance < minDistance) {
               const overlap = minDistance - distance;
               const separationX = (dx / distance) * overlap * 0.5;
               const separationY = (dy / distance) * overlap * 0.5;
-              
+
               skillA.x += separationX;
               skillA.y += separationY;
               skillB.x -= separationX;
               skillB.y -= separationY;
-              
+
               skillA.vx += separationX * 0.1;
               skillA.vy += separationY * 0.1;
               skillB.vx -= separationX * 0.1;
@@ -643,11 +723,15 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
           }
         }
       }
-      
-      animationRef.current = requestAnimationFrame(animate);
+
+      if (inView) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     };
 
-    animate();
+    if (inView) {
+      animate();
+    }
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
@@ -655,20 +739,22 @@ const PhysicsSkillsContainer = ({skillsByCity, selectedCity}) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [selectedCity]);
+  }, [selectedCity, inView]);
 
   return (
-    <div style={{
-      height: '40vh',
-      width: '90vw',
-      position: 'relative',
-      overflow: 'hidden',
-      margin: '10px 0px 70px 0',
-      borderRadius: '12px',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      backgroundColor: '#F5F5F5',
-      border: '2px solid #000000'
-    }}>
+    <div
+      ref={ref}
+      style={{
+        height: '40vh',
+        width: '90vw',
+        position: 'relative',
+        overflow: 'hidden',
+        margin: '10px 0px 70px 0',
+        borderRadius: '12px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        backgroundColor: '#F5F5F5',
+        border: '2px solid #000000'
+      }}>
       <canvas
         ref={canvasRef}
         style={{
