@@ -85,7 +85,9 @@ export default function Projects({ openIframe, contactPage }) {
   return (
     <group>
       <Environment
-        map={texture}
+        files={'/hdr/anime_sky.hdr'}
+        backgroundIntensity={0.5}
+        environmentIntensity={0.1}
       />
 
       {/* Anime Sky Sphere with Reduced Radius for Parallax */}

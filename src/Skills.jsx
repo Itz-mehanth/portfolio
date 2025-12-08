@@ -211,7 +211,7 @@ export default function SciFiSkillCities() {
   const [path, setPath] = useState(null);
   const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
 
-  const texture = useLoader(RGBELoader, '/hdr/anime_sky.hdr');
+  const texture = useLoader(RGBELoader, '/hdr/blue_anime_sky.hdr');
   texture.mapping = THREE.EquirectangularReflectionMapping;
 
   const handleCityClick = (id) => {
