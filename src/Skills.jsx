@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, BakeShadows } from '@react-three/drei';
+import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, BakeShadows, Preload } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground';
 import { Suspense } from 'react';
@@ -385,6 +385,7 @@ export default function SciFiSkillCities() {
             <AdaptiveDpr pixelated />
             <AdaptiveEvents />
             <BakeShadows />
+            <Preload all />
 
             {/* Anime Sky Environment & Sphere */}
             <Skybox />

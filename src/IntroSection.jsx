@@ -1,5 +1,5 @@
 import { useBox, useSphere, Physics, usePlane } from '@react-three/cannon'
-import { OrbitControls, Center, Text3D, Box, Sparkles, DeviceOrientationControls, PerspectiveCamera, Billboard, Text } from '@react-three/drei'
+import { OrbitControls, Center, Text3D, Box, Sparkles, DeviceOrientationControls, PerspectiveCamera, Billboard, Text, Preload } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect } from 'react'
@@ -226,6 +226,7 @@ export default function IntroSection() {
 
           {/* Draggable Meshes */}
           <DraggableMeshes />
+          <Preload all />
         </Suspense>
       </Canvas>
     </div>

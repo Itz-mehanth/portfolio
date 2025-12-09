@@ -8,7 +8,8 @@ import {
   Hud,
   AdaptiveDpr,
   AdaptiveEvents,
-  BakeShadows
+  BakeShadows,
+  Preload
 } from '@react-three/drei'
 import Airplane from './Airplane'
 import { Suspense, useRef, useEffect, useState, memo } from 'react'
@@ -397,12 +398,7 @@ export default function App() {
           {/* 3D Section */}
           {/* 3D Section */}
           <section
-            onWheel={(e) => {
-              // Only prevent default when hovering over canvas
-              if (e.target.closest('.canvas-wrapper')) {
-                e.stopPropagation();
-              }
-            }}
+
             id="projects"
             className="canvas-text-section hide-scrollbar"
             style={{
@@ -438,16 +434,6 @@ export default function App() {
                 position: "relative",
                 padding: "15px", // TV bezel padding
                 border: "3px solid #333", // TV bezel border
-              }}
-              onMouseEnter={() => {
-                // Disable page scroll when hovering canvas
-                document.body.style.overflow = 'hidden';
-              }}
-              onMouseLeave={() => {
-                // Re-enable page scroll when leaving canvas
-                if (!inView) {
-                  document.body.style.overflow = 'auto';
-                }
               }}
             >
               {/* TV Screen */}
@@ -632,8 +618,10 @@ export default function App() {
                           />
                         ) : null}
 
+
                       </Scroll>
                     </ScrollControls>
+                    <Preload all />
                   </Suspense>
                 </Canvas>
                 <div style={{
@@ -751,10 +739,11 @@ export default function App() {
             </div>
           </section>
 
-        </div>
-      )}
+        </div >
+      )
+      }
 
-    </div>
+    </div >
   )
 }
 
