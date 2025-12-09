@@ -39,6 +39,7 @@ import Cursor from "./Cursor";
 import { Joystick } from 'react-joystick-component';
 
 
+const CANVAS_CAMERA_CONFIG = { position: [0, 4, 15], fov: 100 };
 const Navbar = ({ fontBlack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -87,6 +88,16 @@ const Navbar = ({ fontBlack }) => {
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
         <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
+        <a style={{ color: fontBlack ? 'white' : 'black', cursor: 'pointer' }} onClick={() => {
+          toggleMenu();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        }}>Fullscreen</a>
       </div>
     </nav>
   );
@@ -519,7 +530,7 @@ export default function App() {
                 <Canvas
                   frameloop={projectCanvasInView ? 'always' : 'never'}
                   dpr={[1, 2]}
-                  camera={{ position: [0, 4, 15], fov: 100 }}
+                  camera={CANVAS_CAMERA_CONFIG}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -536,6 +547,7 @@ export default function App() {
                   <AdaptiveDpr pixelated />
                   <AdaptiveEvents />
                   <ambientLight intensity={5} />
+                  <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
                   <Suspense fallback={null}>
                     <Hud>
                       <Html center>
@@ -579,7 +591,7 @@ export default function App() {
                         </div>
                       </Html>
                     </Hud>
-                    <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
+
                     <ScrollControls
                       maxSpeed={0.05}
                       distance={6}
