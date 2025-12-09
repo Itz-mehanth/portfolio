@@ -55,6 +55,22 @@ const Navbar = ({ fontBlack }) => {
         <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
         <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
         <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
+        <li><button onClick={() => {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        }} style={{
+          background: 'none',
+          border: 'none',
+          color: fontBlack ? 'black' : 'white',
+          cursor: 'pointer',
+          font: 'inherit',
+          textDecoration: 'underline'
+        }}>Fullscreen</button></li>
       </ul>
 
       {/* Hamburger icon */}
@@ -101,6 +117,10 @@ export default function App() {
   const joystickDataRef = useRef({ x: 0, y: 0 });
   const verticalControlRef = useRef(0); // Add this ref
   const [isMobile, setIsMobile] = useState(false);
+  /* Game State */
+  const scoreValueRef = useRef(0);
+  const scoreElement = useRef(null);
+  const [highScore, setHighScore] = useState({ score: 0, name: 'None' });
 
   useEffect(() => {
     const checkMobile = () => {
@@ -110,6 +130,40 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    // Fetch High Score
+    fetch('/api/highscore')
+      .then(res => res.json())
+      .then(data => setHighScore(data))
+      .catch(err => console.error("Failed to fetch high score:", err));
+  }, []);
+
+  const handleScoreSubmit = () => {
+    const currentScore = scoreValueRef.current;
+    // Safe access
+    const safeHighScore = highScore && highScore.score !== undefined ? highScore.score : 0;
+    const safeHighName = highScore && highScore.name ? highScore.name : 'None';
+
+    if (currentScore > safeHighScore) {
+      const name = prompt(`New High Score! (Current Best: ${safeHighScore} by ${safeHighName})\nEnter your name:`);
+      if (name) {
+        fetch('/api/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, score: currentScore })
+        })
+          .then(res => res.json())
+          .then(data => {
+            alert("Score Saved!");
+            setHighScore({ name, score: currentScore });
+          })
+          .catch(err => console.error("Error saving score:", err));
+      }
+    } else {
+      alert(`Good run! But the high score is ${safeHighScore} by ${safeHighName}. Keep trying!`);
+    }
+  };
 
   const openIframe = (url) => {
     setIframeUrl(url);
@@ -224,9 +278,9 @@ export default function App() {
       style={{
         overflowY: 'scroll',
         height: '100vh',
-        scrollBehavior: 'smooth',
+        scrollBehavior: 'auto',
         position: 'relative',
-        // scrollSnapType: 'y mandatory',
+        scrollSnapType: 'none',
         zIndex: 0
       }}
     >
@@ -437,6 +491,45 @@ export default function App() {
                     boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   }}
                 />
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '25px',
+                  zIndex: 10,
+                  fontFamily: "'Share Tech Mono', monospace",
+                  color: '#fbbf24', // Gold color
+                  textShadow: '0 0 5px #fbbf24',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  padding: '5px 15px',
+                  borderRadius: '20px',
+                  border: '2px solid #fbbf24',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <div style={{ fontSize: '24px' }}>🪙</div>
+                  <div ref={scoreElement} style={{ fontSize: '20px', fontWeight: 'bold' }}>0</div>
+                  <button
+                    onClick={handleScoreSubmit}
+                    style={{
+                      marginLeft: '10px',
+                      background: 'transparent',
+                      border: '1px solid #fbbf24',
+                      color: '#fbbf24',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      padding: '2px 8px',
+                      fontSize: '12px'
+                    }}
+                  >
+                    SAVE
+                  </button>
+                  {/* High Score Display */}
+                  <div style={{ marginLeft: '15px', borderLeft: '1px solid #fbbf24', paddingLeft: '15px', fontSize: '14px', color: '#fbbf24', whiteSpace: 'nowrap' }}>
+                    Best: {highScore?.score || 0} ({highScore?.name || 'None'})
+                  </div>
+                </div>
+
                 <Canvas
                   frameloop={projectCanvasInView ? 'always' : 'never'}
                   dpr={[1, 2]}
@@ -533,6 +626,9 @@ export default function App() {
                           <Projects
                             openIframe={openIframe}
                             contactPage={contactPage}
+                            avatarRef={avatarRef}
+                            scoreElement={scoreElement}
+                            scoreValueRef={scoreValueRef}
                           />
                         ) : null}
 
@@ -958,7 +1054,7 @@ function ContactSection() {
           </div>
         </div>
 
-        <style jsx>{`
+        <style jsx="true">{`
           .contact-section {
             padding: 4rem 2rem;
             background: #fafafa;

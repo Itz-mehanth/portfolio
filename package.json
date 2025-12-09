@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:full": "concurrently \"vite\" \"node api/index.js\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -17,9 +18,14 @@
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/xr": "^6.6.26",
     "cannon-es": "^0.20.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "framer-motion": "^12.15.0",
     "gsap": "^3.13.0",
     "lucide-react": "^0.526.0",
+    "mongoose": "^9.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-intersection-observer": "^9.16.0",

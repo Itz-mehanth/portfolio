@@ -5,14 +5,18 @@ import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import useKeyboard from './utils/useKeyboard'
 
-const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, ...props }, ref) => {
+const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, setSpeed, ...props }, ref) => {
     const group = useRef()
     const { scene } = useGLTF('/models/paper_airplane.glb')
     const keys = useKeyboard()
     const { camera } = useThree()
 
     // Physics parameters
-    const speed = 0.5
+    const baseSpeed = 0.5
+    const maxSpeed = 1.6 // Maximum speed multiplier
+    const acceleration = 0.01 // Acceleration rate
+    const currentSpeedRef = useRef(baseSpeed) // Track current speed
+
     // Reduced roll amount as requested (was PI/3)
     const maxRoll = Math.PI / 6 // 30 degrees
     const maxPitch = Math.PI / 6 // 30 degrees
@@ -46,18 +50,34 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, ..
             up += verticalControlRef.current
         }
 
+        // Acceleration Logic
+        if (forward > 0) {
+            currentSpeedRef.current = Math.min(currentSpeedRef.current + acceleration, maxSpeed)
+        } else {
+            currentSpeedRef.current = Math.max(currentSpeedRef.current - acceleration, baseSpeed)
+        }
+
         // Apply movement speed
-        const moveSpeed = speed * (keys.shift ? 2 : 1) * 20 * delta
+        const moveSpeed = currentSpeedRef.current * (keys.shift ? 2 : 1) * 20 * delta
 
         // Update Position with Clamping (Boundaries)
-        // Limits: X: +/- 30, Y: -10 to 30, Z: -20 to 250
+        // Limits: X: +/- 30, Y: -10 to 30, Z: -20 to 500
         group.current.position.x = THREE.MathUtils.clamp(group.current.position.x + right * moveSpeed, -30, 30)
         group.current.position.y = THREE.MathUtils.clamp(group.current.position.y + up * moveSpeed * 0.5, -10, 30)
-        group.current.position.z = THREE.MathUtils.clamp(group.current.position.z + forward * moveSpeed, -20, 250)
+        group.current.position.z = THREE.MathUtils.clamp(group.current.position.z + forward * moveSpeed, -20, 500)
 
         // Rotation Logic
         const targetRoll = -right * maxRoll
         const targetPitch = up * maxPitch * 0.5
+
+        // Update UI Speedometer (0 to 100 scale approximations)
+        if (setSpeed) {
+            // Mapping baseSpeed(0.5) -> ~0 km/h visual, maxSpeed(1.5) -> 100%
+            // Actually let's just map it to a nice number
+            // Speed is roughly 10-30 units/sec. Let's say 0-300 km/h
+            const speedDisplay = Math.round((currentSpeedRef.current - 0.4) * 200 * (forward > 0 ? 1 : 0));
+            setSpeed(speedDisplay < 0 ? 0 : speedDisplay)
+        }
 
         // Smooth rotation
         group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, targetRoll, delta * 5)
@@ -77,9 +97,7 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, ..
         camera.lookAt(group.current.position)
     })
 
-    useImperativeHandle(ref, () => ({
-        // empty
-    }))
+    useImperativeHandle(ref, () => group.current)
 
 
     // Apply Toon Shader to Airplane

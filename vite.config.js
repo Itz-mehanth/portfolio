@@ -7,15 +7,22 @@ import mkcert from 'vite-plugin-mkcert';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), mkcert(),
-    visualizer({
-      filename: 'dist/stats.html',
-      open: true, // Opens the report in browser after build
-      gzipSize: true,
-      brotliSize: true,
-    }),
-    compression({ algorithm: 'brotliCompress' }),
+  visualizer({
+    filename: 'dist/stats.html',
+    open: true, // Opens the report in browser after build
+    gzipSize: true,
+    brotliSize: true,
+  }),
+  compression({ algorithm: 'brotliCompress' }),
   ],
   server: {
     https: true, // mkcert is usually used to enable HTTPS locally
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 })

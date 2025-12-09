@@ -205,14 +205,26 @@ const getCityToCityPath = (fromId, toId) => {
   return new THREE.CatmullRomCurve3(orderedPoints, false, 'catmullrom', 0.5);
 };
 
+// Isolated component for environment loading to prevent suspend issues in main component
+function Skybox() {
+  const texture = useLoader(RGBELoader, '/hdr/blue_anime_sky.hdr');
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  return (
+    <>
+      <Environment map={texture} />
+      <mesh position={[0, 0, -50]} scale={[-1, 1, 1]}>
+        <sphereGeometry args={[200, 60, 40]} />
+        <meshBasicMaterial map={texture} side={THREE.BackSide} />
+      </mesh>
+    </>
+  );
+}
+
 export default function SciFiSkillCities() {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
   const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
-
-  const texture = useLoader(RGBELoader, '/hdr/blue_anime_sky.hdr');
-  texture.mapping = THREE.EquirectangularReflectionMapping;
 
   const handleCityClick = (id) => {
     setSelectedCity(id);
@@ -364,14 +376,8 @@ export default function SciFiSkillCities() {
             <AdaptiveEvents />
             <BakeShadows />
 
-            {/* Anime Sky Environment */}
-            <Environment map={texture} />
-
-            {/* Anime Sky Sphere with Parallax */}
-            <mesh position={[0, 0, -50]} scale={[-1, 1, 1]}>
-              <sphereGeometry args={[200, 60, 40]} />
-              <meshBasicMaterial map={texture} side={THREE.BackSide} />
-            </mesh>
+            {/* Anime Sky Environment & Sphere */}
+            <Skybox />
 
             {/* Basic scene setup */}
             <ambientLight intensity={1.2} />

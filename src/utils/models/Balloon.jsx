@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
 export function Balloon({ balloonColor, ...props }) {
-  const { nodes, materials } = useGLTF('models/balloon.glb')
+  const { nodes, materials } = useGLTF('/models/balloon.glb')
   const groupRef = useRef()
 
   // Create custom materials with the passed color
@@ -74,4 +74,4 @@ export function Balloon({ balloonColor, ...props }) {
   )
 }
 
-useGLTF.preload('models/balloon.glb')
+useGLTF.preload('/models/balloon.glb')
