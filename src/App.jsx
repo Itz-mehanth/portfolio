@@ -739,22 +739,7 @@ export default function App() {
               zIndex: 1000,
             }}
           >
-            <div
-              ref={contactCanvasRef}
-              style={{
-                height: '50%',
-                width: '100%', // Full width
-              }}
-            >
-              <Canvas
-                frameloop={contactCanvasInView ? 'always' : 'never'}
-                style={{ width: '100%', height: '100%' }}
-              >
-                <Suspense fallback={null}>
-                  <Contact />
-                </Suspense>
-              </Canvas>
-            </div>
+
             <div
               style={{
                 height: '50%',

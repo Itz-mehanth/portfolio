@@ -207,7 +207,7 @@ const getCityToCityPath = (fromId, toId) => {
 
 // Isolated component for environment loading to prevent suspend issues in main component
 function Skybox() {
-  const texture = useLoader(RGBELoader, '/hdr/blue_anime_sky.hdr');
+  const texture = useLoader(RGBELoader, '/hdr/anime_sky.hdr');
   texture.mapping = THREE.EquirectangularReflectionMapping;
   return (
     <>
@@ -291,54 +291,64 @@ export default function SciFiSkillCities() {
       { name: 'JavaScript', description: 'Essential language for web development and frontend interactions' },
       { name: 'TypeScript', description: 'Typed superset of JavaScript for large-scale applications' },
       { name: 'Dart', description: 'Programming language optimized for Flutter mobile app development' },
-      { name: 'C', description: 'Low-level programming language for system programming and embedded systems' },
-      { name: 'C++', description: 'Object-oriented extension of C for game development and performance-critical apps' },
+      { name: 'C', description: 'Low-level programming language for system programming' },
+      { name: 'C++', description: 'Object-oriented extension of C for game development' },
       { name: 'Java', description: 'Platform-independent language for enterprise and Android development' },
-      { name: 'SQL', description: 'Standard language for database queries and data manipulation' },
+      { name: 'SQL', description: 'Standard language for database queries' },
     ],
     web: [
-      { name: 'HTML', description: 'Markup language for structuring web content and pages' },
-      { name: 'CSS', description: 'Styling language for designing web page layouts and appearances' },
+      { name: 'HTML', description: 'Standard markup language for documents designed to be displayed in a web browser' },
+      { name: 'CSS', description: 'Style sheet language used for describing the presentation of a document' },
       { name: 'Tailwind CSS', description: 'Utility-first CSS framework for rapid UI development' },
       { name: 'React.js', description: 'JavaScript library for building interactive user interfaces' },
-      { name: 'Next.js', description: 'React framework with SSR, routing, and performance optimization' },
-      { name: 'React Three Fiber', description: 'React renderer for Three.js 3D graphics in web browsers' },
-      { name: 'Three.js', description: 'JavaScript library for creating 3D graphics and animations in browsers' },
-      { name: 'WebSockets', description: 'Protocol for real-time bidirectional communication between client and server' },
-      { name: 'WebRTC', description: 'Technology for peer-to-peer real-time communication in web applications' },
+      { name: 'Next.js', description: 'React framework enabling server-side rendering and static site generation' },
+      { name: 'Vue.js', description: 'Progressive JavaScript framework for building user interfaces' },
+      { name: 'Angular', description: 'Platform and framework for building single-page client applications' },
+      { name: 'Chart.js', description: 'Simple yet flexible JavaScript charting for designers & developers' },
     ],
     mobile: [
-      { name: 'Flutter', description: 'Google\'s cross-platform framework for iOS and Android app development' },
-      { name: 'Dart', description: 'Programming language specifically designed for Flutter development' },
+      { name: 'Flutter', description: 'Google\'s UI toolkit for building natively compiled applications' },
     ],
     backend: [
-      { name: 'Node.js', description: 'JavaScript runtime for building scalable server-side applications' },
-      { name: 'Express.js', description: 'Minimalist web framework for Node.js backend development' },
-      { name: 'Flask', description: 'Lightweight Python web framework for APIs and microservices' },
-      { name: 'REST API', description: 'Architectural style for designing networked applications and web services' },
+      { name: 'Node.js', description: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine' },
+      { name: 'Express.js', description: 'Minimal and flexible Node.js web application framework' },
+      { name: 'Flask', description: 'Micro web framework written in Python' },
+      { name: 'Spring Boot', description: 'Java-based framework used to create microservices' },
+      { name: 'REST API', description: 'Architectural style for designing networked applications' },
+      { name: 'WebSockets', description: 'Communication protocol providing full-duplex communication channels' },
+      { name: 'WebRTC', description: 'Real-Time Communications for the web' },
+      { name: 'Apache Kafka', description: 'Distributed event streaming platform' },
+      { name: 'Apache Spark', description: 'Unified analytics engine for large-scale data processing' },
     ],
     database: [
-      { name: 'MySQL', description: 'Popular relational database management system for structured data' },
-      { name: 'MongoDB', description: 'NoSQL document database for flexible, scalable data storage' },
+      { name: 'PostgreSQL', description: 'Powerful, open source object-relational database system' },
+      { name: 'MySQL', description: 'Open-source relational database management system' },
+      { name: 'MongoDB', description: 'Source-available cross-platform document-oriented database program' },
+      { name: 'Redis', description: 'In-memory data structure store, used as a database, cache, and message broker' },
     ],
     arvr: [
-      { name: 'Three.js', description: 'JavaScript library for 3D graphics, VR, and AR web experiences' },
-      { name: 'React Three Fiber', description: 'React integration for Three.js enabling declarative 3D scenes' },
-      { name: 'Unity', description: 'Game engine for creating immersive VR, AR, and 3D applications' },
-      { name: 'Blender', description: '3D modeling, animation, and rendering software for asset creation' },
+      { name: 'React Three Fiber', description: 'React renderer for Three.js' },
+      { name: 'Three.js', description: 'Cross-browser JavaScript library and application programming interface used to create and display animated 3D computer graphics' },
+      { name: 'Unity', description: 'Cross-platform game engine used to create three-dimensional and two-dimensional games' },
+      { name: 'Godot', description: 'Cross-platform, free and open-source game engine' },
+      { name: 'Blender', description: 'Free and open-source 3D computer graphics software toolset' },
     ],
     uiux: [
-      { name: 'Figma', description: 'Collaborative design tool for UI/UX prototyping and design systems' },
+      { name: 'Figma', description: 'Vector graphics editor and prototyping tool' },
     ],
     tools: [
-      { name: 'Git', description: 'Version control system for tracking code changes and collaboration' },
-      { name: 'Firebase', description: 'Google platform providing backend services, hosting, and real-time database' },
-      { name: 'Raspberry Pi', description: 'Single-board computer for IoT projects and embedded systems' },
+      { name: 'Docker', description: 'Set of platform as a service products that use OS-level virtualization' },
+      { name: 'Git', description: 'Distributed version control system' },
+      { name: 'Firebase', description: 'Platform developed by Google for creating mobile and web applications' },
+      { name: 'Raspberry Pi', description: 'Series of small single-board computers' },
+      { name: 'PySpark', description: 'Python API for Apache Spark' },
+      { name: 'Spark Streaming', description: 'Extension of the core Spark API that enables scalable, high-throughput, fault-tolerant stream processing' },
+      { name: 'Spark MLlib', description: 'Apache Spark\'s scalable machine learning library' },
     ],
     aiml: [
-      { name: 'TensorFlow', description: 'Open-source machine learning framework for neural networks and AI' },
-      { name: 'OpenCV', description: 'Computer vision library for image processing and analysis' },
-      { name: 'CNNs', description: 'Convolutional Neural Networks for image recognition and classification' },
+      { name: 'TensorFlow', description: 'Free and open-source software library for machine learning and artificial intelligence' },
+      { name: 'OpenCV', description: 'Library of programming functions mainly aimed at real-time computer vision' },
+      { name: 'CNNs', description: 'Class of artificial neural network most commonly applied to analyzing visual imagery' },
     ],
   };
 
