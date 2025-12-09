@@ -16,41 +16,13 @@ const models = [
   '/models/car.glb'
 ];
 
-const textures = [
-  '/images/terrain/terrain.jpg',
-  '/images/terrain/col.jpg',
-  '/images/terrain/rough.jpg',
-  '/images/terrain/nor.png',
-  '/Planets/earth.jpg',
-  '/Planets/mars.jpg'
-];
-
 const audioFiles = [
-  '/audio/whoosh.mp3',
-  '/audio/space.mp3',
-  '/audio/alienClick.mp3',
-  '/audio/happy.mp3',
-  '/audio/background.mp3'
+  '/audio/coin.mp3'
 ];
 
 const fontFiles = [
   '/fonts/Calligraphy_Regular.typeface.json'
 ];
-
-const animationFiles = [
-  '/animations/Crouch To Stand.fbx',
-  '/animations/Start Walking.fbx',
-  '/animations/Fast Run.fbx',
-  '/animations/Breathing Idle.fbx',
-  '/animations/Closing.fbx',
-  '/animations/Arm Stretching.fbx',
-  '/animations/jump high.fbx',
-  '/animations/Landing.fbx',
-  '/animations/Run To Dive.fbx',
-  '/animations/Flying.fbx',
-  '/animations/Male Sitting Pose.fbx'
-];
-
 
 // This component is invisible. Its only job is to trigger the preloading.
 export function AssetPreloader({ onProgress, onComplete }) {
@@ -76,22 +48,14 @@ export function AssetPreloader({ onProgress, onComplete }) {
     };
 
     // --- Instantiate all loaders with the manager ---
-    const textureLoader = new THREE.TextureLoader(manager);
     const fontLoader = new FontLoader(manager);
-    const fbxLoader = new FBXLoader(manager);
     
     // --- Trigger all preloads here ---
     // GLTF models (useGLTF.preload automatically uses the default manager)
     models.forEach(url => useGLTF.preload(url));
     
-    // Textures
-    textures.forEach(url => textureLoader.load(url, () => {}));
-
     // Fonts
     fontFiles.forEach(url => fontLoader.load(url, () => {}));
-
-    // FBX Animations
-    animationFiles.forEach(url => fbxLoader.load(url, () => {}));
 
   }, [onProgress, onComplete]);
 

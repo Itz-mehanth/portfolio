@@ -8,7 +8,6 @@ import {
   Hud,
   AdaptiveDpr,
   AdaptiveEvents,
-  BakeShadows,
   Preload
 } from '@react-three/drei'
 import Airplane from './Airplane'
@@ -17,10 +16,8 @@ import './App.css'
 import Projects from './Projects'
 import Contact from './Contact'
 import IntroSection from './IntroSection'
-import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import './Navbar.css'
-import { useAudio } from './context/AudioProvider'
 // Razorpay script loader
 function loadRazorpayScript(src) {
   return new Promise((resolve) => {
@@ -145,7 +142,7 @@ export default function App() {
 
   useEffect(() => {
     // Fetch High Score
-    fetch('/api/highscore')
+    fetch('https://portfolio-ikm6.onrender.com/api/highscore')
       .then(res => res.json())
       .then(data => setHighScore(data))
       .catch(err => console.error("Failed to fetch high score:", err));
@@ -160,7 +157,7 @@ export default function App() {
     if (currentScore > safeHighScore) {
       const name = prompt(`New High Score! (Current Best: ${safeHighScore} by ${safeHighName})\nEnter your name:`);
       if (name) {
-        fetch('/api/score', {
+        fetch('https://portfolio-ikm6.onrender.com/api/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, score: currentScore })
