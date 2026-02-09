@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
    <url>
       <loc>https://mehanth.site/</loc>
       <lastmod>2026-02-09</lastmod>
       <changefreq>weekly</changefreq>
       <priority>1.0</priority>
+      <image:image>
+         <image:loc>https://mehanth.site/mehanth-developer.jpg</image:loc>
+         <image:title>Mehanth - Full Stack Developer &amp; 3D Artist</image:title>
+         <image:caption>Official profile photo of Mehanth, Computer Science Engineer and 3D Web Developer.</image:caption>
+      </image:image>
    </url>
 </urlset>

@@ -370,8 +370,8 @@ export default function App() {
               {/* Right: Image */}
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <img
-                  src='/logo.jpg' // Replace with actual image path
-                  alt='Mehanth'
+                  src='/mehanth-developer.jpg' // Replace with actual image path
+                  alt='Mehanth - Full Stack Developer & 3D Artist'
                   style={{
                     width: '100%',
                     maxWidth: '200px',
