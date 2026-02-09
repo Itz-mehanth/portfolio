@@ -2,23 +2,64 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.jpg" />
+    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <link rel="apple-touch-icon" href="/logo.jpg" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mehanth</title>
-    <meta name="description" content="Explore the futuristic portfolio of Mehanth, a CS engineer" />
-    <meta property="og:title" content="Mehanth - Portfolio" />
-    <meta property="og:description" content="Explore Mehanth’s futuristic 3D portfolio website." />
-    <meta property="og:image" content="https://mehanth.site/logo.jpg" />
-    <meta property="og:url" content="https://mehanth.site" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:description" content="Explore Mehanth's 3D portfolio powered by React + Vite." />
-    <meta name="twitter:image" content="https://mehanth.site/logo.jpg" />
-    <meta name="keywords" content="Mehanth, 3D developer, React portfolio, frontend engineer, WebGL, Vite, developer showcase,Itz_mehanth, SSN, Computer science" />
+
+    <!-- Primary Meta Tags -->
+    <title>Mehanth | Innovative Full-Stack Developer & 3D Web Artist</title>
+    <meta
+      name="title"
+      content="Mehanth | Innovative Full-Stack Developer & 3D Web Artist"
+    />
+    <meta
+      name="description"
+      content="Official portfolio of Mehanth. Exploring the frontiers of 3D web development, AI integration, and immersive user experiences. Engineering the future at SSN."
+    />
+    <meta
+      name="keywords"
+      content="Mehanth, Mehanth Portfolio, 3D Developer, React Developer, WebGL, Three.js, SSN College of Engineering, Full Stack Engineer, Innovative Web Design, Celebrity Developer"
+    />
     <meta name="author" content="Mehanth" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#FEC601" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content="https://mehanth.site" />
+    <meta
+      property="og:title"
+      content="Mehanth - The Future of Web Interaction"
+    />
+    <meta
+      property="og:description"
+      content="Discover the work of Mehanth: A showcase of award-winning 3D web experiences and cutting-edge engineering."
+    />
+    <meta property="og:image" content="https://mehanth.site/logo.jpg" />
+    <meta property="og:site_name" content="Mehanth Official" />
+    <meta property="profile:first_name" content="Mehanth" />
+    <meta property="profile:username" content="itz-mehanth" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://mehanth.site" />
+    <meta
+      property="twitter:title"
+      content="Mehanth | Innovative Full-Stack Developer"
+    />
+    <meta
+      property="twitter:description"
+      content="Engineering the future at SSN. Explore the immersive 3D portfolio of Mehanth."
+    />
+    <meta property="twitter:image" content="https://mehanth.site/logo.jpg" />
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
-    <div id="root">
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script type="application/ld+json">
       {
@@ -26,25 +67,50 @@
         "@type": "Person",
         "name": "Mehanth",
         "url": "https://mehanth.site",
+        "image": "https://mehanth.site/logo.jpg",
         "sameAs": [
           "https://github.com/itz-mehanth",
           "https://linkedin.com/in/mehanth-776892279"
         ],
-        "jobTitle": "Web and Mobile Developer",
+        "jobTitle": "Full Stack Engineer & 3D Artist",
         "worksFor": {
           "@type": "Organization",
-          "name": "Freelancer / Independent"
-        }
+          "name": "Independent Creator"
+        },
+        "alumniOf": {
+          "@type": "CollegeOrUniversity",
+          "name": "SSN College of Engineering"
+        },
+        "birthPlace": {
+          "@type": "Place",
+          "name": "Chennai, India"
+        },
+        "gender": "Male",
+        "knowsAbout": [
+          "Computer Science",
+          "React",
+          "Three.js",
+          "WebGL",
+          "Artificial Intelligence",
+          "App Development"
+        ],
+        "description": "Mehanth is a visionary Computer Science Engineer and developer known for creating immersive 3D web experiences. Currently a student at SSN College of Engineering, he specializes in blending creativity with technical excellence.",
+        "nationality": "Indian"
       }
     </script>
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-4MH7WE2V2P"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-4MH7WE2V2P"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-        gtag('config', 'G-4MH7WE2V2P');
+      gtag("config", "G-4MH7WE2V2P");
     </script>
   </body>
 </html>

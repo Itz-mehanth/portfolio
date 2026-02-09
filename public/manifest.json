@@ -1,0 +1,21 @@
+{
+  "name": "Mehanth | 3D Portfolio",
+  "short_name": "Mehanth",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FEC601",
+  "description": "Official portfolio of Mehanth. Exploring the frontiers of 3D web development.",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

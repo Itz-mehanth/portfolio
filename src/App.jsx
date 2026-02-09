@@ -394,8 +394,8 @@ export default function App() {
               flexDirection: 'column',
               background: 'white',
               overflowX: 'hidden',
-              zIndex: 1, // Changed from -1 to 1 to bring it forward
-              position: 'relative', // Ensure proper stacking
+              zIndex: 1, 
+              position: 'relative', 
             }}
           >
             <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
