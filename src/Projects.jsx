@@ -1,5 +1,5 @@
 // src/App.jsx
-import { Billboard, Clouds, Outlines } from '@react-three/drei'
+import { Billboard, Clouds } from '@react-three/drei'
 import { Environment, Cloud, Stars } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import { RGBELoader } from 'three-stdlib'
@@ -218,7 +218,6 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
           <mesh position={[0, 0, -0.05]}>
             <planeGeometry args={[16, 10]} />
             <meshToonMaterial color="#1f2937" />
-            <Outlines thickness={0.05} color="black" />
           </mesh>
           <Text
             fontSize={2.5}

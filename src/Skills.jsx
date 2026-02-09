@@ -396,13 +396,14 @@ export default function SciFiSkillCities() {
               castShadow
               position={[10, 10, 10]}
               intensity={1.4}
-              shadow-mapSize-width={2048}
-              shadow-mapSize-height={2048}
+              shadow-mapSize-width={1024}
+              shadow-mapSize-height={1024}
               shadow-camera-far={50}
               shadow-camera-left={-20}
               shadow-camera-right={20}
               shadow-camera-top={10}
               shadow-camera-bottom={-10}
+              shadow-bias={-0.0001}
             />
             <OrbitControls
               enableZoom={true}

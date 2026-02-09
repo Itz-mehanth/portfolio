@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useGLTF, useScroll, Outlines } from '@react-three/drei'
+import { useGLTF, useScroll } from '@react-three/drei'
 import { forwardRef, useImperativeHandle, useLayoutEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
@@ -122,7 +122,6 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
                             geometry={node.geometry}
                         >
                             <meshToonMaterial color="white" />{/* Override with Toon */}
-                            <Outlines thickness={0.9} color="black" />
                         </mesh>
                     ))}
                 </group>

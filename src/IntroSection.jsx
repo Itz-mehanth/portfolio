@@ -178,7 +178,7 @@ export default function IntroSection() {
       }}
     >
 
-      <Canvas shadows frameloop={inView ? 'always' : 'never'}>
+      <Canvas frameloop={inView ? 'always' : 'never'}>
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={40} />
           <ambientLight intensity={5} />
@@ -192,8 +192,6 @@ export default function IntroSection() {
                 position={[0, 10, -30]}
                 fontSize={3}
                 color={'white'}
-                castShadow
-                receiveShadow
               >
                 Look around and interact with the objects!
               </Text>
@@ -203,8 +201,8 @@ export default function IntroSection() {
               emissive={'white'}
               color={'white'}
               emissiveIntensity={5}
-              castShadow
-              receiveShadow
+              castShadow={false}
+              receiveShadow={false}
               size={10}
               height={2}
               letterSpacing={0.1}

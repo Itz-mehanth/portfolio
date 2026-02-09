@@ -11,11 +11,14 @@ import {
   Preload
 } from '@react-three/drei'
 import Airplane from './Airplane'
-import { Suspense, useRef, useEffect, useState, memo } from 'react'
+import { Suspense, useRef, useEffect, useState, memo, lazy } from 'react'
 import './App.css'
 import Projects from './Projects'
-import Contact from './Contact'
 import IntroSection from './IntroSection'
+import Skills from './Skills'
+import Contact from './Contact'
+import Certificates from './Certificates'
+
 import { useInView } from 'react-intersection-observer'
 import './Navbar.css'
 // Razorpay script loader
@@ -29,9 +32,7 @@ function loadRazorpayScript(src) {
   });
 }
 import SplashLoader from './SplashLoader'
-import Skills from './Skills'
 import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
-import Certificates from './Certificates'
 import Cursor from "./Cursor";
 import { Joystick } from 'react-joystick-component';
 
@@ -102,10 +103,10 @@ const Navbar = ({ fontBlack }) => {
 
 
 export default function App() {
-  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.8 })
-  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.8 })
+  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.1 }) // Reduced threshold for smoother load
+  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.1 })
+  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.1 })
+  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.1 })
 
   // Performance optimization refs
   const [projectCanvasRef, projectCanvasInView] = useInView({ threshold: 0 })
@@ -380,7 +381,9 @@ export default function App() {
                 />
               </div>
             </div>
-            <IntroSection />
+            <Suspense fallback={<div style={{height: '60%', width: '90%', margin: '10px auto', background: '#f5f5f5', borderRadius: '20px'}}></div>}>
+               <IntroSection />
+            </Suspense>
           </section>
 
           <section id='skills'
@@ -399,7 +402,9 @@ export default function App() {
             }}
           >
             <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
-            <Skills />
+            <Suspense fallback={<div>Loading Skills...</div>}>
+               <Skills />
+            </Suspense>
           </section>
 
 
@@ -721,7 +726,9 @@ export default function App() {
               scrollBehavior: 'smooth',
             }}
           >
-            <Certificates />
+            <Suspense fallback={<div>Loading Certificates...</div>}>
+              <Certificates />
+            </Suspense>
           </section>
 
           {/* Contact Section */}
@@ -755,9 +762,6 @@ export default function App() {
     </div >
   )
 }
-
-const MemoizedProjects = memo(Projects);
-const MemoizedContact = memo(Contact);
 
 
 function ContactSection() {
