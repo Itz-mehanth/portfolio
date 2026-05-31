@@ -7,20 +7,13 @@ import {
   PerspectiveCamera,
   Hud,
   AdaptiveDpr,
-  AdaptiveEvents,
-  Preload
+  AdaptiveEvents
 } from '@react-three/drei'
-import Airplane from './Airplane'
-import { Suspense, useRef, useEffect, useState, memo, lazy } from 'react'
+import React, { Suspense, useRef, useEffect, useState, lazy, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
-import Projects from './Projects'
-import IntroSection from './IntroSection'
-import Skills from './Skills'
-import Contact from './Contact'
-import Certificates from './Certificates'
-
-import { useInView } from 'react-intersection-observer'
 import './Navbar.css'
+import './Contact.css'
 // Razorpay script loader
 function loadRazorpayScript(src) {
   return new Promise((resolve) => {
@@ -32,16 +25,108 @@ function loadRazorpayScript(src) {
   });
 }
 import SplashLoader from './SplashLoader'
+import { useAudio } from './context/AudioProvider'
+import { AnimatedChars, AnimatedWords } from './AnimatedText'
+import MagneticButton from './MagneticButton'
+import DevicePreview from './DevicePreview'
+import TVSimulator from './TVSimulator'
+import TourGuide from './TourGuide'
 import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
-import Cursor from "./Cursor";
 import { Joystick } from 'react-joystick-component';
+import {
+  isRoutePreloaded,
+  preloadAssets,
+  preloadRouteAssets,
+  unsubscribePreloadProgress,
+  warmRemainingAssets
+} from './preloadAssets';
+
+const loadAirplane = () => import('./Airplane')
+const loadProjects = () => import('./Projects')
+const loadIntroSection = () => import('./IntroSection')
+const loadSkills = () => import('./Skills')
+const loadCertificates = () => import('./Certificates')
+
+const Airplane = lazy(loadAirplane)
+const Projects = lazy(loadProjects)
+const IntroSection = lazy(loadIntroSection)
+const Skills = lazy(loadSkills)
+const Certificates = lazy(loadCertificates)
+
+const SCREEN_DEFINITIONS = [
+  {
+    id: 'lander',
+    path: '/',
+    title: 'Arrival Sequence',
+    subtitle: 'Warming up the landing bay and intro world.',
+    accent: '#0ea5e9',
+    theme: 'light',
+    preload: loadIntroSection,
+  },
+  {
+    id: 'skills',
+    path: '/skills',
+    title: 'Skill Town',
+    subtitle: 'Loading the skill city and its interactive scene.',
+    accent: '#22c55e',
+    theme: 'light',
+    preload: loadSkills,
+  },
+  {
+    id: 'projects',
+    path: '/projects',
+    title: 'Project Orbit',
+    subtitle: 'Spinning up the flight deck, arcade HUD, and project world.',
+    accent: '#fbbf24',
+    theme: 'light',
+    preload: () => Promise.all([loadProjects(), loadAirplane()]),
+  },
+  {
+    id: 'certificate',
+    path: '/certificates',
+    title: 'Achievement Vault',
+    subtitle: 'Opening the certification archive.',
+    accent: '#a855f7',
+    theme: 'light',
+    preload: loadCertificates,
+  },
+  {
+    id: 'contact',
+    path: '/contact',
+    title: 'Contact Terminal',
+    subtitle: 'Preparing the communication channel.',
+    accent: '#fb7185',
+    theme: 'light',
+  },
+]
 
 
 const CANVAS_CAMERA_CONFIG = { position: [0, 4, 15], fov: 100 };
-const Navbar = ({ fontBlack }) => {
+const PAGE_NAVIGATION_SCROLL_THRESHOLD = 420;
+const TRANSITION_RESET_DELAY_MS = 180;
+const WHEEL_RESET_DELAY_MS = 250;
+const findScreenIndexByPath = (pathname) => {
+  const normalizedPath = pathname === '' ? '/' : pathname;
+  const matchedIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.path === normalizedPath);
+  return matchedIndex === -1 ? 0 : matchedIndex;
+};
+
+const NAV_ITEMS = [
+  { id: 'lander', label: 'Lander' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'certificate', label: 'Certificate' },
+  { id: 'contact', label: 'Contact' },
+]
+
+const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
+  const handleNavigate = (screenId) => {
+    setMenuOpen(false);
+    onNavigate?.(screenId);
+  };
 
   return (
     <nav className="navbar">
@@ -51,10 +136,23 @@ const Navbar = ({ fontBlack }) => {
 
       {/* Desktop menu */}
       <ul className="navbar-right desktop-menu">
-        <li><a href="#lander" style={{ color: fontBlack ? 'black' : 'white' }}>Lander</a></li>
-        <li><a href="#skills" style={{ color: fontBlack ? 'black' : 'white' }}>Skills</a></li>
-        <li><a href="#certificate" style={{ color: fontBlack ? 'black' : 'white' }}>Certificate</a></li>
-        <li><a href="#contact" style={{ color: fontBlack ? 'black' : 'white' }}>Contact</a></li>
+        {NAV_ITEMS.map(({ id, label }) => (
+          <li key={id}>
+            <button
+              onClick={() => handleNavigate(id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: fontBlack ? 'black' : 'white',
+                cursor: 'pointer',
+                font: 'inherit',
+                textDecoration: activeScreenId === id ? 'underline' : 'none'
+              }}
+            >
+              {label}
+            </button>
+          </li>
+        ))}
         <li><button onClick={() => {
           if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen();
@@ -82,10 +180,22 @@ const Navbar = ({ fontBlack }) => {
 
       {/* Mobile menu overlay */}
       <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#lander" onClick={toggleMenu}>Lander</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#skills" onClick={toggleMenu}>Skills</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#certificate" onClick={toggleMenu}>Certificate</a>
-        <a style={{ color: fontBlack ? 'white' : 'black' }} href="#contact" onClick={toggleMenu}>Contact</a>
+        {NAV_ITEMS.map(({ id, label }) => (
+          <button
+            key={id}
+            style={{
+              color: fontBlack ? 'white' : 'black',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              font: 'inherit',
+              textDecoration: activeScreenId === id ? 'underline' : 'none'
+            }}
+            onClick={() => handleNavigate(id)}
+          >
+            {label}
+          </button>
+        ))}
         <a style={{ color: fontBlack ? 'white' : 'black', cursor: 'pointer' }} onClick={() => {
           toggleMenu();
           if (!document.fullscreenElement) {
@@ -99,18 +209,75 @@ const Navbar = ({ fontBlack }) => {
       </div>
     </nav>
   );
-};
+});
+
+const ROLES = ['Full Stack Developer', '3D Web Artist', 'Hackathon Winner', 'AI Enthusiast', 'UI/UX Designer'];
+
+function TypingRoles({ isVisible }) {
+  const [roleIndex, setRoleIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const interval = setInterval(() => {
+      setRoleIndex(i => (i + 1) % ROLES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isVisible]);
+
+  return (
+    <div style={{ height: '28px', margin: '4px 0 10px', overflow: 'hidden' }}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={roleIndex}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -14 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            display: 'inline-block',
+            fontSize: '14px',
+            fontFamily: "'Poppins', sans-serif",
+            fontWeight: 600,
+            color: '#f59e0b',
+            letterSpacing: '0.5px',
+          }}
+        >
+          {ROLES[roleIndex]}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function SectionPlaceholder({ title, theme = 'light' }) {
+  const isDark = theme === 'dark';
+  const barColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)';
+
+  return (
+    <div className={`screen-loading-shell ${isDark ? 'dark' : ''}`}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '50%', maxWidth: '300px' }}>
+        <div style={{ height: '14px', borderRadius: '7px', background: barColor, animation: 'skeleton-pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ height: '10px', borderRadius: '5px', background: barColor, width: '70%', animation: 'skeleton-pulse 1.5s ease-in-out 0.2s infinite' }} />
+        <div style={{ height: '10px', borderRadius: '5px', background: barColor, width: '45%', animation: 'skeleton-pulse 1.5s ease-in-out 0.4s infinite' }} />
+      </div>
+      <span style={{ color: textColor, fontSize: '11px', fontFamily: 'Quicksand, sans-serif', letterSpacing: '1px' }}>{title}</span>
+    </div>
+  );
+}
 
 
 export default function App() {
-  const [ref, inView] = useInView({ triggerOnce: false, threshold: 0.1 }) // Reduced threshold for smoother load
-  const [contactRef, contactinView] = useInView({ triggerOnce: false, threshold: 0.1 })
-  const [certificateRef, certificateinView] = useInView({ triggerOnce: false, threshold: 0.1 })
-  const [introRef, introinView] = useInView({ triggerOnce: false, threshold: 0.1 })
-
-  // Performance optimization refs
-  const [projectCanvasRef, projectCanvasInView] = useInView({ threshold: 0 })
-  const [contactCanvasRef, contactCanvasInView] = useInView({ threshold: 0 })
+  const rootRef = useRef(null)
+  const initialScreenIndex = findScreenIndexByPath(window.location.pathname)
+  const activeScreenIndexRef = useRef(initialScreenIndex)
+  const wheelAccumulatorRef = useRef(0)
+  const wheelResetTimeoutRef = useRef(null)
+  const transitionResetTimeoutRef = useRef(null)
+  const touchStartYRef = useRef(null)
+  const isNavigatingRef = useRef(false)
+  const pendingNavigationRef = useRef(null)
 
   const avatarRef = useRef()
   const [scrollEnabled, setScrollEnabled] = useState(false)
@@ -120,17 +287,34 @@ export default function App() {
   const [teleported, setTeleported] = useState(false)
   const [contactPage, setContactPage] = useState(false)
   const [fontBlack, setFontBlack] = useState(true)
-  const [iframeUrl, setIframeUrl] = useState(null); // or '' initially
+  const [iframeUrl, setIframeUrl] = useState(null);
   const [showIframe, setShowIframe] = useState(false);
+  const [tvReady, setTvReady] = useState(false);
+  const [showCharacter, setShowCharacter] = useState(false);
+  const [visitorLocation, setVisitorLocation] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isCanvasScrollLocked, setIsCanvasScrollLocked] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [activeScreenIndex, setActiveScreenIndex] = useState(initialScreenIndex);
+  const [mountedScreens, setMountedScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
   const joystickDataRef = useRef({ x: 0, y: 0 });
   const verticalControlRef = useRef(0); // Add this ref
   const [isMobile, setIsMobile] = useState(false);
+  const [lowPowerMode, setLowPowerMode] = useState(false);
   /* Game State */
   const scoreValueRef = useRef(0);
   const scoreElement = useRef(null);
   const [highScore, setHighScore] = useState({ score: 0, name: 'None' });
+
+  const { crossfadeTo, isAudioEnabled } = useAudio();
+
+  // Crossfade audio on section change
+  const sectionTracks = { 0: 'background', 1: 'happy', 2: 'space' };
+  useEffect(() => {
+    if (!loading && isAudioEnabled) {
+      const track = sectionTracks[activeScreenIndex];
+      if (track) crossfadeTo(track);
+    }
+  }, [activeScreenIndex, loading]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -140,6 +324,80 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Removed — SplashLoader fetches location and passes it up via visitorLocation prop sync
+
+  // Devtools detection — fun anti-inspect message
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
+      ) {
+        e.preventDefault();
+        alert("What are you trying to look at, my friend? 👀\n\nNo secrets here — just clean code and good vibes. ✌️");
+      }
+    };
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      alert("Nice try! 😏\n\nWhat are you trying to look at, my friend?");
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const updateQualityMode = () => {
+      const limitedMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
+      const limitedCpu = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 6;
+      setLowPowerMode(mediaQuery.matches || limitedMemory || limitedCpu);
+    };
+
+    updateQualityMode();
+    mediaQuery.addEventListener('change', updateQualityMode);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateQualityMode);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const handlePreloadProgress = (progress) => {
+      if (!isMounted) return;
+      setLoadingProgress(progress);
+    };
+
+    preloadAssets(handlePreloadProgress).catch((error) => {
+      console.error('Asset preloading failed:', error);
+      if (isMounted) setLoadingProgress(100);
+    });
+    return () => {
+      isMounted = false;
+      unsubscribePreloadProgress(handlePreloadProgress);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      warmRemainingAssets();
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading) return undefined;
+    const watchdog = setTimeout(() => {
+      setLoadingProgress((prev) => (prev >= 100 ? prev : 100));
+    }, 12000);
+    return () => clearTimeout(watchdog);
+  }, [loading]);
 
   useEffect(() => {
     // Fetch High Score
@@ -185,23 +443,117 @@ export default function App() {
     setIframeUrl(null);
   };
 
+  const mountScreen = (screenIndex) => {
+    const screen = SCREEN_DEFINITIONS[screenIndex];
+    if (!screen) return;
+
+    setMountedScreens((prev) => {
+      if (prev.has(screen.id)) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      next.add(screen.id);
+      return next;
+    });
+  };
+
+  const preloadScreen = (screenIndex) => {
+    const screen = SCREEN_DEFINITIONS[screenIndex];
+    if (!screen) return Promise.resolve();
+
+    const tasks = [];
+
+    if (screen.preload) {
+      tasks.push(
+        screen.preload().catch((error) => {
+          console.warn(`Failed to preload screen "${screen.id}"`, error);
+        })
+      );
+    }
+
+    return Promise.allSettled(tasks);
+  };
+
+  const resetTransition = () => {
+    if (transitionResetTimeoutRef.current) {
+      clearTimeout(transitionResetTimeoutRef.current);
+      transitionResetTimeoutRef.current = null;
+    }
+
+    isNavigatingRef.current = false;
+    pendingNavigationRef.current = null;
+  };
+
+  const navigateToScreenIndex = async (targetIndex, historyMode = 'push') => {
+    const targetScreen = SCREEN_DEFINITIONS[targetIndex];
+    if (!targetScreen) return;
+    if (targetIndex === activeScreenIndexRef.current && historyMode !== 'replace') return;
+    if (isNavigatingRef.current) return;
+
+    isNavigatingRef.current = true;
+    const importTask = targetScreen.preload
+      ? targetScreen.preload().catch((error) => {
+          console.warn(`Failed to preload screen "${targetScreen.id}"`, error);
+        })
+      : Promise.resolve();
+
+    const assetTask = preloadRouteAssets(targetScreen.id);
+
+    mountScreen(targetIndex);
+
+    await Promise.allSettled([importTask, assetTask]);
+    preloadScreen(targetIndex + 1);
+
+    activeScreenIndexRef.current = targetIndex;
+    setActiveScreenIndex(targetIndex);
+
+    if (historyMode === 'push') {
+      window.history.pushState({}, '', targetScreen.path);
+    } else if (historyMode === 'replace') {
+      window.history.replaceState({}, '', targetScreen.path);
+    }
+
+    // Cinematic transition clears itself via onComplete
+    resetTransition();
+  };
+
+  const commitPendingNavigation = () => {
+    const pendingNavigation = pendingNavigationRef.current;
+    if (!pendingNavigation || isNavigatingRef.current) return;
+    pendingNavigationRef.current = null;
+    navigateToScreenIndex(pendingNavigation.targetIndex, pendingNavigation.historyMode);
+  };
+
+  const updateScrollDrivenTransition = (delta, historyMode = 'push') => {
+    if (!scrollEnabled || showIframe || isNavigatingRef.current || delta === 0) return false;
+
+    wheelAccumulatorRef.current += Math.abs(delta);
+
+    if (wheelAccumulatorRef.current >= PAGE_NAVIGATION_SCROLL_THRESHOLD) {
+      wheelAccumulatorRef.current = 0;
+      const direction = delta > 0 ? 1 : -1;
+      const targetIndex = activeScreenIndexRef.current + direction;
+
+      if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) {
+        return false;
+      }
+
+      navigateToScreenIndex(targetIndex, historyMode);
+    }
+
+    return true;
+  };
+
+  const navigateToScreen = useCallback((screenId) => {
+    const targetIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.id === screenId);
+    if (targetIndex === -1) return;
+    navigateToScreenIndex(targetIndex, 'push');
+  }, []);
+
   const triggerShockwave = (pos) => {
     setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
   }
-
-  useEffect(() => {
-    if (inView || contactinView) {
-      setFontBlack(false)
-    } else {
-      setFontBlack(true)
-    }
-  }, [inView, contactinView, teleported])
-
-  useEffect(() => {
-    if (introinView) {
-      console.log('intro in view')
-    }
-  }, [introinView])
 
   useEffect(() => {
     if (startShockwave) {
@@ -226,16 +578,48 @@ export default function App() {
         setScrollEnabled(true)
       }, 5000)
     }, 2000)
-    return () => clearTimeout(timeout)
+    return () => {
+      clearTimeout(timeout)
+      document.body.style.overflow = 'auto'
+    }
   }, [])
 
   useEffect(() => {
-    if (inView) {
-      document.body.style.overflow = "hidden";   // stop page scrolling
-    } else {
-      document.body.style.overflow = "auto";     // restore normal page scroll
-    }
-  }, [inView]);
+    activeScreenIndexRef.current = activeScreenIndex;
+    const currentScreen = SCREEN_DEFINITIONS[activeScreenIndex];
+    setFontBlack(currentScreen?.theme !== 'dark');
+    mountScreen(activeScreenIndex);
+    preloadScreen(activeScreenIndex + 1);
+  }, [activeScreenIndex]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    window.history.replaceState({}, '', SCREEN_DEFINITIONS[activeScreenIndexRef.current].path);
+    preloadScreen(activeScreenIndexRef.current + 1);
+
+    const handlePopState = () => {
+      const nextIndex = findScreenIndexByPath(window.location.pathname);
+      navigateToScreenIndex(nextIndex, 'replace');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    return () => {
+      if (transitionResetTimeoutRef.current) {
+        clearTimeout(transitionResetTimeoutRef.current);
+      }
+      if (wheelResetTimeoutRef.current) {
+        clearTimeout(wheelResetTimeoutRef.current);
+      }
+    };
+  }, []);
 
 
   // Razorpay fun payment before CV download
@@ -283,34 +667,140 @@ export default function App() {
     rzp.open();
   }
 
+  const isMounted = (screenId) => mountedScreens.has(screenId);
+  const projectsCanvasActive = activeScreenIndex === 2 && isMounted('projects');
+
+  const getScreenStyle = (screenIndex, baseStyle = {}) => {
+    const isActive = activeScreenIndex === screenIndex;
+
+    return {
+      ...baseStyle,
+      position: 'absolute',
+      inset: 0,
+      opacity: isActive ? 1 : 0,
+      pointerEvents: isActive ? 'auto' : 'none',
+      clipPath: isActive ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)',
+      transition: 'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+      zIndex: isActive ? 1 : 0,
+    };
+  };
+
+  const handleWheel = (event) => {
+    if (!scrollEnabled || showIframe || isNavigatingRef.current) return;
+
+    const isInsideProjectCanvas =
+      activeScreenIndexRef.current === 2 &&
+      typeof event.target?.closest === 'function' &&
+      event.target.closest('.canvas-wrapper');
+
+    if (isInsideProjectCanvas) return;
+
+    if (wheelResetTimeoutRef.current) {
+      clearTimeout(wheelResetTimeoutRef.current);
+    }
+
+    wheelResetTimeoutRef.current = setTimeout(() => {
+      wheelAccumulatorRef.current = 0;
+    }, WHEEL_RESET_DELAY_MS);
+
+    updateScrollDrivenTransition(event.deltaY, 'push');
+  };
+
+  const handleTouchStart = (event) => {
+    touchStartYRef.current = event.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (event) => {
+    if (touchStartYRef.current == null || isNavigatingRef.current || showIframe) return;
+
+    const nextY = event.touches[0]?.clientY;
+    if (typeof nextY !== 'number') return;
+
+    const delta = touchStartYRef.current - nextY;
+    if (Math.abs(delta) >= 4) {
+      touchStartYRef.current = nextY;
+      updateScrollDrivenTransition(delta, 'push');
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartYRef.current = null;
+    if (!isNavigatingRef.current) {
+      resetTransition();
+    }
+  };
+
   return (
     <div
-      style={{
-        overflowY: 'scroll',
-        height: '100vh',
-        scrollBehavior: 'auto',
-        position: 'relative',
-        scrollSnapType: 'none',
-        zIndex: 0
-      }}
+      className="portfolio-scroll-root"
+      ref={rootRef}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      <Cursor />
-      {loading && <SplashLoader setLoading={setLoading} />}
+      {loading && <SplashLoader setLoading={setLoading} progress={loadingProgress} visitorLocation={visitorLocation} />}
+      {showIframe && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
+        </div>
+      )}
+      {!loading && (
+        <TourGuide activeScreenIndex={activeScreenIndex} onNavigate={navigateToScreen} />
+      )}
       {!loading && (
         <div
           style={{
-            overflowX: 'hidden',
-            scrollBehavior: 'smooth',
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+          }}>
+          <Navbar
+            fontBlack={fontBlack}
+            activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
+            onNavigate={navigateToScreen}
+          />
+          {/* Section navigation dots */}
+          <div style={{
+            position: 'fixed',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'start',
-            justifyContent: 'normal'
+            gap: '12px',
+            zIndex: 100,
           }}>
-          {/* <CustomCursor /> */}
-          <Navbar fontBlack={fontBlack} />
-          {/* Intro Section */}
+            {SCREEN_DEFINITIONS.map((screen, i) => (
+              <MagneticButton key={screen.id} strength={0.5}>
+                <motion.button
+                  onClick={() => navigateToScreen(screen.id)}
+                  aria-label={`Go to ${screen.id}`}
+                  animate={{
+                    scale: activeScreenIndex === i ? 1.4 : 1,
+                    opacity: activeScreenIndex === i ? 1 : 0.35,
+                  }}
+                  whileHover={{ scale: 1.6, opacity: 0.8 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: activeScreenIndex === i
+                      ? screen.accent
+                      : (fontBlack ? '#1a1a1a' : '#ffffff'),
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                />
+              </MagneticButton>
+            ))}
+          </div>
           <section id='lander'
-            style={{
+            className="portfolio-screen"
+            style={getScreenStyle(0, {
               padding: '40px 0',
               height: '100vh',
               width: '100vw',
@@ -321,73 +811,224 @@ export default function App() {
               background: 'white',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-            }}
-            ref={introRef}
+            })}
           >
-            <div style={{
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={activeScreenIndex === 0 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+              style={{
               display: 'flex',
               flexDirection: 'row',
+              flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between',
               width: '90%',
               margin: '0 auto',
             }}>
-              <div style={{ width: '70%' }}>
-                <p className='Quicksand' style={{ margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>Hi, I'm</p>
-                <p className='Silkscreen' style={{ margin: '5px 0px', fontSize: '50px', textAlign: 'left', color: 'black' }}>Mehanth</p>
-                <button
-                  onClick={handleDownloadCV}
+              <div style={{ width: '70%', minWidth: '280px', flex: '1 1 280px' }}>
+                <p className='Quicksand' style={{ margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
+                  <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} style={{ fontSize: '16px', color: 'grey' }} />
+                </p>
+                <p className='Silkscreen' style={{ margin: '5px 0px', fontSize: 'clamp(32px, 8vw, 50px)', textAlign: 'left', color: 'black', perspective: '600px' }}>
+                  <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'clamp(32px, 8vw, 50px)', color: 'black' }} />
+                </p>
+                <TypingRoles isVisible={activeScreenIndex === 0} />
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={activeScreenIndex === 0 ? { opacity: 1, x: 0 } : { opacity: 0 }}
+                  transition={{ delay: 1.2, duration: 0.4 }}
                   style={{
-                    width: '170px',
-                    padding: '5px 10px',
-                    backgroundColor: 'rgba(255, 215, 0, 0.9)', // Yellow with transparency
-                    color: 'black',
-                    border: '2px solid rgba(0, 0, 0, 0.3)',
-                    borderRadius: '25px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: 'Poppins',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 1)'
-                    e.target.style.transform = 'translateY(-2px)'
-                    e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgba(255, 215, 0, 0.9)'
-                    e.target.style.transform = 'translateY(0px)'
-                    e.target.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)'
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    padding: '6px 14px', borderRadius: '20px',
+                    background: 'rgba(26, 35, 126, 0.06)',
+                    border: '1px solid rgba(26, 35, 126, 0.12)',
+                    marginBottom: '12px',
                   }}
                 >
-                  Download CV
-                </button>
-                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '24px', textAlign: 'left' }}>a Computer Science Engineering student </p>
-                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>with a passion for creating wonders through code, creativity, and innovation. From intelligent systems to immersive experiences, I love bringing bold ideas to life.</p>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a237e', fontFamily: "'Poppins', sans-serif" }}>
+                    Currently interning @ <strong>VISA</strong>, Bangalore
+                  </span>
+                </motion.div>
+                <MagneticButton strength={0.2}>
+                  <motion.button
+                    onClick={handleDownloadCV}
+                    whileHover={{ scale: 1.05, y: -3, boxShadow: '0 8px 25px rgba(255, 215, 0, 0.5)' }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                    style={{
+                      width: '170px',
+                      padding: '5px 10px',
+                      backgroundColor: 'rgba(255, 215, 0, 0.9)',
+                      color: 'black',
+                      border: '2px solid rgba(0, 0, 0, 0.3)',
+                      borderRadius: '25px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontFamily: 'Poppins',
+                    }}
+                  >
+                    Download CV
+                  </motion.button>
+                </MagneticButton>
+                <p className='Quicksand' style={{ margin: '10px 0px 5px', fontSize: 'clamp(16px, 4vw, 24px)', textAlign: 'left' }}>
+                  <AnimatedWords text="a Computer Science Engineering student" isVisible={activeScreenIndex === 0} delay={0.5} style={{ fontSize: 'clamp(16px, 4vw, 24px)' }} />
+                </p>
+                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
+                  <AnimatedWords text="with a passion for creating wonders through code, creativity, and innovation." isVisible={activeScreenIndex === 0} delay={0.8} style={{ fontSize: '16px', color: 'grey' }} />
+                </p>
               </div>
 
-              {/* Right: Image */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <img
-                  src='/mehanth-developer.jpg' // Replace with actual image path
-                  alt='Mehanth - Full Stack Developer & 3D Artist'
-                  style={{
-                    width: '100%',
-                    maxWidth: '200px',
-                    borderRadius: '15px',
-                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-                  }}
-                />
+              {/* Right: Animated Image with rotating ring + character */}
+              <div style={{ flex: '0 0 200px', textAlign: 'center', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ position: 'relative', width: '200px', height: '200px', cursor: 'pointer' }}
+                  onClick={() => setShowCharacter(true)}
+                >
+                  {/* Rotating gradient ring */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                    style={{
+                      position: 'absolute', inset: '-6px',
+                      borderRadius: '18px',
+                      background: 'conic-gradient(from 0deg, #fbbf24, #f59e0b, #ec4899, #8b5cf6, #3b82f6, #fbbf24)',
+                      padding: '3px',
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '100%', borderRadius: '15px', background: 'white' }} />
+                  </motion.div>
+                  <img
+                    src='/mehanth-developer.jpg'
+                    alt='Mehanth - Full Stack Developer & 3D Artist'
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '15px',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  />
+                </motion.div>
+
+                {/* Character illustration that slides in */}
+                <AnimatePresence>
+                  {showCharacter && (
+                    <motion.div
+                      initial={{ x: 120, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 120, opacity: 0 }}
+                      transition={{ type: 'spring', damping: 15, stiffness: 120 }}
+                      onClick={() => setShowCharacter(false)}
+                      style={{
+                        position: 'absolute', right: '0px', bottom: '-20px',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {/* Speech bubble */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.3, type: 'spring', damping: 12 }}
+                        style={{
+                          background: 'white', borderRadius: '12px',
+                          padding: '8px 14px', marginBottom: '6px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          border: '1px solid #e5e7eb',
+                          position: 'relative',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: "'Quicksand', sans-serif", color: '#1a1a1a' }}>
+                          Hey there! 👋
+                        </span>
+                        {/* Bubble tail */}
+                        <div style={{
+                          position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%) rotate(45deg)',
+                          width: '10px', height: '10px', background: 'white',
+                          border: '1px solid #e5e7eb', borderTop: 'none', borderLeft: 'none',
+                        }} />
+                      </motion.div>
+
+                      {/* SVG Character illustration */}
+                      <svg width="80" height="100" viewBox="0 0 80 100" fill="none">
+                        {/* Body */}
+                        <rect x="25" y="45" width="30" height="35" rx="6" fill="#1a1a1a" />
+                        {/* Head */}
+                        <circle cx="40" cy="30" r="16" fill="#f5d0a9" />
+                        {/* Hair */}
+                        <path d="M24 26 C24 16 32 10 40 10 C48 10 56 16 56 26 C56 20 48 15 40 15 C32 15 24 20 24 26Z" fill="#1a1a1a" />
+                        {/* Eyes */}
+                        <circle cx="35" cy="30" r="2" fill="#1a1a1a" />
+                        <circle cx="45" cy="30" r="2" fill="#1a1a1a" />
+                        {/* Smile */}
+                        <path d="M35 36 Q40 40 45 36" stroke="#1a1a1a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                        {/* Waving arm */}
+                        <motion.g
+                          animate={{ rotate: [0, -15, 15, -15, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                          style={{ originX: '55px', originY: '55px' }}
+                        >
+                          <rect x="55" y="48" width="8" height="25" rx="4" fill="#f5d0a9" transform="rotate(-30 55 48)" />
+                          {/* Hand */}
+                          <circle cx="62" cy="42" r="5" fill="#f5d0a9" />
+                        </motion.g>
+                        {/* Left arm */}
+                        <rect x="17" y="50" width="8" height="22" rx="4" fill="#f5d0a9" />
+                        {/* Legs */}
+                        <rect x="30" y="78" width="8" height="18" rx="4" fill="#2563eb" />
+                        <rect x="42" y="78" width="8" height="18" rx="4" fill="#2563eb" />
+                        {/* Shoes */}
+                        <rect x="28" y="93" width="12" height="5" rx="2.5" fill="#1a1a1a" />
+                        <rect x="40" y="93" width="12" height="5" rx="2.5" fill="#1a1a1a" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-            <Suspense fallback={<div style={{height: '60%', width: '90%', margin: '10px auto', background: '#f5f5f5', borderRadius: '20px'}}></div>}>
-               <IntroSection />
-            </Suspense>
+            </motion.div>
+            {isMounted('lander') ? (
+              <Suspense fallback={<SectionPlaceholder title="Arrival Sequence" />}>
+                <IntroSection lowPowerMode={lowPowerMode} />
+              </Suspense>
+            ) : (
+              <SectionPlaceholder title="Arrival Sequence" />
+            )}
+
+            {/* Scroll indicator */}
+            {activeScreenIndex === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+                style={{
+                  position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                }}
+              >
+                <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '10px', fontFamily: "'Quicksand', sans-serif", letterSpacing: '1px' }}>
+                  SCROLL
+                </span>
+                <motion.div
+                  animate={{ y: [0, 6, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12l7 7 7-7" stroke="rgba(0,0,0,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </motion.div>
+              </motion.div>
+            )}
           </section>
 
           <section id='skills'
-            style={{
+            className="portfolio-screen"
+            style={getScreenStyle(1, {
               height: '100vh',
               padding: '60px 0px 6px 0',
               width: '100vw',
@@ -399,12 +1040,16 @@ export default function App() {
               overflowX: 'hidden',
               zIndex: 1, 
               position: 'relative', 
-            }}
+            })}
           >
             <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
-            <Suspense fallback={<div>Loading Skills...</div>}>
-               <Skills />
-            </Suspense>
+            {isMounted('skills') ? (
+              <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
+                <Skills lowPowerMode={lowPowerMode} />
+              </Suspense>
+            ) : (
+              <SectionPlaceholder title="Skill Town" />
+            )}
           </section>
 
 
@@ -413,88 +1058,73 @@ export default function App() {
           <section
 
             id="projects"
-            className="canvas-text-section hide-scrollbar"
-            style={{
-              margin: "20px", // Added margin back for container
-              borderRadius: "30px", // Added border radius back
+            className="portfolio-screen canvas-text-section hide-scrollbar"
+            style={getScreenStyle(2, {
+              margin: "0 auto",
+              borderRadius: "30px",
               position: "relative",
               display: "flex",
-              height: "100vh", // Back to original height
-              flexDirection: "column-reverse",
-              justifyContent: "space-between",
+              height: "100vh",
+              flexDirection: "column",
+              justifyContent: "center",
               alignItems: "center",
-              padding: "20px", // Added padding back for container
-              gap: "30px", // Added gap back
-              width: "calc(100vw - 40px)", // Full width minus margins
-            }}
-            ref={ref}
+              padding: "76px 20px 28px",
+              gap: "18px",
+              width: "100vw",
+              boxSizing: "border-box",
+            })}
           >
-            {/* TV Screen Container */}
+            {/* Google TV Container */}
             <div
               className="hide-scrollbar canvas-wrapper"
               style={{
-                flex: 3, // Back to 3 for larger canvas proportion
-                backgroundColor: "#1a1a1a", // Dark TV bezel color
-                borderRadius: "15px", // TV-like rounded corners
-                height: "calc(85vh - 40px)", // Back to original height
-                width: "100%", // Full width of container
-                maxWidth: "100%", // Ensure it fits container
-                boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)", // TV-like shadow with inner highlight
+                flex: 1,
+                backgroundColor: "#0a0a0a",
+                borderRadius: "20px",
+                height: "min(74vh, 780px)",
+                width: "min(calc(100vw - 40px), 1500px)",
+                maxWidth: "100%",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                overflow: "hidden", // Prevent any overflow issues
+                overflow: "hidden",
                 position: "relative",
-                padding: "15px", // TV bezel padding
-                border: "3px solid #333", // TV bezel border
+                padding: "8px",
               }}
             >
-              {/* TV Screen */}
+              {/* Screen area */}
               <div
-                ref={projectCanvasRef}
                 style={{
                   width: "100%",
                   height: "100%",
-                  backgroundColor: "#5cabff",
-                  borderRadius: "8px", // Inner screen radius
+                  backgroundColor: "#000",
+                  borderRadius: "14px",
                   overflow: "hidden",
                   position: "relative",
-                  boxShadow: "inset 0 0 20px rgba(0,0,0,0.8)", // Inner screen shadow
                 }}
               >
-                {/* TV Stand */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "-25px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "60%",
-                    height: "25px",
-                    backgroundColor: "#2a2a2a",
-                    borderRadius: "0 0 10px 10px",
-                    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
-                  }}
-                />
-                {/* TV Stand Base */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "-35px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "80%",
-                    height: "10px",
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: "5px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                  }}
-                />
+                {/* Google TV ambient glow strip at bottom */}
+                <div style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: "10%",
+                  right: "10%",
+                  height: "3px",
+                  background: "linear-gradient(90deg, #4285f4, #ea4335, #fbbc04, #34a853)",
+                  borderRadius: "2px",
+                  zIndex: 5,
+                  opacity: 0.8,
+                }} />
+
+                {/* TV Boot Simulator */}
+                <TVSimulator onReady={() => setTvReady(true)} isReady={tvReady} />
                 <div style={{
                   position: 'absolute',
                   top: '20px',
                   right: '25px',
                   zIndex: 10,
+                  display: 'none',
                   fontFamily: "'Share Tech Mono', monospace",
                   color: '#fbbf24', // Gold color
                   textShadow: '0 0 5px #fbbf24',
@@ -502,7 +1132,6 @@ export default function App() {
                   padding: '5px 15px',
                   borderRadius: '20px',
                   border: '2px solid #fbbf24',
-                  display: 'flex',
                   alignItems: 'center',
                   gap: '10px'
                 }}>
@@ -529,9 +1158,10 @@ export default function App() {
                   </div>
                 </div>
 
+                {isMounted('projects') ? (
                 <Canvas
-                  frameloop={projectCanvasInView ? 'always' : 'never'}
-                  dpr={[1, 2]}
+                  frameloop={projectsCanvasActive ? 'always' : 'never'}
+                  dpr={lowPowerMode ? [0.75, 1.1] : [1, 1.5]}
                   camera={CANVAS_CAMERA_CONFIG}
                   style={{
                     width: '100%',
@@ -541,7 +1171,7 @@ export default function App() {
                     display: 'block' // Ensure proper display
                   }}
                   gl={{
-                    antialias: true,
+                    antialias: !lowPowerMode,
                     alpha: false,
                     powerPreference: "high-performance"
                   }}
@@ -551,55 +1181,13 @@ export default function App() {
                   <ambientLight intensity={5} />
                   <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
                   <Suspense fallback={null}>
-                    <Hud>
-                      <Html center>
-                        <div
-                          style={{
-                            display: showIframe ? 'flex' : 'none',
-                            width: '350px',
-                            height: '650px',
-                            borderRadius: '10px',
-                            overflow: 'hidden',
-                            boxShadow: '0 0 15px rgba(0,0,0,0.3)',
-                            position: 'relative',
-                          }}
-                        >
-                          {/* Close Button */}
-                          <button
-                            onClick={closeIframe}
-                            style={{
-                              position: 'absolute',
-                              top: '10px',
-                              right: '10px',
-                              background: 'rgba(0,0,0,0.7)',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '4px',
-                              padding: '4px 8px',
-                              cursor: 'pointer',
-                              zIndex: 10,
-                            }}
-                          >
-                            ✖
-                          </button>
-
-                          {/* Iframe */}
-                          <iframe
-                            height={'100%'}
-                            width={'100%'}
-                            src={iframeUrl}
-                            title="Dynamic Iframe"
-                          />
-                        </div>
-                      </Html>
-                    </Hud>
 
                     <ScrollControls
-                      maxSpeed={0.05}
+                      maxSpeed={0.25}
                       distance={6}
-                      pages={1} // Increase pages for more scroll distance
-                      damping={0.8}
-                      enabled={scrollEnabled}
+                      pages={1}
+                      damping={0.35}
+                      enabled={scrollEnabled && activeScreenIndex === 2}
                       infinite={true}
                       horizontal={false}
                     >
@@ -608,10 +1196,9 @@ export default function App() {
                         <Airplane
                           contactPage={contactPage}
                           setContactPage={setContactPage}
-                          setIsCanvasScrollLocked={setIsCanvasScrollLocked}
                           setTeleported={setTeleported}
                           setStartShockwave={setStartShockwave}
-                          scrollEnabled={scrollEnabled}
+                          scrollEnabled={scrollEnabled && activeScreenIndex === 2}
                           ref={avatarRef}
                           scale={7.5}
                           position={[0, 0, 0]}
@@ -620,6 +1207,7 @@ export default function App() {
                           isMobile={isMobile}
                           joystickDataRef={joystickDataRef}
                           verticalControlRef={verticalControlRef}
+                          lowPowerMode={lowPowerMode}
                         />
 
                         {!contactPage ? (
@@ -629,15 +1217,18 @@ export default function App() {
                             avatarRef={avatarRef}
                             scoreElement={scoreElement}
                             scoreValueRef={scoreValueRef}
+                            lowPowerMode={lowPowerMode}
                           />
                         ) : null}
 
 
                       </Scroll>
                     </ScrollControls>
-                    <Preload all />
                   </Suspense>
                 </Canvas>
+                ) : (
+                  <SectionPlaceholder title="Project Orbit" theme="dark" />
+                )}
                 <div style={{
                   position: 'absolute',
                   bottom: '20px',
@@ -712,47 +1303,69 @@ export default function App() {
                 </div>
               </div>
             </div>
+            {/* Google TV Stand */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '-4px' }}>
+              <div style={{ width: '4px', height: '20px', background: '#1a1a1a', borderRadius: '2px' }} />
+              <div style={{ width: '120px', height: '6px', background: 'linear-gradient(180deg, #2a2a2a, #111)', borderRadius: '3px', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }} />
+            </div>
           </section>
 
           <section
-            ref={certificateRef}
             id='certificate'
-            style={{
+            className="portfolio-screen"
+            style={getScreenStyle(3, {
               display: 'flex',
               flexDirection: 'column',
               gap: '2rem',
-              height: '100%',
-              padding: '80px 40px',
+              justifyContent: 'center',
+              height: '100vh',
+              padding: 'clamp(20px, 5vh, 80px) clamp(12px, 3vw, 40px)',
               scrollBehavior: 'smooth',
-            }}
+            })}
           >
-            <Suspense fallback={<div>Loading Certificates...</div>}>
-              <Certificates />
-            </Suspense>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={activeScreenIndex === 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+              style={{ width: '100%', height: '100%' }}
+            >
+              {isMounted('certificate') ? (
+                <Suspense fallback={<SectionPlaceholder title="Achievement Vault" />}>
+                  <Certificates />
+                </Suspense>
+              ) : (
+                <SectionPlaceholder title="Achievement Vault" />
+              )}
+            </motion.div>
           </section>
 
           {/* Contact Section */}
           <section id='contact'
-            ref={contactRef}
-            style={{
+            className="portfolio-screen"
+            style={getScreenStyle(4, {
               height: '100vh',
-              width: '100vw', // Full viewport width
+              width: '100vw',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-              background: 'black',
+              background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
               zIndex: 1000,
-            }}
+              display: 'flex',
+              alignItems: 'center',
+            })}
           >
 
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={activeScreenIndex === 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
               style={{
-                height: '50%',
-                width: '100%', // Full width
-                backgroundColor: 'white',
+                height: '100%',
+                width: '100%',
+                backgroundColor: 'transparent',
               }}
             >
               <ContactSection />
-            </div>
+            </motion.div>
           </section>
 
         </div >
@@ -1041,262 +1654,6 @@ function ContactSection() {
           </div>
         </div>
 
-        <style jsx="true">{`
-          .contact-section {
-            padding: 4rem 2rem;
-            background: #fafafa;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            position: relative;
-          }
-
-          .contact-container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-          }
-
-          .contact-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            color: #1a1a1a;
-          }
-
-          .contact-header h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #1a1a1a;
-          }
-
-          .contact-header p {
-            font-family: 'Inter', sans-serif;
-            font-size: 1.2rem;
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-          }
-
-          .contact-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 3rem;
-            align-items: start;
-          }
-
-          .contact-form-container {
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-          }
-
-          .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-          }
-
-          .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-          }
-
-          .form-group label {
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
-
-          .form-group input,
-          .form-group textarea {
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: #374151;
-            background: white;
-            transition: all 0.3s ease;
-            outline: none;
-          }
-
-          .form-group input:focus,
-          .form-group textarea:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-            transform: translateY(-2px);
-          }
-
-          .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-          }
-
-          .submit-btn {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-          }
-
-          .submit-btn:hover {
-            background: #4338ca;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-          }
-
-          .contact-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-          }
-
-          .contact-details {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-          }
-
-          .contact-details h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 1.5rem;
-          }
-
-          .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #374151;
-            margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
-          }
-
-          .social-section h4 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-          }
-
-          .social-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-          }
-
-          .social-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.8rem 1rem;
-            background: white;
-            border-radius: 12px;
-            color: #374151;
-            text-decoration: none;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-          }
-
-          .social-link:hover {
-            background: var(--brand-color);
-            color: white;
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-          }
-
-          @media (max-width: 768px) {
-            .contact-section {
-              padding: 2rem 1rem;
-            }
-
-            .contact-header h2 {
-              font-size: 2.2rem;
-            }
-
-            .contact-header p {
-              font-size: 1rem;
-            }
-
-            .contact-content {
-              grid-template-columns: 1fr;
-              gap: 2rem;
-            }
-
-            .contact-form-container {
-              padding: 1.5rem;
-            }
-
-            .contact-details,
-            .social-section {
-              padding: 1.5rem;
-            }
-
-            .social-links {
-              flex-direction: row;
-              flex-wrap: wrap;
-            }
-
-            .social-link {
-              flex: 1;
-              min-width: 120px;
-              justify-content: center;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .contact-header h2 {
-              font-size: 1.8rem;
-            }
-
-            .contact-form-container {
-              padding: 1rem;
-            }
-
-            .contact-details,
-            .social-section {
-              padding: 1rem;
-            }
-
-            .social-links {
-              flex-direction: column;
-            }
-
-            .social-link {
-              min-width: auto;
-            }
-          }
-        `}</style>
       </section>
     </>
   );

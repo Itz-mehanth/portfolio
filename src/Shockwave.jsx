@@ -1,16 +1,17 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 export default function Shockwave({ position = [0, 0.05, 25], onComplete }) {
   const ringRef = useRef()
   const lightningGroup = useRef()
-  const maxScale = 5
-  let elapsed = 0
+  const elapsedRef = useRef(0)
 
   useFrame((_, delta) => {
-    elapsed += delta
+    elapsedRef.current += delta
+    const elapsed = elapsedRef.current
     const scale = 1 + elapsed * 5
+
     if (ringRef.current) {
       ringRef.current.scale.set(scale, scale, scale)
       ringRef.current.material.opacity = Math.max(0, 1 - elapsed * 0.5)
@@ -34,11 +35,10 @@ export default function Shockwave({ position = [0, 0.05, 25], onComplete }) {
     }
   })
 
-  // Generate radial lightning streaks
-  const lightningLines = Array.from({ length: 250 }).map((_, i) => {
+  const lightningLines = useMemo(() => Array.from({ length: 60 }).map((_, i) => {
     const dir = new THREE.Vector3(
       Math.random() * 2 - 1,
-      Math.random() * 0.4 + 1, // upward-ish
+      Math.random() * 0.4 + 1,
       Math.random() * 2 - 1
     ).normalize()
 
@@ -57,21 +57,22 @@ export default function Shockwave({ position = [0, 0.05, 25], onComplete }) {
         <lineBasicMaterial color="aqua" transparent opacity={1} />
       </line>
     )
-  })
+  }), [])
 
   return (
     <group>
-      {/* Expanding Ring */}
       <mesh ref={ringRef} position={position} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.9, 1, 1000]} />
-        <meshBasicMaterial 
-          color="cyan" 
-          transparent 
+        <ringGeometry args={[0.9, 1, 64]} />
+        <meshBasicMaterial
+          color="cyan"
+          transparent
           opacity={1}
-          // emissive="cyan"
-          // emissiveIntensity={5} 
-          side={THREE.DoubleSide} />
+          side={THREE.DoubleSide}
+        />
       </mesh>
+      <group ref={lightningGroup}>
+        {lightningLines}
+      </group>
     </group>
   )
 }

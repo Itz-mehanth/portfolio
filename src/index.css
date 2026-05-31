@@ -1,9 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Righteous:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Barrio&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+/* Fonts loaded via index.html <link> for non-blocking behavior */
 
 *{
   box-sizing: border-box;

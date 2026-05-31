@@ -2,7 +2,7 @@ import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export default function Portal({ count = 150, delay = 0}) {
+export default function Portal({ count = 150, delay = 0, duration = 5000 }) {
   const meshRef = useRef()
   const [start, setStart] = useState(false)
   const [end, setEnd] = useState(false)
@@ -19,9 +19,9 @@ export default function Portal({ count = 150, delay = 0}) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setEnd(true)
-    }, 5000)
+    }, delay + duration)
     return () => clearTimeout(timeout)
-  }, [delay])
+  }, [delay, duration])
 
 
   const particles = useMemo(() => {

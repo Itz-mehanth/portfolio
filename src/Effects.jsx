@@ -1,4 +1,5 @@
-import { EffectComposer, GodRays } from '@react-three/postprocessing'
+import { EffectComposer, GodRays, Bloom, Vignette } from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { useRef, useEffect, useState } from 'react'
 
@@ -6,7 +7,6 @@ export default function Effects() {
   const sunRef = useRef()
   const [sunReady, setSunReady] = useState(false)
 
-  // Wait until the sun mesh is available
   useEffect(() => {
     if (sunRef.current) {
       setSunReady(true)
@@ -15,27 +15,36 @@ export default function Effects() {
 
   return (
     <>
-      {/* Sun mesh: This is what GodRays will sample */}
+      {/* Sun mesh: GodRays samples this as the light source */}
       <mesh ref={sunRef} position={[0, 0, 248]}>
-        <sphereGeometry args={[0.3, 520, 520]} />
+        <sphereGeometry args={[0.3, 16, 16]} />
         <meshBasicMaterial color="yellow" toneMapped={false} />
       </mesh>
 
-      {/* Actual light source for the scene (optional) */}
       <directionalLight color={'white'} intensity={5} position={[0, 5, -15]} />
 
-      {/* Only render GodRays once the sun mesh is mounted */}
       {sunReady && (
         <EffectComposer>
           <GodRays
             sun={sunRef}
-            blendFunction={THREE.AdditiveBlending}
-            samples={100}
+            blendFunction={BlendFunction.ADD}
+            samples={60}
             density={0.96}
             decay={0.95}
-            weight={10}
-            exposure={15}
-            clampMax={50}
+            weight={0.6}
+            exposure={0.7}
+            clampMax={1}
+          />
+          <Bloom
+            luminanceThreshold={0.4}
+            luminanceSmoothing={0.9}
+            intensity={0.4}
+            blendFunction={BlendFunction.ADD}
+          />
+          <Vignette
+            offset={0.5}
+            darkness={0.5}
+            blendFunction={BlendFunction.NORMAL}
           />
         </EffectComposer>
       )}

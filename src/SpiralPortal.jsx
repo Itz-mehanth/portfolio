@@ -13,7 +13,7 @@ export default function SpiralPortal({ position = [0, 0, 0], scale = 1 }) {
 
   return (
     <mesh ref={spiralRef} position={position} rotation={[0, 0, 0]} scale={scale}>
-      <ringGeometry args={[1.1, 1, 25, 10]} />
+      <ringGeometry args={[1, 1.1, 25, 10]} />
       <meshBasicMaterial
         color="aqua"
         transparent

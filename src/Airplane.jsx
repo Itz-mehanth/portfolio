@@ -1,21 +1,23 @@
 import React, { useRef } from 'react'
-import { useGLTF, useScroll } from '@react-three/drei'
-import { forwardRef, useImperativeHandle, useLayoutEffect } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import useKeyboard from './utils/useKeyboard'
 
 const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, setSpeed, ...props }, ref) => {
     const group = useRef()
-    const { scene } = useGLTF('/models/paper_airplane.glb')
-    const keys = useKeyboard()
+    const { nodes } = useGLTF('/models/paper_airplane.glb')
+    const keysRef = useKeyboard()
     const { camera } = useThree()
 
     // Physics parameters
-    const baseSpeed = 0.5
-    const maxSpeed = 1.6 // Maximum speed multiplier
-    const acceleration = 0.01 // Acceleration rate
+    const baseSpeed = 0.8
+    const maxSpeed = 2.4 // Maximum speed multiplier
+    const acceleration = 0.03 // Acceleration rate
     const currentSpeedRef = useRef(baseSpeed) // Track current speed
+    const cameraOffset = useRef(new THREE.Vector3(0, 1.5, -5))
+    const targetCameraPos = useRef(new THREE.Vector3())
 
     // Reduced roll amount as requested (was PI/3)
     const maxRoll = Math.PI / 6 // 30 degrees
@@ -28,6 +30,8 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
         let forward = 0
         let right = 0
         let up = 0
+
+        const keys = keysRef.current
 
         // Keyboard controls
         if (keys.forward) forward += 1
@@ -58,7 +62,7 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
         }
 
         // Apply movement speed
-        const moveSpeed = currentSpeedRef.current * (keys.shift ? 2 : 1) * 20 * delta
+        const moveSpeed = currentSpeedRef.current * (keys.shift ? 2 : 1) * 24 * delta
 
         // Update Position with Clamping (Boundaries)
         // Limits: X: +/- 30, Y: -10 to 30, Z: -20 to 500
@@ -89,21 +93,14 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
         // Camera Follow
         // Place camera behind (-Z relative to plane) and above
         // Reduced offset for closer view
-        const cameraOffset = new THREE.Vector3(0, 1.5, -5)
-        const targetCameraPos = group.current.position.clone().add(cameraOffset)
+        targetCameraPos.current.copy(group.current.position).add(cameraOffset.current)
 
         // Smoothly move camera
-        camera.position.lerp(targetCameraPos, delta * 5)
+        camera.position.lerp(targetCameraPos.current, delta * 6)
         camera.lookAt(group.current.position)
     })
 
     useImperativeHandle(ref, () => group.current)
-
-
-    // Apply Toon Shader to Airplane
-    // We don't need useLayoutEffect for material swapping anymore since we are defining meshes explicitly below
-    // But we need the nodes and materials
-    const { nodes, materials } = useGLTF('/models/paper_airplane.glb')
 
     return (
         <group ref={group} {...props} dispose={null}>
@@ -131,7 +128,5 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
 })
 
 export default Airplane;
-
-useGLTF.preload('/models/paper_airplane.glb')
 
 useGLTF.preload('/models/paper_airplane.glb')

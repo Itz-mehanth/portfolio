@@ -2,13 +2,15 @@ import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import Coin from './Coin';
 
-export default function CoinField({ avatarRef, scoreValueRef, scoreElement }) {
+export default function CoinField({ avatarRef, scoreValueRef, scoreElement, lowPowerMode = false }) {
     const [collectedCoins, setCollectedCoins] = useState({});
+    const coinAudioRef = useRef(null);
 
     // Generate coins along the path
     const coins = useMemo(() => {
         const _coins = [];
-        for (let z = 20; z < 500; z += 15) {
+        const step = lowPowerMode ? 24 : 15;
+        for (let z = 20; z < 500; z += step) {
             // Random X and Y within flight bounds
             // X: -30 to 30, Y: -10 to 30
             const x = (Math.random() - 0.5) * 50;
@@ -16,7 +18,7 @@ export default function CoinField({ avatarRef, scoreValueRef, scoreElement }) {
             _coins.push({ position: [x, y, z], id: z });
         }
         return _coins;
-    }, []);
+    }, [lowPowerMode]);
 
     useFrame(() => {
         if (avatarRef && avatarRef.current && avatarRef.current.position) {
@@ -33,7 +35,11 @@ export default function CoinField({ avatarRef, scoreValueRef, scoreElement }) {
                         setCollectedCoins(prev => ({ ...prev, [coin.id]: true }));
 
                         // Play Coin Sound
-                        const audio = new Audio('/audio/coin.mp3');
+                        if (!coinAudioRef.current) {
+                            coinAudioRef.current = new Audio('/audio/coin.mp3');
+                            coinAudioRef.current.volume = 0.5;
+                        }
+                        const audio = coinAudioRef.current.cloneNode();
                         audio.volume = 0.5;
                         audio.play().catch(e => console.error("Audio play failed", e));
 

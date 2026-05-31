@@ -11,7 +11,7 @@ export default function Terrain() {
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[1000, 1000, 1256, 1256]} />
+      <planeGeometry args={[1000, 1000, 128, 128]} />
       <meshStandardMaterial
         displacementMap={heightMap}
         normalMap={normalMap}

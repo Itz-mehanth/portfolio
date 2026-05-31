@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { Text, Sky, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, BakeShadows, Preload } from '@react-three/drei';
+import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground';
 import { Suspense } from 'react';
@@ -9,22 +10,11 @@ import WaterTank from './utils/models/WaterTank';
 import Tank from './utils/models/Tank';
 import WindMills from './utils/models/WIndMill';
 import Tree from './utils/models/Tree';
-import { RGBELoader } from 'three-stdlib';
-import { useLoader } from '@react-three/fiber';
 
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
 import { useInView } from 'react-intersection-observer';
-import { Environment } from '@react-three/drei';
-
-// Preload all models at the start
-useGLTF.preload('models/house.glb');
-useGLTF.preload('models/water tank.glb');
-useGLTF.preload('models/tank.glb');
-useGLTF.preload('models/wind mill.glb');
-useGLTF.preload('models/tree.glb');
-useGLTF.preload('models/ground.glb');
-useGLTF.preload('models/car.glb');
+import { Joystick } from 'react-joystick-component';
 
 // City colors for different tech domains
 const cityColors = {
@@ -129,25 +119,43 @@ function City({ id, name, position, onClick, isSelected, color }) {
         ) : <WaterTank position={[1, -0.5, -1]} />}
       </Suspense>
 
-      {!isSelected && (
-        <Billboard position={[0, 1.1, 2.5]}>
-          <Text fontSize={0.4} position={[0, 0, 0]} color="#000000" anchorX="center" anchorY="middle">
-            {name}
-          </Text>
-        </Billboard>
-      )}
+      {/* City label billboard */}
+      <Billboard position={[0, 1.4, 2.5]}>
+        {/* Sign post */}
+        <mesh position={[0, -0.5, -0.02]}>
+          <boxGeometry args={[0.06, 0.8, 0.04]} />
+          <meshToonMaterial color="#5a3e1a" />
+        </mesh>
 
-      {isSelected && (
-        <Billboard position={[0, 1.1, 2.6]}>
-          <mesh>
-            <planeGeometry args={[2.5, 1]} />
-            <meshStandardMaterial emissive={color} emissiveIntensity={20} color={color} />
-          </mesh>
-          <Text fontSize={0.35} fontWeight={1000} position={[0, 0, 0]} color="black" anchorX="center" anchorY="middle">
-            {name}
-          </Text>
-        </Billboard>
-      )}
+        {/* Sign board background */}
+        <mesh position={[0, 0, -0.01]}>
+          <planeGeometry args={[isSelected ? 2.2 : 1.8, isSelected ? 0.7 : 0.55]} />
+          <meshToonMaterial color={isSelected ? color : '#1a1a1a'} />
+        </mesh>
+
+        {/* Inner panel */}
+        <mesh position={[0, 0, 0]}>
+          <planeGeometry args={[isSelected ? 2.0 : 1.6, isSelected ? 0.55 : 0.4]} />
+          <meshToonMaterial color={isSelected ? '#1a1a1a' : '#2a2a2a'} />
+        </mesh>
+
+        {/* Text */}
+        <Text
+          fontSize={isSelected ? 0.3 : 0.22}
+          position={[0, 0, 0.01]}
+          color={isSelected ? color : '#ffffff'}
+          anchorX="center"
+          anchorY="middle"
+          font={undefined}
+        >
+          {name}
+        </Text>
+
+        {/* Glow indicator for selected */}
+        {isSelected && (
+          <pointLight position={[0, 0, 0.5]} intensity={0.8} color={color} distance={3} />
+        )}
+      </Billboard>
     </group>
   );
 }
@@ -205,26 +213,70 @@ const getCityToCityPath = (fromId, toId) => {
   return new THREE.CatmullRomCurve3(orderedPoints, false, 'catmullrom', 0.5);
 };
 
-// Isolated component for environment loading to prevent suspend issues in main component
-function Skybox() {
-  const texture = useLoader(RGBELoader, '/hdr/anime_sky.hdr');
-  texture.mapping = THREE.EquirectangularReflectionMapping;
+function ToonSky() {
   return (
     <>
-      <Environment map={texture} />
-      <mesh position={[0, 0, -50]} scale={[-1, 1, 1]}>
-        <sphereGeometry args={[200, 60, 40]} />
-        <meshBasicMaterial map={texture} side={THREE.BackSide} />
-      </mesh>
+      <color attach="background" args={['#78c4e8']} />
+      <fog attach="fog" args={['#a8d8f0', 30, 120]} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[8, 12, -4]} intensity={1.8} color="#fff5e6" />
+      <hemisphereLight skyColor="#87ceeb" groundColor="#4a7c59" intensity={0.5} />
     </>
   );
 }
 
-export default function SciFiSkillCities() {
+// Hoisted static data — never recreated
+const CITY_POSITIONS = {
+  languages: [8, 1.55, -1.5],
+  web: [5, 1.55, -3],
+  mobile: [2, 1.55, -0],
+  backend: [-1, 1.55, -3.2],
+  database: [-4, 1.55, -0.6],
+  arvr: [-7, 1.55, -2.8],
+  uiux: [-10, 1.55, -0.9],
+  tools: [-13, 1.55, -3.4],
+  aiml: [-17, 1.55, -0.1],
+};
+
+export default function SciFiSkillCities({ lowPowerMode = false }) {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
+  const [driveMode, setDriveMode] = useState(false);
+  const driveKeysRef = useRef({ forward: false, backward: false, left: false, right: false });
   const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
+
+  // Keyboard controls for drive mode
+  useEffect(() => {
+    if (!driveMode) return;
+
+    const keyMap = {
+      KeyW: 'forward', ArrowUp: 'forward',
+      KeyS: 'backward', ArrowDown: 'backward',
+      KeyA: 'left', ArrowLeft: 'left',
+      KeyD: 'right', ArrowRight: 'right',
+    };
+
+    const handleKeyDown = (e) => {
+      const action = keyMap[e.code];
+      if (action) {
+        e.preventDefault();
+        driveKeysRef.current[action] = true;
+      }
+    };
+    const handleKeyUp = (e) => {
+      const action = keyMap[e.code];
+      if (action) driveKeysRef.current[action] = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      driveKeysRef.current = { forward: false, backward: false, left: false, right: false };
+    };
+  }, [driveMode]);
 
   const handleCityClick = (id) => {
     setSelectedCity(id);
@@ -233,18 +285,8 @@ export default function SciFiSkillCities() {
     setPath(pathToTarget);
   };
 
-  // Updated city positions for better layout
-  const cityPositions = {
-    languages: [8, 1.55, -1.5],
-    web: [5, 1.55, -3],
-    mobile: [2, 1.55, -0],
-    backend: [-1, 1.55, -3.2],
-    database: [-4, 1.55, -0.6],
-    arvr: [-7, 1.55, -2.8],
-    uiux: [-10, 1.55, -0.9],
-    tools: [-13, 1.55, -3.4],
-    aiml: [-17, 1.55, -0.1],
-  };
+  // City positions hoisted to module scope for perf — see CITY_POSITIONS above
+  const cityPositions = CITY_POSITIONS;
 
   // Updated decorative element positions
   const windmillPositions = {
@@ -283,6 +325,10 @@ export default function SciFiSkillCities() {
     tank8: [4, 1.1, -1.2],
     tank9: [9, 1.1, -3.5],
   };
+
+  const visibleWindmills = Object.entries(windmillPositions).slice(0, lowPowerMode ? 4 : undefined);
+  const visibleTrees = Object.entries(treePositions).slice(0, lowPowerMode ? 8 : undefined);
+  const visibleTanks = Object.entries(tankPositions).slice(0, lowPowerMode ? 6 : undefined);
 
   // Updated skills by city based on the new skill list
   const skillsByCity = {
@@ -371,8 +417,9 @@ export default function SciFiSkillCities() {
         <Canvas
           frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 6, 20], fov: 60 }}
-          shadows
-          gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputEncoding: THREE.sRGBEncoding }}
+          dpr={lowPowerMode ? [0.75, 1] : [1, 1.5]}
+          shadows={!lowPowerMode}
+          gl={{ toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
           style={{
             width: '100%',
             height: '100%',
@@ -384,11 +431,9 @@ export default function SciFiSkillCities() {
 
             <AdaptiveDpr pixelated />
             <AdaptiveEvents />
-            <BakeShadows />
-            <Preload all />
 
             {/* Anime Sky Environment & Sphere */}
-            <Skybox />
+            <ToonSky />
 
             {/* Basic scene setup */}
             <ambientLight intensity={1.2} />
@@ -396,8 +441,8 @@ export default function SciFiSkillCities() {
               castShadow
               position={[10, 10, 10]}
               intensity={1.4}
-              shadow-mapSize-width={1024}
-              shadow-mapSize-height={1024}
+              shadow-mapSize-width={lowPowerMode ? 512 : 1024}
+              shadow-mapSize-height={lowPowerMode ? 512 : 1024}
               shadow-camera-far={50}
               shadow-camera-left={-20}
               shadow-camera-right={20}
@@ -405,16 +450,18 @@ export default function SciFiSkillCities() {
               shadow-camera-bottom={-10}
               shadow-bias={-0.0001}
             />
-            <OrbitControls
-              enableZoom={true}
-              enablePan={true}
-              enableRotate={true}
-              maxPolarAngle={Math.PI / 2.3}
-              minDistance={5}
-              maxDistance={60}
-              enableDamping={true}
-              dampingFactor={0.05}
-            />
+            {!driveMode && (
+              <OrbitControls
+                enableZoom={true}
+                enablePan={true}
+                enableRotate={true}
+                maxPolarAngle={Math.PI / 2.3}
+                minDistance={5}
+                maxDistance={60}
+                enableDamping={true}
+                dampingFactor={0.05}
+              />
+            )}
 
             {/* Ground */}
             <Suspense fallback={null}>
@@ -423,10 +470,13 @@ export default function SciFiSkillCities() {
 
             {/* Car with camera */}
             <Suspense fallback={null}>
-              <PerspectiveCamera makeDefault position={[0, 6, 10]} />
+              {!driveMode && <PerspectiveCamera makeDefault position={[0, 6, 10]} />}
               <Car
                 position={cityPathPoints[currentCity].toArray()}
-                path={path}
+                path={driveMode ? null : path}
+                driveMode={driveMode}
+                keysRef={driveKeysRef}
+                cityPositions={cityPositions}
                 onReachEnd={() => {
                   console.log('Reached:', selectedCity);
                   setCurrentCity(selectedCity);
@@ -444,21 +494,21 @@ export default function SciFiSkillCities() {
             {/* Decorative elements */}
             <group>
               {/* Windmills */}
-              {Object.entries(windmillPositions).map(([id, pos]) => (
+              {visibleWindmills.map(([id, pos]) => (
                 <Suspense key={id} fallback={<LoadingFallback />}>
                   <WindMills position={pos} />
                 </Suspense>
               ))}
 
               {/* Trees */}
-              {Object.entries(treePositions).map(([id, pos]) => (
+              {visibleTrees.map(([id, pos]) => (
                 <Suspense key={id} fallback={<LoadingFallback />}>
                   <Tree position={pos} scale={1} />
                 </Suspense>
               ))}
 
               {/* Tanks */}
-              {Object.entries(tankPositions).map(([id, pos]) => (
+              {visibleTanks.map(([id, pos]) => (
                 <Suspense key={id} fallback={<LoadingFallback />}>
                   <Tank position={pos} />
                 </Suspense>
@@ -481,307 +531,191 @@ export default function SciFiSkillCities() {
 
           </Suspense>
         </Canvas>
+
+        {/* Drive Mode Toggle */}
+        <button
+          onClick={() => setDriveMode(!driveMode)}
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            padding: '8px 16px',
+            background: driveMode ? 'rgba(239, 68, 68, 0.9)' : 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            fontFamily: "'Silkscreen', monospace",
+            cursor: 'pointer',
+            zIndex: 20,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            letterSpacing: '1px',
+          }}
+        >
+          {driveMode ? '✕ EXIT DRIVE' : '🚗 DRIVE MODE'}
+        </button>
+
+        {/* Drive mode controls hint (desktop) */}
+        {driveMode && (
+          <div style={{
+            position: 'absolute',
+            bottom: '12px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '6px 14px',
+            background: 'rgba(0, 0, 0, 0.7)',
+            color: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontFamily: "'Quicksand', sans-serif",
+            zIndex: 20,
+            backdropFilter: 'blur(4px)',
+            whiteSpace: 'nowrap',
+          }}>
+            W↑ S↓ A← D→
+          </div>
+        )}
+
+        {/* Joystick for mobile drive mode */}
+        {driveMode && (
+          <div style={{
+            position: 'absolute',
+            bottom: '40px',
+            left: '30px',
+            zIndex: 25,
+          }}>
+            <Joystick
+              size={80}
+              baseColor="rgba(0,0,0,0.3)"
+              stickColor="rgba(255,215,0,0.9)"
+              throttle={50}
+              move={(e) => {
+                if (!e) return;
+                const threshold = 0.3;
+                driveKeysRef.current.forward = e.y > threshold;
+                driveKeysRef.current.backward = e.y < -threshold;
+                driveKeysRef.current.left = e.x < -threshold;
+                driveKeysRef.current.right = e.x > threshold;
+              }}
+              stop={() => {
+                driveKeysRef.current = { forward: false, backward: false, left: false, right: false };
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <PhysicsSkillsContainer skillsByCity={skillsByCity} selectedCity={selectedCity} />
+      <SkillsGrid skillsByCity={skillsByCity} selectedCity={selectedCity} />
     </>
   );
 }
 
-const PhysicsSkillsContainer = ({ skillsByCity, selectedCity }) => {
-  const canvasRef = useRef(null);
-  const animationRef = useRef(null);
-  const skillsRef = useRef([]);
-  const ballRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0, isPressed: false });
-  const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 2D keys
+// Logo URLs from devicon CDN
+const SKILL_LOGOS = {
+  'Python': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
+  'JavaScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
+  'TypeScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+  'Dart': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg',
+  'C': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg',
+  'C++': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
+  'Java': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
+  'SQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
+  'HTML': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',
+  'CSS': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg',
+  'Tailwind CSS': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-original.svg',
+  'React.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+  'Next.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
+  'Vue.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
+  'Angular': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
+  'Chart.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/d3js/d3js-original.svg',
+  'Flutter': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg',
+  'Node.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+  'Express.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
+  'Flask': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg',
+  'Spring Boot': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg',
+  'REST API': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg',
+  'WebSockets': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/socketio/socketio-original.svg',
+  'WebRTC': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/webflow/webflow-original.svg',
+  'Apache Kafka': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apachekafka/apachekafka-original.svg',
+  'Apache Spark': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
+  'PostgreSQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
+  'MySQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
+  'MongoDB': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
+  'Redis': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg',
+  'React Three Fiber': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg',
+  'Three.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg',
+  'Unity': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg',
+  'Godot': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/godot/godot-original.svg',
+  'Blender': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg',
+  'Figma': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
+  'Docker': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
+  'Git': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
+  'Firebase': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg',
+  'Raspberry Pi': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/raspberrypi/raspberrypi-original.svg',
+  'PySpark': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
+  'Spark Streaming': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
+  'Spark MLlib': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
+  'TensorFlow': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg',
+  'OpenCV': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg',
+  'CNNs': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg',
+};
 
-  // Physics properties
-  const friction = 0.99;
-  const bounce = 0.7;
-  const gravity = 0.15;
-  const repelForce = 60;
-  const ballSpeed = 3;
-
-  // Ball physics object
-  class Ball {
-    constructor(x, y, radius) {
-      this.x = x;
-      this.y = y;
-      this.radius = radius;
-      this.vx = ballSpeed;
-      this.vy = ballSpeed;
-    }
-
-    update(canvas, skills) {
-      // Move ball
-      this.x += this.vx;
-      this.y += this.vy;
-
-      // Bounce off walls
-      if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
-        this.vx = -this.vx;
-        this.x = this.x - this.radius <= 0 ? this.radius : canvas.width - this.radius;
-      }
-      if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
-        this.vy = -this.vy;
-        this.y = this.y - this.radius <= 0 ? this.radius : canvas.height - this.radius;
-      }
-
-      // Check collision with skills
-      for (let skill of skills) {
-        if (this.isCollidingWithRect(skill)) {
-          this.resolveRectCollision(skill);
-        }
-      }
-
-      // Maintain constant speed
-      const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-      this.vx = (this.vx / currentSpeed) * ballSpeed;
-      this.vy = (this.vy / currentSpeed) * ballSpeed;
-    }
-
-    isCollidingWithRect(rect) {
-      const closestX = Math.max(rect.x, Math.min(this.x, rect.x + rect.width));
-      const closestY = Math.max(rect.y, Math.min(this.y, rect.y + rect.height));
-      const distanceX = this.x - closestX;
-      const distanceY = this.y - closestY;
-      return (distanceX * distanceX + distanceY * distanceY) < (this.radius * this.radius);
-    }
-
-    resolveRectCollision(rect) {
-      const rectCenterX = rect.x + rect.width / 2;
-      const rectCenterY = rect.y + rect.height / 2;
-
-      const dx = this.x - rectCenterX;
-      const dy = this.y - rectCenterY;
-
-      const absX = Math.abs(dx);
-      const absY = Math.abs(dy);
-
-      // Determine which side of the rectangle we hit
-      if (absX / rect.width > absY / rect.height) {
-        // Hit left or right side
-        this.vx = -this.vx;
-        this.x = dx > 0 ? rect.x + rect.width + this.radius : rect.x - this.radius;
-      } else {
-        // Hit top or bottom side
-        this.vy = -this.vy;
-        this.y = dy > 0 ? rect.y + rect.height + this.radius : rect.y - this.radius;
-      }
-
-      // Give the skill a little push
-      const pushForce = 2;
-      rect.vx += (dx / Math.sqrt(dx * dx + dy * dy)) * pushForce;
-      rect.vy += (dy / Math.sqrt(dx * dx + dy * dy)) * pushForce;
-    }
-
-    draw(ctx) {
-      ctx.fillStyle = '#FF4444';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Black border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-  }
-
-  // Simplified skill physics object
-  class SkillBox {
-    constructor(skill, x, y, width, height) {
-      this.skill = skill;
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-      // Set initial velocity
-      this.vx = (Math.random() - 0.5) * 2;
-      this.vy = (Math.random() - 0.5) * 2;
-      this.radius = 8;
-      this.isDragging = false;
-    }
-
-    update(canvas) {
-      if (!this.isDragging) {
-        this.vy += gravity;
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vx *= friction;
-        this.vy *= friction;
-
-        // Boundary collisions
-        if (this.x <= 0) {
-          this.x = 0;
-          this.vx *= -bounce;
-        }
-        if (this.x + this.width >= canvas.width) {
-          this.x = canvas.width - this.width;
-          this.vx *= -bounce;
-        }
-        if (this.y <= 0) {
-          this.y = 0;
-          this.vy *= -bounce;
-        }
-        if (this.y + this.height >= canvas.height) {
-          this.y = canvas.height - this.height;
-          this.vy *= -bounce;
-        }
-      }
-    }
-
-    draw(ctx) {
-      // Simple white rounded rectangle
-      ctx.fillStyle = '#FFFFFF';
-      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
-      ctx.fill();
-
-      // Black border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      this.drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius);
-      ctx.stroke();
-
-      // Text
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(this.skill.name, this.x + this.width / 2, this.y + this.height / 2 - 8);
-
-      // Description
-      ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const maxChars = Math.floor(this.width / 7);
-      const truncatedDesc = this.skill.description.length > maxChars
-        ? this.skill.description.substring(0, maxChars - 3) + '...'
-        : this.skill.description;
-      ctx.fillText(truncatedDesc, this.x + this.width / 2, this.y + this.height / 2 + 12);
-    }
-
-    drawRoundedRect(ctx, x, y, width, height, radius) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.arcTo(x + width, y, x + width, y + height, radius);
-      ctx.arcTo(x + width, y + height, x, y + height, radius);
-      ctx.arcTo(x, y + height, x, y, radius);
-      ctx.arcTo(x, y, x + width, y, radius);
-      ctx.closePath();
-    }
-  }
+const SkillsGrid = ({ skillsByCity, selectedCity }) => {
+  const skills = skillsByCity[selectedCity] || [];
+  const prevSkills = useRef(skills);
+  const [animateKey, setAnimateKey] = useState(0);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    const resizeCanvas = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    // Initialize skills with random velocity
-    const skills = skillsByCity[selectedCity] || [];
-    skillsRef.current = skills.map((skill, index) => {
-      const width = Math.max(200, skill.name.length * 10 + 60);
-      const height = 60;
-      const x = Math.random() * (canvas.width - width);
-      const y = Math.random() * (canvas.height - height);
-      return new SkillBox(skill, x, y, width, height);
-    });
-
-    // Initialize ball
-    ballRef.current = new Ball(50, 50, 10);
-
-    const animate = () => {
-      // Light gray background
-      ctx.fillStyle = '#F5F5F5';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Update and draw ball
-      ballRef.current.update(canvas, skillsRef.current);
-      ballRef.current.draw(ctx);
-
-      // Update and draw skills
-      for (let skill of skillsRef.current) {
-        skill.update(canvas);
-        skill.draw(ctx);
-      }
-
-      // Simple collision detection between skills
-      for (let i = 0; i < skillsRef.current.length; i++) {
-        for (let j = i + 1; j < skillsRef.current.length; j++) {
-          const skillA = skillsRef.current[i];
-          const skillB = skillsRef.current[j];
-
-          if (!skillA.isDragging && !skillB.isDragging) {
-            const dx = (skillA.x + skillA.width / 2) - (skillB.x + skillB.width / 2);
-            const dy = (skillA.y + skillA.height / 2) - (skillB.y + skillB.height / 2);
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const minDistance = (skillA.width + skillB.width) / 2 + 5;
-
-            if (distance < minDistance) {
-              const overlap = minDistance - distance;
-              const separationX = (dx / distance) * overlap * 0.5;
-              const separationY = (dy / distance) * overlap * 0.5;
-
-              skillA.x += separationX;
-              skillA.y += separationY;
-              skillB.x -= separationX;
-              skillB.y -= separationY;
-
-              skillA.vx += separationX * 0.1;
-              skillA.vy += separationY * 0.1;
-              skillB.vx -= separationX * 0.1;
-              skillB.vy -= separationY * 0.1;
-            }
-          }
-        }
-      }
-
-      if (inView) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    if (inView) {
-      animate();
-    }
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [selectedCity, inView]);
+    setAnimateKey(k => k + 1);
+    prevSkills.current = skills;
+  }, [selectedCity]);
 
   return (
-    <div
-      ref={ref}
-      style={{
-        height: '40vh',
-        width: '90vw',
-        position: 'relative',
-        overflow: 'hidden',
-        margin: '10px 0px 70px 0',
-        borderRadius: '12px',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        backgroundColor: '#F5F5F5',
-        border: '2px solid #000000'
+    <div style={{
+      width: '90vw', margin: '12px 0 60px',
+      padding: '20px', borderRadius: '16px',
+      background: 'white',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      border: '1px solid rgba(0,0,0,0.06)',
+    }}>
+      <div key={animateKey} style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+        gap: '12px',
       }}>
-      <canvas
-        ref={canvasRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          cursor: 'pointer',
-          display: 'block'
-        }}
-      />
+        {skills.map((skill, i) => (
+          <motion.div
+            key={skill.name}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: i * 0.04, type: 'spring', damping: 18, stiffness: 150 }}
+            whileHover={{ y: -4, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: '8px', padding: '14px 8px', borderRadius: '12px',
+              background: '#fafafa', border: '1px solid #f0f0f0',
+              cursor: 'default', transition: 'box-shadow 0.2s',
+            }}
+          >
+            <img
+              src={SKILL_LOGOS[skill.name] || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/devicon/devicon-original.svg'}
+              alt={skill.name}
+              style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+              loading="lazy"
+            />
+            <span style={{
+              fontSize: '11px', fontWeight: 600, color: '#1a1a1a',
+              textAlign: 'center', fontFamily: "'Poppins', sans-serif",
+              lineHeight: 1.2,
+            }}>
+              {skill.name}
+            </span>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };
+

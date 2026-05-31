@@ -1,38 +1,53 @@
-// src/App.jsx
-import { Billboard, Clouds } from '@react-three/drei'
-import { Environment, Cloud, Stars } from '@react-three/drei'
-import { useLoader } from '@react-three/fiber'
-import { RGBELoader } from 'three-stdlib'
+import { Billboard, Clouds, Sparkles } from '@react-three/drei'
+import { Cloud, Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import './App.css'
 import Asteroid from './Astroid'
 import Effects from './Effects'
-import { useState, useMemo, memo } from "react"
+import { useState, useMemo, memo, useRef } from "react"
 import { Text } from "@react-three/drei"
-import { Balloon } from './utils/models/Balloon' // Import Balloon
+import { Balloon } from './utils/models/Balloon'
 
 import CoinField from './CoinField';
 import { useFrame } from '@react-three/fiber';
 
-// Isolated Environment Component to prevent Suspense-based re-renders
 const ProjectEnvironment = memo(function ProjectEnvironment() {
-  const texture = useLoader(RGBELoader, '/hdr/anime_sky.hdr');
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-
   return (
     <group>
-      <Environment map={texture} backgroundIntensity={0.5} environmentIntensity={0.1} />
-      <mesh position={[0, 0, 100]} scale={[-1, 1, 1]}>
-        <sphereGeometry args={[700, 60, 40]} />
-        <meshBasicMaterial map={texture} side={THREE.BackSide} />
-      </mesh>
-      <directionalLight position={[10, 10, 5]} intensity={1.5} />
-      <ambientLight intensity={1.2} />
+      {/* Clean bright sky */}
+      <color attach="background" args={['#1a1a2e']} />
+      <fog attach="fog" args={['#1a1a2e', 80, 400]} />
+
+      {/* Stars */}
+      <Stars
+        radius={200}
+        depth={80}
+        count={4000}
+        factor={5}
+        saturation={0}
+        fade
+        speed={0.8}
+      />
+
+      {/* Golden dust particles along the flight corridor */}
+      <Sparkles
+        count={150}
+        scale={[40, 20, 500]}
+        size={2.5}
+        speed={0.4}
+        opacity={0.7}
+        color="#fbbf24"
+      />
+
+      {/* Lighting — cinematic */}
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[5, 10, -10]} intensity={2} color="#ffffff" />
+      <hemisphereLight skyColor="#4338ca" groundColor="#1e1b4b" intensity={0.4} />
     </group>
   );
 });
 
-export default function Projects({ openIframe, contactPage, avatarRef, scoreElement, scoreValueRef }) {
+export default function Projects({ openIframe, contactPage, avatarRef, scoreElement, scoreValueRef, lowPowerMode = false }) {
   // ... existing code ...
 
 
@@ -41,7 +56,8 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
   // Generate random cloud positions
   const cloudPositions = useMemo(() => {
     const pos = [];
-    for (let i = 0; i < 20; i++) {
+    const cloudCount = lowPowerMode ? 10 : 20;
+    for (let i = 0; i < cloudCount; i++) {
       pos.push({
         x: (Math.random() - 0.5) * 150,
         y: (Math.random() - 0.5) * 60 + 10,
@@ -51,7 +67,7 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
       });
     }
     return pos;
-  }, []);
+  }, [lowPowerMode]);
 
   // ... (previous logic for coins)
 
@@ -196,9 +212,9 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
 
       {/* Clouds */}
       {/* Distributed Clouds */}
-      <Clouds limit={400} material={THREE.MeshStandardMaterial}>
+      <Clouds limit={lowPowerMode ? 160 : 320} material={THREE.MeshStandardMaterial}>
         {cloudPositions.map((cloud, i) => (
-          <Cloud key={i} seed={cloud.seed} position={[cloud.x, cloud.y, cloud.z]} segments={20} bounds={[20, 4, 20]} volume={10} color="white" opacity={cloud.opacity} speed={0.2} />
+          <Cloud key={i} seed={cloud.seed} position={[cloud.x, cloud.y, cloud.z]} segments={lowPowerMode ? 10 : 18} bounds={[20, 4, 20]} volume={lowPowerMode ? 6 : 10} color="white" opacity={cloud.opacity} speed={0.2} />
         ))}
       </Clouds>
 
@@ -207,40 +223,75 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
         avatarRef={avatarRef}
         scoreValueRef={scoreValueRef}
         scoreElement={scoreElement}
+        lowPowerMode={lowPowerMode}
       />
 
 
 
-      {/* Billboard */}
-      <Billboard position={[0, 0, -5]}>
-        {/* ... billboard content ... */}
-        <group position={[0, 5, -20]}>
-          <mesh position={[0, 0, -0.05]}>
-            <planeGeometry args={[16, 10]} />
-            <meshToonMaterial color="#1f2937" />
-          </mesh>
-          <Text
-            fontSize={2.5}
-            color="#fbbf24"
-            anchorX="center"
-            anchorY="middle"
-            position={[0, 2.5, 0.1]}
-          >
-            PROJECTS
-          </Text>
-          <Text
-            fontSize={0.6}
-            color="#d1d5db"
-            anchorX="center"
-            anchorY="middle"
-            position={[0, -1, 0.1]}
-            maxWidth={12}
-            textAlign="center"
-          >
-            Click on the Live Site button to explore more about my projects!
-          </Text>
-        </group>
-      </Billboard>
+      {/* Smart TV Display */}
+      <group position={[0, 5, -20]}>
+        {/* TV Body - thin panel */}
+        <mesh position={[0, 0, -0.15]}>
+          <boxGeometry args={[17, 10.5, 0.25]} />
+          <meshStandardMaterial color="#0a0a0a" metalness={0.9} roughness={0.3} />
+        </mesh>
+
+        {/* Screen bezel frame */}
+        <mesh position={[0, 0, -0.02]}>
+          <planeGeometry args={[16.4, 9.8]} />
+          <meshStandardMaterial color="#111111" metalness={0.8} roughness={0.4} />
+        </mesh>
+
+        {/* Screen - dark with content */}
+        <mesh position={[0, 0, 0.01]}>
+          <planeGeometry args={[15.6, 9.2]} />
+          <meshStandardMaterial color="#0f0f1a" emissive="#0f0f1a" emissiveIntensity={0.3} />
+        </mesh>
+
+        {/* Screen content */}
+        <Text
+          fontSize={2.2}
+          color="#fbbf24"
+          anchorX="center"
+          anchorY="middle"
+          position={[0, 2, 0.05]}
+          font={undefined}
+        >
+          PROJECTS
+        </Text>
+        <Text
+          fontSize={0.55}
+          color="#a1a1aa"
+          anchorX="center"
+          anchorY="middle"
+          position={[0, -0.5, 0.05]}
+          maxWidth={12}
+          textAlign="center"
+        >
+          Fly through and click Live Site to preview in any device
+        </Text>
+
+        {/* Screen glow */}
+        <pointLight position={[0, 0, 2]} intensity={0.4} color="#fbbf24" distance={8} />
+
+        {/* TV Stand - center neck */}
+        <mesh position={[0, -5.8, -0.1]}>
+          <boxGeometry args={[0.8, 1.2, 0.3]} />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
+        </mesh>
+
+        {/* TV Stand - base */}
+        <mesh position={[0, -6.5, 0.3]} rotation={[-0.1, 0, 0]}>
+          <boxGeometry args={[5, 0.15, 1.8]} />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
+        </mesh>
+
+        {/* Brand logo dot */}
+        <mesh position={[0, -4.6, 0.01]}>
+          <circleGeometry args={[0.12, 16]} />
+          <meshStandardMaterial color="#333" emissive="#fbbf24" emissiveIntensity={0.5} />
+        </mesh>
+      </group>
 
       {/* Asteroids */}
       {asteroidData.map((asteroid, index) => {

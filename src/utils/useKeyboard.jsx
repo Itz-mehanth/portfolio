@@ -1,8 +1,8 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function useKeyboard() {
-    const [keys, setKeys] = useState({
+    const keysRef = useRef({
         forward: false,
         backward: false,
         left: false,
@@ -14,70 +14,97 @@ export default function useKeyboard() {
         e: false
     });
 
+    const setKey = (name, value) => {
+        if (keysRef.current[name] === value) return;
+        keysRef.current[name] = value;
+    };
+
+    const handledCodes = new Set([
+        "KeyW",
+        "ArrowUp",
+        "KeyS",
+        "ArrowDown",
+        "KeyA",
+        "ArrowLeft",
+        "KeyD",
+        "ArrowRight",
+        "KeyQ",
+        "KeyE",
+        "ShiftLeft",
+        "ShiftRight",
+        "Space",
+    ]);
+
     useEffect(() => {
         const handleKeyDown = (e) => {
+            if (handledCodes.has(e.code)) {
+                e.preventDefault();
+            }
             switch (e.code) {
                 case "KeyW":
                 case "ArrowUp":
-                    setKeys((k) => ({ ...k, forward: true }));
+                    setKey("forward", true);
                     break;
                 case "KeyS":
                 case "ArrowDown":
-                    setKeys((k) => ({ ...k, backward: true }));
+                    setKey("backward", true);
                     break;
                 case "KeyA":
                 case "ArrowLeft":
-                    setKeys((k) => ({ ...k, left: true }));
+                    setKey("left", true);
                     break;
                 case "KeyD":
                 case "ArrowRight":
-                    setKeys((k) => ({ ...k, right: true }));
+                    setKey("right", true);
                     break;
                 case "KeyQ":
-                    setKeys((k) => ({ ...k, q: true }));
+                    setKey("q", true);
                     break;
                 case "KeyE":
-                    setKeys((k) => ({ ...k, e: true }));
+                    setKey("e", true);
                     break;
                 case "ShiftLeft":
                 case "ShiftRight":
-                    setKeys((k) => ({ ...k, shift: true }));
+                    setKey("shift", true);
                     break;
                 case "Space":
-                    setKeys((k) => ({ ...k, space: true }));
+                    setKey("space", true);
                     break;
             }
         };
         const handleKeyUp = (e) => {
+            if (handledCodes.has(e.code)) {
+                e.preventDefault();
+            }
             switch (e.code) {
                 case "KeyW":
                 case "ArrowUp":
-                    setKeys((k) => ({ ...k, forward: false }));
+                    setKey("forward", false);
                     break;
                 case "KeyS":
                 case "ArrowDown":
-                    setKeys((k) => ({ ...k, backward: false }));
+                    setKey("backward", false);
                     break;
                 case "KeyA":
                 case "ArrowLeft":
-                    setKeys((k) => ({ ...k, left: false }));
+                    setKey("left", false);
                     break;
                 case "KeyD":
                 case "ArrowRight":
-                    setKeys((k) => ({ ...k, right: false }));
+                    setKey("right", false);
                     break;
                 case "KeyQ":
-                    setKeys((k) => ({ ...k, q: false }));
+                    setKey("q", false);
                     break;
                 case "KeyE":
-                    setKeys((k) => ({ ...k, e: false }));
+                    setKey("e", false);
                     break;
                 case "ShiftLeft":
                 case "ShiftRight":
-                    setKeys((k) => ({ ...k, shift: false }));
+                    setKey("shift", false);
                     break;
                 case "Space":
-                    setKeys((k) => ({ ...k, space: false }));
+                    setKey("space", false);
                     break;
             }
         };
@@ -89,5 +116,5 @@ export default function useKeyboard() {
         };
     }, []);
 
-    return keys;
+    return keysRef;
 }
