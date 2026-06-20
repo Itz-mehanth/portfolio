@@ -692,6 +692,181 @@ html, body {
   }
 
   .portfolio-screen {
-    padding: 16px !important;
+    /* clear the fixed 80px navbar on phones (was 68px — tucked content under it) */
+    padding: 88px 14px 18px !important;
   }
+}
+
+/* ============ Typography flourishes ============ */
+
+/* Hero name — retro layered 3D pop */
+.hero-name {
+  color: #161235;
+  letter-spacing: 1px;
+  text-shadow:
+    3px 3px 0 #fbbf24,
+    6px 6px 0 #ec4899,
+    9px 9px 0 rgba(139, 92, 246, 0.55);
+}
+
+/* Reusable animated gradient text (for headings) */
+.kinetic-gradient {
+  background: linear-gradient(110deg, #4f46e5, #8b5cf6, #ec4899, #f59e0b, #4f46e5);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: kineticFlow 6s linear infinite;
+}
+@keyframes kineticFlow { to { background-position: 300% 0; } }
+
+.font-display { font-family: 'Space Grotesk', 'Poppins', sans-serif; }
+.font-syne { font-family: 'Syne', 'Space Grotesk', sans-serif; }
+
+/* ---- kinetic marquee band ---- */
+.km-band {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  padding: 12px 0;
+  pointer-events: none;
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.km-track {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: kmScroll 24s linear infinite;
+}
+.km-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Syne', 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.3rem, 3.8vw, 2.4rem);
+  line-height: 1;
+  color: #14122b;
+  text-transform: uppercase;
+}
+.km-item:nth-child(even) {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(139, 92, 246, 0.85);
+}
+.km-dot { margin: 0 0.55em; color: #f59e0b; -webkit-text-stroke: 0; }
+@keyframes kmScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .km-track { animation: none; }
+  .kinetic-gradient { animation: none; }
+}
+
+/* ---- a11y: silence ambient/loader motion under reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  [class*="anime-"] { animation: none !important; }
+  .hero-name { text-shadow: 2px 2px 0 #ec4899; }
+}
+
+/* ---- Projects controls + balloon hint (auto-fades) ---- */
+.proj-hint {
+  position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 9998; pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px 16px; border-radius: 12px;
+  background: rgba(10, 12, 20, 0.55);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: ui-monospace, 'SF Mono', 'Courier New', monospace;
+  animation: projHintFade 11s ease forwards;
+}
+.proj-hint-row { font-size: 12px; color: rgba(255,255,255,0.85); letter-spacing: 0.4px; }
+.proj-hint-row b { color: #27e0ff; font-weight: 700; }
+.proj-hint-accent { color: #ffd9a0; font-size: 11px; }
+@keyframes projHintFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  8% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  82% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+/* ---- mobile: shrink the kinetic marquee so it doesn't crowd the scroll hint ---- */
+@media (max-width: 480px) {
+  .km-item { font-size: clamp(1.05rem, 4vw, 1.6rem); }
+  .km-band { padding: 8px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proj-hint { animation: none; opacity: 1; }
+}
+
+/* ---- mobile: hero stacks cleanly (text full-width, smaller portrait) ---- */
+@media (max-width: 640px) {
+  .hero-copy { min-width: 0 !important; flex: 1 1 100% !important; width: 100% !important; }
+  .hero-portrait { flex: 0 0 140px !important; }
+}
+
+/* ===================== COMPREHENSIVE MOBILE RESPONSIVENESS ===================== */
+/* The sections are fixed 100vh "pages". On phones each one packs a full hero/
+   heading PLUS a tall 3D stage PLUS extras, which overflowed and felt cramped.
+   Below we shrink the 3D stages, clear the fixed navbar, and let dense sections
+   (skills) scroll so nothing gets clipped. Projects stays full-bleed. */
+
+/* ---------- TABLET / SMALL (<=768px) ---------- */
+@media (max-width: 768px) {
+  /* Lander: canvas takes the top half, hero + photo compact below, scrollable */
+  #lander {
+    padding-top: 88px !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .intro-stage {
+    width: 94% !important; height: 50vh !important; min-height: 260px;
+    margin: 10px auto !important; flex: 0 0 auto;
+  }
+  .hero-photo { width: 150px !important; height: 150px !important; }
+  .hero-name { letter-spacing: 0; }
+
+  /* Skills: smaller heading + drive-scene + panel, and scrollable so the
+     skill panel below the canvas is actually reachable */
+  #skills {
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 88px 0 26px !important;
+  }
+  #skills > h1 { font-size: clamp(28px, 8vw, 48px) !important; }
+  .skills-stage {
+    width: 94vw !important; height: 46vh !important; min-height: 260px;
+    border-width: 8px !important;
+  }
+  .skills-panel { width: 94vw !important; padding: 16px !important; margin: 12px 0 10px !important; }
+
+  /* Projects: keep the flight game edge-to-edge (no navbar gap / side padding) */
+  #projects.portfolio-screen { padding: 0 !important; }
+
+  /* Contact: zero the OUTER wrapper — the inner .contact-section scroll
+     container owns navbar clearance, so we don't double-pad the top */
+  #contact.portfolio-screen { padding: 0 !important; }
+}
+
+/* ---------- PHONE (<=480px) ---------- */
+@media (max-width: 480px) {
+  /* Phones: keep the canvas at half height, shrink the photo, hide only the
+     marquee (it crowds the scroll). Lander scrolls: hero on top, canvas below. */
+  .intro-stage { height: 50vh !important; min-height: 240px; }
+  .km-band { display: none !important; }
+  .hero-photo { width: 118px !important; height: 118px !important; }
+  .hero-portrait { flex: 1 1 100% !important; }
+  .hero-name { text-shadow: 2px 2px 0 #fbbf24, 4px 4px 0 #ec4899; }
+
+  /* Skills compacts further */
+  .skills-stage { height: 40vh !important; min-height: 220px; border-width: 6px !important; }
+  .skills-panel { padding: 13px !important; border-radius: 14px !important; }
+
+  /* keep the game full-bleed + contact wrapper zeroed (inner owns clearance)
+     even though the blanket .portfolio-screen padding above pads every screen */
+  #projects.portfolio-screen { padding: 0 !important; }
+  #contact.portfolio-screen { padding: 0 !important; }
 }

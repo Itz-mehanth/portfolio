@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
+import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground';
 import { Suspense } from 'react';
@@ -213,14 +213,17 @@ const getCityToCityPath = (fromId, toId) => {
   return new THREE.CatmullRomCurve3(orderedPoints, false, 'catmullrom', 0.5);
 };
 
-function ToonSky() {
+function ToonSky({ lowPowerMode = false }) {
   return (
     <>
-      <color attach="background" args={['#78c4e8']} />
-      <fog attach="fog" args={['#a8d8f0', 30, 120]} />
+      <color attach="background" args={['#7ec8ee']} />
+      <fog attach="fog" args={['#bfe4f5', 34, 130]} />
       <ambientLight intensity={0.8} />
-      <directionalLight position={[8, 12, -4]} intensity={1.8} color="#fff5e6" />
-      <hemisphereLight skyColor="#87ceeb" groundColor="#4a7c59" intensity={0.5} />
+      <directionalLight position={[14, 16, -8]} intensity={1.9} color="#fff3d6" />
+      <hemisphereLight skyColor="#9bd4f0" groundColor="#5a8c4a" intensity={0.5} />
+
+      {/* Ground-level pollen / dust motes drifting over the town (stays in frame) */}
+      <Sparkles count={lowPowerMode ? 20 : 55} size={2.5} scale={[40, 5, 16]} position={[-4, 3, 0]} speed={0.2} opacity={0.45} color="#fff7d6" />
     </>
   );
 }
@@ -243,6 +246,14 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
   const [driveMode, setDriveMode] = useState(false);
+  // WebGL context-loss recovery
+  const [glKey, setGlKey] = useState(0);
+  const handleGlCreated = ({ gl }) => {
+    gl.domElement.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      setTimeout(() => setGlKey((k) => k + 1), 450);
+    });
+  };
   const driveKeysRef = useRef({ forward: false, backward: false, left: false, right: false });
   const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
 
@@ -402,6 +413,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
     <>
       <div
         ref={ref}
+        className="skills-stage"
         style={{
           width: '90vw',
           height: '60vh',
@@ -415,6 +427,8 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         onClick={() => console.log('Canvas container clicked!')}
       >
         <Canvas
+          key={glKey}
+          onCreated={handleGlCreated}
           frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 6, 20], fov: 60 }}
           dpr={lowPowerMode ? [0.75, 1] : [1, 1.5]}
@@ -433,7 +447,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
             <AdaptiveEvents />
 
             {/* Anime Sky Environment & Sphere */}
-            <ToonSky />
+            <ToonSky lowPowerMode={lowPowerMode} />
 
             {/* Basic scene setup */}
             <ambientLight intensity={1.2} />
@@ -673,13 +687,22 @@ const SkillsGrid = ({ skillsByCity, selectedCity }) => {
   }, [selectedCity]);
 
   return (
-    <div style={{
+    <div className="skills-panel" style={{
       width: '90vw', margin: '12px 0 60px',
-      padding: '20px', borderRadius: '16px',
-      background: 'white',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-      border: '1px solid rgba(0,0,0,0.06)',
+      padding: '22px', borderRadius: '18px',
+      background: 'rgba(255,255,255,0.9)',
+      backdropFilter: 'blur(8px)',
+      boxShadow: '0 1px 2px rgba(16,24,40,0.04), 0 16px 40px -18px rgba(99,102,241,0.18)',
+      border: '1px solid rgba(99,102,241,0.08)',
     }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px',
+      }}>
+        <span className="kinetic-gradient font-syne" style={{
+          fontSize: '15px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
+        }}>Tech Stack</span>
+        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(99,102,241,0.25), transparent)' }} />
+      </div>
       <div key={animateKey} style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
@@ -691,18 +714,19 @@ const SkillsGrid = ({ skillsByCity, selectedCity }) => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: i * 0.04, type: 'spring', damping: 18, stiffness: 150 }}
-            whileHover={{ y: -4, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}
+            whileHover={{ y: -6, scale: 1.05, boxShadow: '0 12px 26px -8px rgba(99,102,241,0.35)' }}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '8px', padding: '14px 8px', borderRadius: '12px',
-              background: '#fafafa', border: '1px solid #f0f0f0',
+              gap: '8px', padding: '16px 8px', borderRadius: '14px',
+              background: 'linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%)',
+              border: '1px solid rgba(99,102,241,0.10)',
               cursor: 'default', transition: 'box-shadow 0.2s',
             }}
           >
             <img
               src={SKILL_LOGOS[skill.name] || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/devicon/devicon-original.svg'}
               alt={skill.name}
-              style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+              style={{ width: '38px', height: '38px', objectFit: 'contain' }}
               loading="lazy"
             />
             <span style={{

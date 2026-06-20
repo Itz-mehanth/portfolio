@@ -10,7 +10,7 @@ export default function CoinField({ avatarRef, scoreValueRef, scoreElement, lowP
     const coins = useMemo(() => {
         const _coins = [];
         const step = lowPowerMode ? 24 : 15;
-        for (let z = 20; z < 500; z += step) {
+        for (let z = 20; z < 690; z += step) {
             // Random X and Y within flight bounds
             // X: -30 to 30, Y: -10 to 30
             const x = (Math.random() - 0.5) * 50;

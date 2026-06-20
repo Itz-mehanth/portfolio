@@ -28,10 +28,14 @@ import SplashLoader from './SplashLoader'
 import { useAudio } from './context/AudioProvider'
 import { AnimatedChars, AnimatedWords } from './AnimatedText'
 import MagneticButton from './MagneticButton'
+import ContactCharacter from './ContactCharacter'
+import CockpitControls from './CockpitControls'
+import KineticMarquee from './KineticMarquee'
+import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
 import TVSimulator from './TVSimulator'
 import TourGuide from './TourGuide'
-import { Mail, Linkedin, Github, Instagram } from 'lucide-react';
+import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send } from 'lucide-react';
 import { Joystick } from 'react-joystick-component';
 import {
   isRoutePreloaded,
@@ -130,56 +134,105 @@ const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white' }}>
-        Mehanth
+      <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white', display: 'flex', alignItems: 'center', gap: '9px' }}>
+        <span style={{
+          width: '9px', height: '9px', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #fbbf24, #ec4899)',
+          boxShadow: '0 0 10px rgba(236,72,153,0.5)',
+          flexShrink: 0,
+        }} />
+        <span className="nav-brand-name" style={{ letterSpacing: '-0.01em' }}>Mehanth</span>
       </div>
 
-      {/* Desktop menu */}
-      <ul className="navbar-right desktop-menu">
-        {NAV_ITEMS.map(({ id, label }) => (
-          <li key={id}>
+      {/* Desktop menu — glass pill with sliding active indicator */}
+      <div
+        className="desktop-menu"
+        style={{
+          gap: '2px',
+          padding: '5px',
+          borderRadius: '999px',
+          background: fontBlack ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          border: `1px solid ${fontBlack ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.14)'}`,
+          boxShadow: fontBlack ? '0 4px 20px rgba(0,0,0,0.06)' : '0 4px 20px rgba(0,0,0,0.2)',
+        }}
+      >
+        {NAV_ITEMS.map(({ id, label }) => {
+          const active = activeScreenId === id;
+          return (
             <button
+              key={id}
+              className="nav-pill"
               onClick={() => handleNavigate(id)}
               style={{
+                position: 'relative',
                 background: 'none',
                 border: 'none',
-                color: fontBlack ? 'black' : 'white',
                 cursor: 'pointer',
-                font: 'inherit',
-                textDecoration: activeScreenId === id ? 'underline' : 'none'
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: '0.82rem',
+                fontWeight: active ? 600 : 500,
+                color: active ? (fontBlack ? '#ffffff' : '#0a0a0a') : (fontBlack ? '#1a1a1a' : 'rgba(255,255,255,0.8)'),
+                padding: '7px 16px',
+                borderRadius: '999px',
+                transition: 'color 0.25s ease',
+                whiteSpace: 'nowrap',
               }}
             >
+              {active && (
+                <motion.span
+                  layoutId="navActivePill"
+                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '999px',
+                    background: fontBlack ? '#1a1a1a' : '#ffffff',
+                    zIndex: -1,
+                  }}
+                />
+              )}
               {label}
             </button>
-          </li>
-        ))}
-        <li><button onClick={() => {
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-          } else {
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            }
-          }
-        }} style={{
-          background: 'none',
-          border: 'none',
-          color: fontBlack ? 'black' : 'white',
-          cursor: 'pointer',
-          font: 'inherit',
-          textDecoration: 'underline'
-        }}>Fullscreen</button></li>
-      </ul>
-
-      {/* Hamburger icon */}
-      <div className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
-        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+          );
+        })}
+        <button
+          onClick={() => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+          }}
+          aria-label="Toggle fullscreen"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: fontBlack ? '#1a1a1a' : 'rgba(255,255,255,0.8)',
+            padding: '7px 12px', borderRadius: '999px',
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
+      {/* Hamburger icon */}
+      <button
+        type="button"
+        className={`hamburger ${menuOpen ? 'open' : ''}`}
+        onClick={toggleMenu}
+        aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-expanded={menuOpen}
+        aria-controls="mobile-nav"
+      >
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+        <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} />
+      </button>
+
       {/* Mobile menu overlay */}
-      <div style={{ backgroundColor: fontBlack ? 'black' : 'white' }} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
+      <div id="mobile-nav" style={{ backgroundColor: fontBlack ? 'black' : 'white' }} className={`mobile-menu ${menuOpen ? 'show' : ''}`}>
         {NAV_ITEMS.map(({ id, label }) => (
           <button
             key={id}
@@ -211,6 +264,62 @@ const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
   );
 });
 
+// Premium right-side section navigation — elongated active pill + label on hover
+const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
+  const [hovered, setHovered] = useState(null);
+  const muted = fontBlack ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.35)';
+  const labelText = fontBlack ? '#1a1a1a' : '#ffffff';
+  const labelBg = fontBlack ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)';
+
+  return (
+    <div style={{
+      position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)',
+      display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '14px', zIndex: 100,
+    }}>
+      {SCREEN_DEFINITIONS.map((screen, i) => {
+        const active = activeIndex === i;
+        const isHov = hovered === i;
+        return (
+          <button
+            key={screen.id}
+            onClick={() => onNavigate(screen.id)}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
+            aria-label={`Go to ${screen.id}`}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+              gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            }}
+          >
+            <motion.span
+              initial={false}
+              animate={{ opacity: isHov ? 1 : 0, x: isHov ? 0 : 8 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                fontSize: '10px', fontWeight: 600, letterSpacing: '0.5px',
+                fontFamily: "'Poppins', sans-serif", color: labelText,
+                background: labelBg, backdropFilter: 'blur(6px)',
+                padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap',
+                textTransform: 'capitalize', pointerEvents: 'none',
+              }}
+            >
+              {screen.id}
+            </motion.span>
+            <motion.span
+              animate={{
+                height: active ? 26 : 8,
+                backgroundColor: active ? screen.accent : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
+              }}
+              transition={{ type: 'spring', stiffness: 350, damping: 26 }}
+              style={{ width: '5px', borderRadius: '999px', display: 'block' }}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+});
+
 const ROLES = ['Full Stack Developer', '3D Web Artist', 'Hackathon Winner', 'AI Enthusiast', 'UI/UX Designer'];
 
 function TypingRoles({ isVisible }) {
@@ -235,10 +344,12 @@ function TypingRoles({ isVisible }) {
           transition={{ duration: 0.3 }}
           style={{
             display: 'inline-block',
-            fontSize: '14px',
+            fontSize: '15px',
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 600,
-            color: '#f59e0b',
+            fontWeight: 700,
+            background: 'linear-gradient(90deg, #d97706, #ea580c)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
             letterSpacing: '0.5px',
           }}
         >
@@ -298,6 +409,13 @@ export default function App() {
   const [mountedScreens, setMountedScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
   const joystickDataRef = useRef({ x: 0, y: 0 });
   const verticalControlRef = useRef(0); // Add this ref
+  const fireRef = useRef(false); // mobile/desktop fire signal for the blaster
+  // Cockpit: hull color + camera view (view kept in a ref so the camera reads it without re-rendering the canvas)
+  const [cockpitOpen, setCockpitOpen] = useState(false);
+  const [planeColor, setPlaneColor] = useState('#eef2f7');
+  const [planeView, setPlaneView] = useState('chase');
+  const planeViewRef = useRef('chase');
+  const setView = (v) => { planeViewRef.current = v; setPlaneView(v); };
   const [isMobile, setIsMobile] = useState(false);
   const [lowPowerMode, setLowPowerMode] = useState(false);
   /* Game State */
@@ -327,28 +445,12 @@ export default function App() {
 
   // Removed — SplashLoader fetches location and passes it up via visitorLocation prop sync
 
-  // Devtools detection — fun anti-inspect message
+  // Friendly console easter egg instead of blocking devtools/right-click
+  // (inspecting is how recruiters evaluate code — never block it).
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
-      ) {
-        e.preventDefault();
-        alert("What are you trying to look at, my friend? 👀\n\nNo secrets here — just clean code and good vibes. ✌️");
-      }
-    };
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      alert("Nice try! 😏\n\nWhat are you trying to look at, my friend?");
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('contextmenu', handleContextMenu);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('contextmenu', handleContextMenu);
-    };
+    try {
+      console.log('%cHey, fellow dev 👋  Poke around all you like — it\'s clean code and good vibes in here.', 'color:#8b5cf6;font-size:13px;font-weight:700');
+    } catch (_) { /* noop */ }
   }, []);
 
   useEffect(() => {
@@ -592,6 +694,20 @@ export default function App() {
     preloadScreen(activeScreenIndex + 1);
   }, [activeScreenIndex]);
 
+  // Each screen owns a WebGL canvas; keeping every visited screen mounted piles up
+  // live GL contexts until the browser drops one (sections blank out). After the
+  // transition settles, unmount everything except the active screen so at most one
+  // heavy 3D context is alive at a time.
+  useEffect(() => {
+    if (loading) return;
+    const activeId = SCREEN_DEFINITIONS[activeScreenIndex]?.id;
+    if (!activeId) return;
+    const timer = setTimeout(() => {
+      setMountedScreens((prev) => (prev.size <= 1 && prev.has(activeId) ? prev : new Set([activeId])));
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [activeScreenIndex, loading]);
+
   useEffect(() => {
     if (loading) return;
 
@@ -622,53 +738,21 @@ export default function App() {
   }, []);
 
 
-  // Razorpay fun payment before CV download
-  const handleDownloadCV = async () => {
-    // Load Razorpay script if not already loaded
-    const res = await loadRazorpayScript('https://checkout.razorpay.com/v1/checkout.js');
-    if (!res) {
-      alert('Razorpay SDK failed to load. Please check your connection.');
-      return;
-    }
-
-    // Create Razorpay order options (for fun, not real)
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_1234567890abcdef', // Dummy key, not real
-      amount: 20000000, // 2 million rupees in paise
-      currency: 'INR',
-      name: 'Mehanth Portfolio',
-      description: 'Download CV',
-      image: '/logo.jpg',
-      handler: function (response) {
-        // After payment, allow download
-        setTimeout(() => {
-          const link = document.createElement('a');
-          link.href = 'https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing';
-          link.target = '_blank';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }, 500);
-      },
-      prefill: {
-        name: 'Mehanth',
-        email: 'mehanth362@gmail.com',
-      },
-      theme: {
-        color: '#FEC601',
-      },
-      modal: {
-        ondismiss: function () {
-          alert('Payment required to download CV!');
-        }
-      }
-    };
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+  // Open the CV directly — no friction for recruiters/judges.
+  const handleDownloadCV = () => {
+    window.open('https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing', '_blank', 'noopener,noreferrer');
   }
 
   const isMounted = (screenId) => mountedScreens.has(screenId);
   const projectsCanvasActive = activeScreenIndex === 2 && isMounted('projects');
+  // WebGL context-loss recovery for the heavy projects canvas
+  const [projGlKey, setProjGlKey] = useState(0);
+  const handleProjGlCreated = ({ gl }) => {
+    gl.domElement.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      setTimeout(() => setProjGlKey((k) => k + 1), 450);
+    });
+  };
 
   const getScreenStyle = (screenIndex, baseStyle = {}) => {
     const isActive = activeScreenIndex === screenIndex;
@@ -761,43 +845,8 @@ export default function App() {
             activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
             onNavigate={navigateToScreen}
           />
-          {/* Section navigation dots */}
-          <div style={{
-            position: 'fixed',
-            right: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            zIndex: 100,
-          }}>
-            {SCREEN_DEFINITIONS.map((screen, i) => (
-              <MagneticButton key={screen.id} strength={0.5}>
-                <motion.button
-                  onClick={() => navigateToScreen(screen.id)}
-                  aria-label={`Go to ${screen.id}`}
-                  animate={{
-                    scale: activeScreenIndex === i ? 1.4 : 1,
-                    opacity: activeScreenIndex === i ? 1 : 0.35,
-                  }}
-                  whileHover={{ scale: 1.6, opacity: 0.8 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: activeScreenIndex === i
-                      ? screen.accent
-                      : (fontBlack ? '#1a1a1a' : '#ffffff'),
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                />
-              </MagneticButton>
-            ))}
-          </div>
+          {/* Premium section navigation rail */}
+          {!isMobile && <NavDots activeIndex={activeScreenIndex} fontBlack={fontBlack} onNavigate={navigateToScreen} />}
           <section id='lander'
             className="portfolio-screen"
             style={getScreenStyle(0, {
@@ -808,7 +857,7 @@ export default function App() {
               justifyContent: 'center',
               alignItems: 'center',
               flexDirection: 'column',
-              background: 'white',
+              background: 'radial-gradient(circle at 88% 12%, rgba(251,191,36,0.08), transparent 38%), radial-gradient(circle at 8% 92%, rgba(139,92,246,0.06), transparent 42%), #ffffff',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
             })}
@@ -826,12 +875,12 @@ export default function App() {
               width: '90%',
               margin: '0 auto',
             }}>
-              <div style={{ width: '70%', minWidth: '280px', flex: '1 1 280px' }}>
+              <div className="hero-copy" style={{ width: '70%', minWidth: '280px', flex: '1 1 280px' }}>
                 <p className='Quicksand' style={{ margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
                   <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} style={{ fontSize: '16px', color: 'grey' }} />
                 </p>
-                <p className='Silkscreen' style={{ margin: '5px 0px', fontSize: 'clamp(32px, 8vw, 50px)', textAlign: 'left', color: 'black', perspective: '600px' }}>
-                  <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'clamp(32px, 8vw, 50px)', color: 'black' }} />
+                <p className='Silkscreen hero-name' style={{ margin: '8px 0 2px', fontSize: 'clamp(44px, 11vw, 92px)', textAlign: 'left', perspective: '600px', lineHeight: 1.02 }}>
+                  <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'inherit' }} />
                 </p>
                 <TypingRoles isVisible={activeScreenIndex === 0} />
                 <motion.div
@@ -851,39 +900,101 @@ export default function App() {
                     Currently interning @ <strong>VISA</strong>, Bangalore
                   </span>
                 </motion.div>
-                <MagneticButton strength={0.2}>
-                  <motion.button
-                    onClick={handleDownloadCV}
-                    whileHover={{ scale: 1.05, y: -3, boxShadow: '0 8px 25px rgba(255, 215, 0, 0.5)' }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                    style={{
-                      width: '170px',
-                      padding: '5px 10px',
-                      backgroundColor: 'rgba(255, 215, 0, 0.9)',
-                      color: 'black',
-                      border: '2px solid rgba(0, 0, 0, 0.3)',
-                      borderRadius: '25px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      fontFamily: 'Poppins',
-                    }}
-                  >
-                    Download CV
-                  </motion.button>
-                </MagneticButton>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <MagneticButton strength={0.25}>
+                    <motion.button
+                      onClick={handleDownloadCV}
+                      whileHover={{ scale: 1.04, y: -3, boxShadow: '0 12px 28px -6px rgba(245,158,11,0.55)' }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        padding: '12px 22px',
+                        background: 'linear-gradient(120deg, #fbbf24, #f59e0b)',
+                        color: '#1a1a1a',
+                        border: 'none',
+                        borderRadius: '999px',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        fontFamily: 'Poppins',
+                        boxShadow: '0 8px 20px -6px rgba(245,158,11,0.45)',
+                      }}
+                    >
+                      <Download size={16} strokeWidth={2.5} /> Download CV
+                    </motion.button>
+                  </MagneticButton>
+                  <MagneticButton strength={0.25}>
+                    <motion.button
+                      onClick={() => navigateToScreen('projects')}
+                      whileHover={{ scale: 1.04, y: -3, background: 'rgba(26,26,26,0.04)' }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '7px',
+                        padding: '12px 20px',
+                        background: 'transparent',
+                        color: '#1a1a1a',
+                        border: '1.5px solid rgba(26,26,26,0.2)',
+                        borderRadius: '999px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'Poppins',
+                      }}
+                    >
+                      View Work <ArrowRight size={15} strokeWidth={2.5} />
+                    </motion.button>
+                  </MagneticButton>
+                </div>
                 <p className='Quicksand' style={{ margin: '10px 0px 5px', fontSize: 'clamp(16px, 4vw, 24px)', textAlign: 'left' }}>
                   <AnimatedWords text="a Computer Science Engineering student" isVisible={activeScreenIndex === 0} delay={0.5} style={{ fontSize: 'clamp(16px, 4vw, 24px)' }} />
                 </p>
                 <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
                   <AnimatedWords text="with a passion for creating wonders through code, creativity, and innovation." isVisible={activeScreenIndex === 0} delay={0.8} style={{ fontSize: '16px', color: 'grey' }} />
                 </p>
+
+                {/* Social links */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={activeScreenIndex === 0 ? { opacity: 1, y: 0 } : { opacity: 0 }}
+                  transition={{ delay: 1.4, duration: 0.4 }}
+                  style={{ display: 'flex', gap: '10px', marginTop: '18px' }}
+                >
+                  {[
+                    { Icon: Github, url: 'https://github.com/itz-mehanth', label: 'GitHub' },
+                    { Icon: Linkedin, url: 'https://linkedin.com/in/mehanth-776892279', label: 'LinkedIn' },
+                    { Icon: Instagram, url: 'https://instagram.com/itz_mehanth', label: 'Instagram' },
+                    { Icon: Mail, url: 'mailto:mehanth362@gmail.com', label: 'Email' },
+                  ].map(({ Icon, url, label }) => (
+                    <motion.a
+                      key={label}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      whileHover={{ y: -4, scale: 1.1, boxShadow: '0 8px 18px rgba(0,0,0,0.12)' }}
+                      whileTap={{ scale: 0.92 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      style={{
+                        width: '40px', height: '40px', borderRadius: '12px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: '#ffffff',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                        color: '#1a1a1a',
+                      }}
+                    >
+                      <Icon size={18} strokeWidth={2} />
+                    </motion.a>
+                  ))}
+                </motion.div>
               </div>
 
               {/* Right: Animated Image with rotating ring + character */}
-              <div style={{ flex: '0 0 200px', textAlign: 'center', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+              <div className="hero-portrait" style={{ flex: '0 0 200px', textAlign: 'center', display: 'flex', justifyContent: 'center', position: 'relative' }}>
                 <motion.div
+                  className="hero-photo"
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                   style={{ position: 'relative', width: '200px', height: '200px', cursor: 'pointer' }}
@@ -1024,6 +1135,9 @@ export default function App() {
                 </motion.div>
               </motion.div>
             )}
+
+            {/* kinetic typographic marquee band */}
+            <KineticMarquee />
           </section>
 
           <section id='skills'
@@ -1036,13 +1150,15 @@ export default function App() {
               justifyContent: 'center',
               alignItems: 'center',
               flexDirection: 'column',
-              background: 'white',
+              background: 'radial-gradient(circle at 50% 0%, rgba(120,196,232,0.18), transparent 45%), linear-gradient(180deg, #ffffff 0%, #f4f9fd 100%)',
               overflowX: 'hidden',
-              zIndex: 1, 
-              position: 'relative', 
+              zIndex: 1,
+              position: 'relative',
             })}
           >
-            <h1 style={{ fontSize: '80px', fontWeight: '500' }} className='Barrio'>Skill Town</h1>
+            <h1 className='font-syne kinetic-gradient' style={{
+              fontSize: 'clamp(40px, 9vw, 80px)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em',
+            }}>Skill Town</h1>
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
                 <Skills lowPowerMode={lowPowerMode} />
@@ -1160,6 +1276,8 @@ export default function App() {
 
                 {isMounted('projects') ? (
                 <Canvas
+                  key={projGlKey}
+                  onCreated={handleProjGlCreated}
                   frameloop={projectsCanvasActive ? 'always' : 'never'}
                   dpr={lowPowerMode ? [0.75, 1.1] : [1, 1.5]}
                   camera={CANVAS_CAMERA_CONFIG}
@@ -1207,6 +1325,8 @@ export default function App() {
                           isMobile={isMobile}
                           joystickDataRef={joystickDataRef}
                           verticalControlRef={verticalControlRef}
+                          planeViewRef={planeViewRef}
+                          planeColor={planeColor}
                           lowPowerMode={lowPowerMode}
                         />
 
@@ -1217,6 +1337,7 @@ export default function App() {
                             avatarRef={avatarRef}
                             scoreElement={scoreElement}
                             scoreValueRef={scoreValueRef}
+                            fireRef={fireRef}
                             lowPowerMode={lowPowerMode}
                           />
                         ) : null}
@@ -1224,11 +1345,47 @@ export default function App() {
 
                       </Scroll>
                     </ScrollControls>
+
+                    {/* Lightweight postprocessing for cinematic contrast.
+                        Only mounted while the projects canvas is active, multisampling off
+                        and mipmap bloom to keep GPU memory low (avoids context loss). */}
+                    {projectsCanvasActive && (
+                      <EffectComposer multisampling={0} enableNormalPass={false}>
+                        <Bloom
+                          intensity={0.22}
+                          luminanceThreshold={0.82}
+                          luminanceSmoothing={0.3}
+                          mipmapBlur
+                          radius={0.5}
+                        />
+                        <Vignette eskil={false} offset={0.28} darkness={0.72} />
+                      </EffectComposer>
+                    )}
                   </Suspense>
                 </Canvas>
                 ) : (
                   <SectionPlaceholder title="Project Orbit" theme="dark" />
                 )}
+
+                {/* Cockpit control room — hull color + camera view */}
+                <CockpitControls
+                  open={cockpitOpen}
+                  setOpen={setCockpitOpen}
+                  view={planeView}
+                  setView={setView}
+                  color={planeColor}
+                  setColor={setPlaneColor}
+                />
+
+                {/* Controls legend + project hint (auto-fades) */}
+                <div className="proj-hint">
+                  {!isMobile && (
+                    <span className="proj-hint-row"><b>WASD</b> fly · <b>Space/Shift</b> up/down · <b>F</b> fire</span>
+                  )}
+                  <span className="proj-hint-row proj-hint-accent">Fly up to a ✦ balloon to open a project</span>
+                </div>
+
+                {isMobile && (<>
                 <div style={{
                   position: 'absolute',
                   bottom: '20px',
@@ -1258,6 +1415,31 @@ export default function App() {
                   flexDirection: 'column',
                   gap: '15px'
                 }}>
+                  <button
+                    onPointerDown={() => { fireRef.current = true }}
+                    onPointerUp={() => { fireRef.current = false }}
+                    onPointerLeave={() => { fireRef.current = false }}
+                    aria-label="Fire"
+                    style={{
+                      width: '58px',
+                      height: '58px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(39, 224, 255, 0.22)',
+                      border: '2px solid rgba(39, 224, 255, 0.85)',
+                      color: '#27e0ff',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      letterSpacing: '0.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      userSelect: 'none',
+                      boxShadow: '0 0 14px rgba(39,224,255,0.5)'
+                    }}
+                  >
+                    FIRE
+                  </button>
                   <button
                     onPointerDown={() => { verticalControlRef.current = 1 }}
                     onPointerUp={() => { verticalControlRef.current = 0 }}
@@ -1301,6 +1483,7 @@ export default function App() {
                     ↓
                   </button>
                 </div>
+                </>)}
               </div>
             </div>
             {/* Google TV Stand */}
@@ -1321,6 +1504,7 @@ export default function App() {
               height: '100vh',
               padding: 'clamp(20px, 5vh, 80px) clamp(12px, 3vw, 40px)',
               scrollBehavior: 'smooth',
+              background: 'radial-gradient(circle at 50% 12%, rgba(139,92,246,0.10), transparent 45%), radial-gradient(circle at 85% 90%, rgba(236,72,153,0.06), transparent 40%), linear-gradient(180deg, #ffffff 0%, #f7f5fc 100%)',
             })}
           >
             <motion.div
@@ -1331,7 +1515,7 @@ export default function App() {
             >
               {isMounted('certificate') ? (
                 <Suspense fallback={<SectionPlaceholder title="Achievement Vault" />}>
-                  <Certificates />
+                  <Certificates lowPowerMode={lowPowerMode} />
                 </Suspense>
               ) : (
                 <SectionPlaceholder title="Achievement Vault" />
@@ -1347,7 +1531,7 @@ export default function App() {
               width: '100vw',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-              background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+              background: 'linear-gradient(180deg, #f7f8fc 0%, #ffffff 100%)',
               zIndex: 1000,
               display: 'flex',
               alignItems: 'center',
@@ -1364,7 +1548,7 @@ export default function App() {
                 backgroundColor: 'transparent',
               }}
             >
-              <ContactSection />
+              <ContactSection lowPowerMode={lowPowerMode} />
             </motion.div>
           </section>
 
@@ -1377,7 +1561,7 @@ export default function App() {
 }
 
 
-function ContactSection() {
+function ContactSection({ lowPowerMode = false }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -1387,6 +1571,17 @@ function ContactSection() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
+
+  // Ultron rage burst — poking the mascot ruptures the whole section
+  const [raging, setRaging] = useState(false);
+  const [rageKey, setRageKey] = useState(0);
+  const rageTimer = useRef(null);
+  const triggerRage = () => {
+    setRageKey((k) => k + 1);
+    setRaging(true);
+    if (rageTimer.current) clearTimeout(rageTimer.current);
+    rageTimer.current = setTimeout(() => setRaging(false), 1800);
+  };
 
   // Form validation
   const validateForm = () => {
@@ -1496,40 +1691,72 @@ function ContactSection() {
         rel="stylesheet"
       />
 
-      <section className="contact-section">
+      <section className={`contact-section${raging ? ' is-raging' : ''}`}>
+        {/* soft light glows */}
+        <div className="contact-aurora" aria-hidden="true">
+          <span className="aurora-blob blob-a" />
+          <span className="aurora-blob blob-b" />
+          <span className="aurora-blob blob-c" />
+        </div>
+
+        {/* ── Ultron RAGE burst — erupts across the whole section when poked ── */}
+        {raging && (
+          <div className="rage-fx" key={rageKey} aria-hidden="true">
+            <div className="rage-flash" />
+            <div className="rage-shock" />
+            <div className="rage-shock rage-shock-2" />
+            <div className="rage-shock rage-shock-3" />
+            <div className="rage-bars" />
+            <div className="rage-warning">⚠ SYSTEM BREACH // ULTRON ENRAGED ⚠</div>
+            <div className="rage-vignette" />
+          </div>
+        )}
+
         <div className="contact-container">
+
+          {/* Header */}
+          <div className="contact-header">
+            <span className="contact-eyebrow"><span className="status-dot" />Available for opportunities</span>
+            <h2>Let&rsquo;s build something <span className="grad">unforgettable</span></h2>
+            <p>Got a project, a hackathon squad, or just wanna say hi? Drop a line &mdash; I usually reply within a day. (My containment unit is watching you. Poke it at your own risk.)</p>
+          </div>
 
           {/* Main Content */}
           <div className="contact-content">
-            {/* Contact Form */}
+            {/* Left — cursor-watching mascot + quick contact */}
+            <div className="contact-left">
+              <div className="character-stage">
+                <span className="speech-bubble">Poke me&hellip; I dare you</span>
+                <ContactCharacter onEnrage={triggerRage} lowPowerMode={lowPowerMode} />
+              </div>
+              <div className="contact-details">
+                <a className="contact-item" href="mailto:mehanth362@gmail.com">
+                  <span className="ci-icon"><Mail size={18} /></span>
+                  <span className="ci-text"><small>Email</small>mehanth362@gmail.com</span>
+                </a>
+                <div className="contact-item static">
+                  <span className="ci-icon"><MapPin size={18} /></span>
+                  <span className="ci-text"><small>Based in</small>Bangalore, India &middot; @ VISA</span>
+                </div>
+              </div>
+              <div className="social-links">
+                {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
+                  <a key={index} href={href} target="_blank" rel="noopener noreferrer" className="social-link" style={{ '--brand-color': color }}>
+                    <IconComponent size={18} />
+                    <span>{label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — Contact Form */}
             <div className="contact-form-container">
               <form className="contact-form" onSubmit={handleSubmit}>
                 {submitStatus === 'success' && (
-                  <div style={{
-                    background: '#d4edda',
-                    border: '1px solid #c3e6cb',
-                    color: '#155724',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    textAlign: 'center'
-                  }}>
-                    ✅ Message sent successfully! I'll get back to you soon.
-                  </div>
+                  <div className="form-banner success" role="status" aria-live="polite">Message sent! I&rsquo;ll get back to you soon.</div>
                 )}
-
                 {submitStatus === 'error' && (
-                  <div style={{
-                    background: '#f8d7da',
-                    border: '1px solid #f5c6cb',
-                    color: '#721c24',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    marginBottom: '1rem',
-                    textAlign: 'center'
-                  }}>
-                    ❌ Error sending message. Please try again.
-                  </div>
+                  <div className="form-banner error" role="alert">Something went wrong. Please try again.</div>
                 )}
 
                 <div className="form-group">
@@ -1543,12 +1770,14 @@ function ContactSection() {
                     value={formData.name}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? 'name-error' : undefined}
                     style={{
-                      borderColor: errors.name ? '#dc3545' : undefined
+                      borderColor: errors.name ? '#c81e2c' : undefined
                     }}
                   />
                   {errors.name && (
-                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                    <span id="name-error" style={{ color: '#c81e2c', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
                       {errors.name}
                     </span>
                   )}
@@ -1565,12 +1794,14 @@ function ContactSection() {
                     value={formData.email}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                     style={{
-                      borderColor: errors.email ? '#dc3545' : undefined
+                      borderColor: errors.email ? '#c81e2c' : undefined
                     }}
                   />
                   {errors.email && (
-                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                    <span id="email-error" style={{ color: '#c81e2c', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
                       {errors.email}
                     </span>
                   )}
@@ -1587,12 +1818,14 @@ function ContactSection() {
                     value={formData.message}
                     onChange={handleInputChange}
                     disabled={isSubmitting}
+                    aria-invalid={!!errors.message}
+                    aria-describedby={errors.message ? 'message-error' : undefined}
                     style={{
-                      borderColor: errors.message ? '#dc3545' : undefined
+                      borderColor: errors.message ? '#c81e2c' : undefined
                     }}
                   />
                   {errors.message && (
-                    <span style={{ color: '#dc3545', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                    <span id="message-error" style={{ color: '#c81e2c', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
                       {errors.message}
                     </span>
                   )}
@@ -1608,48 +1841,9 @@ function ContactSection() {
                   }}
                 >
                   <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
-                  {!isSubmitting && (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                  {!isSubmitting && <Send size={18} />}
                 </button>
               </form>
-            </div>
-
-            {/* Contact Info & Social */}
-            <div className="contact-info">
-              <div className="contact-details">
-                <h3>Get in Touch</h3>
-                <div className="contact-item">
-                  <Mail size={20} />
-                  <span>mehanth362@gmail.com</span>
-                </div>
-                <div className="contact-item">
-                  <Linkedin size={20} />
-                  <span>LinkedIn Profile</span>
-                </div>
-              </div>
-
-              <div className="social-section">
-                <h4>Follow Me</h4>
-                <div className="social-links">
-                  {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
-                    <a
-                      key={index}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="social-link"
-                      style={{ '--brand-color': color }}
-                    >
-                      <IconComponent size={20} />
-                      <span>{label}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
