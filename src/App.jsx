@@ -403,7 +403,7 @@ export default function App() {
   const [tvReady, setTvReady] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
   const [visitorLocation, setVisitorLocation] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [activeScreenIndex, setActiveScreenIndex] = useState(initialScreenIndex);
   const [mountedScreens, setMountedScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
@@ -823,7 +823,7 @@ export default function App() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {loading && <SplashLoader setLoading={setLoading} progress={loadingProgress} visitorLocation={visitorLocation} />}
+      {/* {loading && <SplashLoader setLoading={setLoading} progress={loadingProgress} visitorLocation={visitorLocation} />} */}
       {showIframe && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
@@ -1001,7 +1001,7 @@ export default function App() {
                   onClick={() => setShowCharacter(true)}
                 >
                   {/* Rotating gradient ring */}
-                  <motion.div
+                  {/* <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
                     style={{
@@ -1012,7 +1012,7 @@ export default function App() {
                     }}
                   >
                     <div style={{ width: '100%', height: '100%', borderRadius: '15px', background: 'white' }} />
-                  </motion.div>
+                  </motion.div> */}
                   <img
                     src='/mehanth-developer.jpg'
                     alt='Mehanth - Full Stack Developer & 3D Artist'
@@ -1137,7 +1137,7 @@ export default function App() {
             )}
 
             {/* kinetic typographic marquee band */}
-            <KineticMarquee />
+            {/* <KineticMarquee /> */}
           </section>
 
           <section id='skills'
