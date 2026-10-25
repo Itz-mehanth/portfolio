@@ -24,12 +24,10 @@ import {
 } from './preloadAssets';
 
 const loadProjectsStage = () => import('./ProjectsStage')
-const loadIntroSection = () => import('./IntroSection')
 const loadSkills = () => import('./Skills')
 const loadCertificates = () => import('./Certificates')
 
 const ProjectsStage = lazy(loadProjectsStage)
-const IntroSection = lazy(loadIntroSection)
 const Skills = lazy(loadSkills)
 const Certificates = lazy(loadCertificates)
 const FlightLayer = lazy(() => import('./FlightLayer'))
@@ -41,7 +39,6 @@ const SCREEN_DEFINITIONS = [
     title: 'Arrival Sequence',
     subtitle: 'Warming up the landing bay and intro world.',
     theme: 'light',
-    preload: loadIntroSection,
   },
   {
     id: 'skills',
@@ -329,24 +326,6 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
     </div>
   );
 });
-
-function IntroStageShell() {
-  return (
-    <div
-      className="intro-stage"
-      aria-hidden="true"
-      style={{
-        position: 'relative',
-        width: '90%',
-        height: '60%',
-        margin: '10px auto',
-        borderRadius: '24px',
-        background: 'radial-gradient(circle at 50% 38%, #2b2735 0%, #18161f 45%, #121117 75%, #0b0a0f 100%)',
-        boxShadow: '0 30px 60px -30px rgba(18,17,23,0.55)',
-      }}
-    />
-  );
-}
 
 function SectionPlaceholder({ title, theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -921,7 +900,7 @@ export default function App() {
               justifyContent: 'center',
               alignItems: 'center',
               flexDirection: 'column',
-              background: 'radial-gradient(circle at 88% 12%, rgba(251,191,36,0.08), transparent 38%), radial-gradient(circle at 8% 92%, rgba(139,92,246,0.06), transparent 42%), #ffffff',
+              background: 'radial-gradient(circle at 88% 12%, rgba(251,191,36,0.10), transparent 40%), var(--paper)',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
             })}
@@ -1166,14 +1145,6 @@ export default function App() {
                 </AnimatePresence>
               </div>
             </motion.div>
-            {isMounted('lander') && idleReady ? (
-              <Suspense fallback={<IntroStageShell />}>
-                <IntroSection lowPowerMode={lowPowerMode} />
-              </Suspense>
-            ) : (
-              <IntroStageShell />
-            )}
-
             {/* Scroll indicator */}
             {activeScreenIndex === 0 && (
               <motion.div

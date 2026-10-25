@@ -13,10 +13,9 @@ const TOUR_STEPS = [
   {
     section: 0,
     title: "The Hero",
-    message: "This is the landing page. Mehanth is a CS student at SSN who builds 3D web experiences. Check out the interactive physics scene below!",
+    message: "This is the landing page. Mehanth is a full-stack and 3D web developer, currently interning at VISA. Watch the paper plane: it follows you through every section.",
     position: { top: '20%', left: '10%' },
-    pointer: { top: '60%', left: '50%' },
-    pointerLabel: "Interactive 3D below",
+    pointer: null,
   },
   {
     section: 0,
