@@ -13,16 +13,14 @@ const MODEL_ASSETS = [
   '/models/wind mill.glb',
 ];
 
-const HDR_ASSETS = [];
-const FONT_ASSETS = ['/fonts/Calligraphy_Regular.typeface.json'];
 const AUDIO_ASSETS = ['/audio/coin.mp3'];
 const IMAGE_ASSETS = ['/mehanth-developer.jpg'];
 
-const CRITICAL_ASSET_URLS = [...FONT_ASSETS, ...IMAGE_ASSETS];
-const NON_CRITICAL_ASSET_URLS = [...MODEL_ASSETS, ...HDR_ASSETS, ...AUDIO_ASSETS];
+const CRITICAL_ASSET_URLS = [...IMAGE_ASSETS];
+const NON_CRITICAL_ASSET_URLS = [...MODEL_ASSETS, ...AUDIO_ASSETS];
 const ALL_ASSET_URLS = [...CRITICAL_ASSET_URLS, ...NON_CRITICAL_ASSET_URLS];
 const ROUTE_ASSET_URLS = {
-  lander: [...FONT_ASSETS, '/mehanth-developer.jpg'],
+  lander: ['/mehanth-developer.jpg'],
   skills: [
     '/models/car.glb',
     '/models/ground.glb',

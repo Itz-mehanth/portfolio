@@ -14,23 +14,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
 import './Navbar.css'
 import './Contact.css'
-// Razorpay script loader
-function loadRazorpayScript(src) {
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-import SplashLoader from './SplashLoader'
 import { useAudio } from './context/AudioProvider'
 import { AnimatedChars, AnimatedWords } from './AnimatedText'
 import MagneticButton from './MagneticButton'
 import ContactCharacter from './ContactCharacter'
 import CockpitControls from './CockpitControls'
-import KineticMarquee from './KineticMarquee'
 import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
 import TVSimulator from './TVSimulator'
@@ -391,18 +379,12 @@ export default function App() {
   const pendingNavigationRef = useRef(null)
 
   const avatarRef = useRef()
-  const [scrollEnabled, setScrollEnabled] = useState(false)
-  const [waves, setWaves] = useState([])
-  const [startShockwave, setStartShockwave] = useState(false)
-  const [startSpiralPortal, setStartSpiralPortal] = useState(false)
-  const [teleported, setTeleported] = useState(false)
   const [contactPage, setContactPage] = useState(false)
   const [fontBlack, setFontBlack] = useState(true)
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showIframe, setShowIframe] = useState(false);
   const [tvReady, setTvReady] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
-  const [visitorLocation, setVisitorLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [activeScreenIndex, setActiveScreenIndex] = useState(initialScreenIndex);
@@ -421,7 +403,6 @@ export default function App() {
   /* Game State */
   const scoreValueRef = useRef(0);
   const scoreElement = useRef(null);
-  const [highScore, setHighScore] = useState({ score: 0, name: 'None' });
 
   const { crossfadeTo, isAudioEnabled } = useAudio();
 
@@ -442,8 +423,6 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Removed — SplashLoader fetches location and passes it up via visitorLocation prop sync
 
   // Friendly console easter egg instead of blocking devtools/right-click
   // (inspecting is how recruiters evaluate code — never block it).
@@ -500,40 +479,6 @@ export default function App() {
     }, 12000);
     return () => clearTimeout(watchdog);
   }, [loading]);
-
-  useEffect(() => {
-    // Fetch High Score
-    fetch('https://portfolio-ikm6.onrender.com/api/highscore')
-      .then(res => res.json())
-      .then(data => setHighScore(data))
-      .catch(err => console.error("Failed to fetch high score:", err));
-  }, []);
-
-  const handleScoreSubmit = () => {
-    const currentScore = scoreValueRef.current;
-    // Safe access
-    const safeHighScore = highScore && highScore.score !== undefined ? highScore.score : 0;
-    const safeHighName = highScore && highScore.name ? highScore.name : 'None';
-
-    if (currentScore > safeHighScore) {
-      const name = prompt(`New High Score! (Current Best: ${safeHighScore} by ${safeHighName})\nEnter your name:`);
-      if (name) {
-        fetch('https://portfolio-ikm6.onrender.com/api/score', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, score: currentScore })
-        })
-          .then(res => res.json())
-          .then(data => {
-            alert("Score Saved!");
-            setHighScore({ name, score: currentScore });
-          })
-          .catch(err => console.error("Error saving score:", err));
-      }
-    } else {
-      alert(`Good run! But the high score is ${safeHighScore} by ${safeHighName}. Keep trying!`);
-    }
-  };
 
   const openIframe = (url) => {
     setIframeUrl(url);
@@ -628,7 +573,7 @@ export default function App() {
   };
 
   const updateScrollDrivenTransition = (delta, historyMode = 'push') => {
-    if (!scrollEnabled || showIframe || isNavigatingRef.current || delta === 0) return false;
+    if (showIframe || isNavigatingRef.current || delta === 0) return false;
 
     wheelAccumulatorRef.current += Math.abs(delta);
 
@@ -652,39 +597,6 @@ export default function App() {
     if (targetIndex === -1) return;
     navigateToScreenIndex(targetIndex, 'push');
   }, []);
-
-  const triggerShockwave = (pos) => {
-    setWaves((prev) => [...prev, { id: Date.now() + Math.random(), position: pos }])
-  }
-
-  useEffect(() => {
-    if (startShockwave) {
-      console.log('triggered shockwave')
-      triggerShockwave([0, 0, 25])
-      setStartShockwave(false)
-      setTimeout(() => {
-        setStartSpiralPortal(true)
-      }, 1000)
-    } else {
-      setStartSpiralPortal(false)
-    }
-  }, [startShockwave])
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const timeout = setTimeout(() => {
-      avatarRef.current?.playSequence(['Landing', 'StandUp', 'Idle'])
-      avatarRef.current?.playSequence(['Idle', 'Stretch'])
-      setTimeout(() => {
-        document.body.style.overflow = 'auto'
-        setScrollEnabled(true)
-      }, 5000)
-    }, 2000)
-    return () => {
-      clearTimeout(timeout)
-      document.body.style.overflow = 'auto'
-    }
-  }, [])
 
   useEffect(() => {
     activeScreenIndexRef.current = activeScreenIndex;
@@ -770,7 +682,7 @@ export default function App() {
   };
 
   const handleWheel = (event) => {
-    if (!scrollEnabled || showIframe || isNavigatingRef.current) return;
+    if (showIframe || isNavigatingRef.current) return;
 
     const isInsideProjectCanvas =
       activeScreenIndexRef.current === 2 &&
@@ -823,7 +735,6 @@ export default function App() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* {loading && <SplashLoader setLoading={setLoading} progress={loadingProgress} visitorLocation={visitorLocation} />} */}
       {showIframe && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
@@ -1137,7 +1048,6 @@ export default function App() {
             )}
 
             {/* kinetic typographic marquee band */}
-            {/* <KineticMarquee /> */}
           </section>
 
           <section id='skills'
@@ -1253,25 +1163,6 @@ export default function App() {
                 }}>
                   <div style={{ fontSize: '24px' }}>🪙</div>
                   <div ref={scoreElement} style={{ fontSize: '20px', fontWeight: 'bold' }}>0</div>
-                  <button
-                    onClick={handleScoreSubmit}
-                    style={{
-                      marginLeft: '10px',
-                      background: 'transparent',
-                      border: '1px solid #fbbf24',
-                      color: '#fbbf24',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      padding: '2px 8px',
-                      fontSize: '12px'
-                    }}
-                  >
-                    SAVE
-                  </button>
-                  {/* High Score Display */}
-                  <div style={{ marginLeft: '15px', borderLeft: '1px solid #fbbf24', paddingLeft: '15px', fontSize: '14px', color: '#fbbf24', whiteSpace: 'nowrap' }}>
-                    Best: {highScore?.score || 0} ({highScore?.name || 'None'})
-                  </div>
                 </div>
 
                 {isMounted('projects') ? (
@@ -1305,7 +1196,7 @@ export default function App() {
                       distance={6}
                       pages={1}
                       damping={0.35}
-                      enabled={scrollEnabled && activeScreenIndex === 2}
+                      enabled={activeScreenIndex === 2}
                       infinite={true}
                       horizontal={false}
                     >
@@ -1314,9 +1205,6 @@ export default function App() {
                         <Airplane
                           contactPage={contactPage}
                           setContactPage={setContactPage}
-                          setTeleported={setTeleported}
-                          setStartShockwave={setStartShockwave}
-                          scrollEnabled={scrollEnabled && activeScreenIndex === 2}
                           ref={avatarRef}
                           scale={7.5}
                           position={[0, 0, 0]}

@@ -2,29 +2,38 @@ import { createContext, useContext, useState, useRef, useEffect, useCallback } f
 
 const AudioContext = createContext()
 
+// Drop the matching files into public/audio before enabling these tracks.
+const TRACK_SOURCES = {
+  alienClick: '/audio/alienClick.mp3',
+  space: '/audio/space.mp3',
+  background: '/audio/background.mp3',
+  happy: '/audio/happy.mp3',
+  whoosh: '/audio/whoosh.mp3'
+}
+const LOOP_TRACKS = ['space', 'background', 'happy']
+
 export const AudioProvider = ({ children }) => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false)
   const [currentTrack, setCurrentTrack] = useState('')
-  const audioRefs = useRef(null)
+  const audioRefs = useRef({})
   const crossfadeRef = useRef(null)
 
-  useEffect(() => {
-    audioRefs.current = {
-      alienClick: new Audio('/audio/alienClick.mp3'),
-      space: new Audio('/audio/space.mp3'),
-      background: new Audio('/audio/background.mp3'),
-      happy: new Audio('/audio/happy.mp3'),
-      whoosh: new Audio('/audio/whoosh.mp3')
+  // Audio elements are created lazily, only once sound is switched on,
+  // so a muted visitor never downloads any track.
+  const getAudio = useCallback((trackName) => {
+    if (!TRACK_SOURCES[trackName]) return null
+    if (!audioRefs.current[trackName]) {
+      const audio = new Audio(TRACK_SOURCES[trackName])
+      audio.loop = LOOP_TRACKS.includes(trackName)
+      audioRefs.current[trackName] = audio
     }
+    return audioRefs.current[trackName]
+  }, [])
 
-    const loopTracks = ['space', 'background', 'happy']
-    Object.entries(audioRefs.current).forEach(([key, audio]) => {
-      audio.loop = loopTracks.includes(key)
-      audio.preload = 'auto'
-    })
-
+  useEffect(() => {
+    const audios = audioRefs.current
     return () => {
-      Object.values(audioRefs.current).forEach(audio => {
+      Object.values(audios).forEach(audio => {
         audio.pause()
         audio.src = ''
       })
@@ -32,7 +41,6 @@ export const AudioProvider = ({ children }) => {
   }, [])
 
   const stopAll = useCallback(() => {
-    if (!audioRefs.current) return
     Object.values(audioRefs.current).forEach(audio => {
       audio.pause()
       audio.currentTime = 0
@@ -44,38 +52,39 @@ export const AudioProvider = ({ children }) => {
     setIsAudioEnabled(prev => {
       const next = !prev
       if (!next) stopAll()
-      else if (currentTrack && audioRefs.current?.[currentTrack]) {
-        audioRefs.current[currentTrack].play().catch(() => {})
+      else if (currentTrack) {
+        getAudio(currentTrack)?.play().catch(() => {})
       }
       return next
     })
-  }, [currentTrack, stopAll])
+  }, [currentTrack, stopAll, getAudio])
 
   const playTrack = useCallback((trackName) => {
-    if (!audioRefs.current?.[trackName]) return
+    if (!TRACK_SOURCES[trackName]) return
     stopAll()
     setCurrentTrack(trackName)
     if (isAudioEnabled) {
-      audioRefs.current[trackName].volume = 1
-      audioRefs.current[trackName].play().catch(() => {})
+      const audio = getAudio(trackName)
+      audio.volume = 1
+      audio.play().catch(() => {})
     }
-  }, [isAudioEnabled, stopAll])
+  }, [isAudioEnabled, stopAll, getAudio])
 
   const crossfadeTo = useCallback((trackName, duration = 800) => {
-    if (!audioRefs.current?.[trackName]) return
+    if (!TRACK_SOURCES[trackName]) return
     if (trackName === currentTrack) return
 
     if (crossfadeRef.current) {
       cancelAnimationFrame(crossfadeRef.current)
     }
 
-    const currentAudio = audioRefs.current[currentTrack]
-    const nextAudio = audioRefs.current[trackName]
-
     if (!isAudioEnabled) {
       setCurrentTrack(trackName)
       return
     }
+
+    const currentAudio = audioRefs.current[currentTrack]
+    const nextAudio = getAudio(trackName)
 
     nextAudio.volume = 0
     nextAudio.currentTime = 0
@@ -102,7 +111,7 @@ export const AudioProvider = ({ children }) => {
       }
     }
     crossfadeRef.current = requestAnimationFrame(tick)
-  }, [currentTrack, isAudioEnabled])
+  }, [currentTrack, isAudioEnabled, getAudio])
 
   return (
     <AudioContext.Provider value={{ isAudioEnabled, toggleAudio, playTrack, crossfadeTo, currentTrack }}>

@@ -24,10 +24,8 @@ export default defineConfig({
             '@react-three/fiber',
             '@react-three/drei',
             '@react-three/postprocessing',
-            '@react-three/cannon',
           ],
           'vendor-motion': ['framer-motion'],
-          'vendor-gsap': ['gsap'],
         }
       }
     }
