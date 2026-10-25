@@ -10,6 +10,7 @@ import { Balloon } from './utils/models/Balloon'
 import CoinField from './CoinField';
 import Blaster from './Blaster';
 import { useFrame, useThree } from '@react-three/fiber';
+import { PROJECTS } from './data/projects';
 
 // ---- The cinematic worlds the plane flies through (anchored along +Z) ----
 const WORLDS = [
@@ -1647,138 +1648,7 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
 
   // ... (previous logic for coins)
 
-  const asteroidData = [
-    {
-      z: 148,
-      url: "https://medicinal-plant-82aa9.web.app/", //1
-      repoUrl: "https://github.com/Itz-mehanth/MedPlant",
-      title: "MedPlant",
-      description: "CNN-based plant identifier with medicinal insights.",
-      type: "live"
-    },
-    {
-      z: 162,
-      url: "https://vplants.vercel.app", //2
-      repoUrl: "https://github.com/Itz-mehanth/VRoom",
-      title: "VRoom",
-      description: "Immersive 3D exploration and gardening.",
-      type: "live"
-    },
-    {
-      z: 240,
-      url: "https://retempla.xyz/", //3
-      repoUrl: "https://github.com/Itz-mehanth/Retempla",
-      title: "ReTempla",
-      description: "SaaS for smart document formatting and personalization.",
-      type: "live"
-    },
-    {
-      z: 256,
-      url: "https://streamtick.vercel.app", //4
-      repoUrl: "https://github.com/Itz-mehanth/LiveStock",
-      title: "LiveStock",
-      description: "Real-time data pipeline for processing and visualizing stock data.",
-      type: "live"
-    },
-    {
-      z: 273,
-      url: "https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7261266876800868355?collapsed=1", //5
-      repoUrl: "https://github.com/Itz-mehanth/GalaxyStrike",
-      title: "Galaxy Strike",
-      description: "A retro-style 2D Java game built from scratch using Swing.",
-      type: "linkedin"
-    },
-    {
-      z: 290,
-      repoUrl: "https://github.com/Itz-mehanth/FSDC-project",  //6
-      title: "C Food Delivery App",
-      description: "Food Delivery App Simulation using C Language.",
-      type: "github"
-    },
-    {
-      z: 368,
-      url: "https://xcng.vercel.app",
-      repoUrl: "https://github.com/Itz-mehanth/XCNG", //7
-      title: "XCNG",
-      description: "Real-time marketplace and community platform for campuses.",
-      type: "live"
-    },
-    {
-      z: 385,
-      url: "https://crownofsovereigns.netlify.app",
-      repoUrl: "https://github.com/Itz-mehanth/CrownOfSovereigns", //8
-      title: "Crown of Sovereigns",
-      description: "Stunning 3D strategy board game inspired by Carcassonne.",
-      type: "live"
-    },
-    {
-      z: 402,
-      repoUrl: "https://github.com/Itz-mehanth/VSCE", //9
-      title: "VSCE Extension",
-      description: "VS Code extension for interactive 360-degree HDR visualization.",
-      type: "github"
-    },
-    {
-      z: 419,
-      repoUrl: "https://github.com/Itz-mehanth/NPM-Package---R3F-Nav-Controls", //10
-      title: "R3F Nav Controls",
-      description: "React component library for controls in 3D scenes.",
-      type: "github"
-    },
-    {
-      z: 500,
-      repoUrl: "https://github.com/Itz-mehanth/DBMS_Hospital_Management", //11
-      title: "Hospital Management",
-      description: "Robust desktop application for efficient healthcare management.",
-      type: "github"
-    },
-    {
-      z: 528,
-      repoUrl: "https://github.com/Itz-mehanth/Aura-AI-Agent", //12
-      title: "Aura AI Agent",
-      description: "Voice-activated AI personal assistant leveraging advanced ML models.",
-      type: "github"
-    },
-    {
-      z: 556,
-      url: "https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7298710253531971584?collapsed=1",
-      repoUrl: "https://github.com/Itz-mehanth/LudoGameAR", //13
-      title: "AR Ludo Game",
-      description: "Augmented reality version of Ludo built with Unity and Vuforia.",
-      type: "linkedin"
-    },
-    {
-      z: 584,
-      url: "https://ssntour.vercel.app", //14
-      repoUrl: "https://github.com/Itz-mehanth/SSN_Tour",
-      title: "SSN Tour",
-      description: "Immersive 3D virtual tour of SSN College of Engineering.",
-      type: "live"
-    },
-    {
-      z: 612,
-      url: "https://ariseedu.vercel.app", //15
-      repoUrl: "https://github.com/Itz-mehanth/Arise_SIH2025",
-      title: "Arise",
-      description: "Gamified Learning Platform for Rural Education.",
-      type: "live"
-    },
-    {
-      z: 640,
-      url: "https://gh9b.games.mehanth.site", //16
-      repoUrl: "https://github.com/Itz-mehanth/GH9B",
-      title: "GH9-B",
-      description: "Immersive 3D survival horror experience built for the web.",
-      type: "live"
-    },
-    {
-      z: 668,
-      repoUrl: "https://github.com/Itz-mehanth/3DWallpaper", //17
-      title: "3D Wallpaper",
-      description: "Meta Quest 3-style 3D desktop environment with window capture.",
-      type: "github"
-    }
-  ];
+  const asteroidData = PROJECTS;
 
 
 

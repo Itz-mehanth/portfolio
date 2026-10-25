@@ -1,0 +1,281 @@
+/* Project index + case-study pages (overlay on the projects screen) */
+
+.pp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(251, 191, 36, 0.10), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.10), transparent 45%),
+    #0b0b10;
+  color: #f4f4f6;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.pp-page {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px clamp(16px, 5vw, 64px) 64px;
+  box-sizing: border-box;
+  outline: none;
+}
+.pp-page > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
+.pp-page.narrow > * { max-width: 760px; }
+
+.pp-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(24px, 6vh, 56px);
+}
+
+.pp-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+
+.pp-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: clamp(40px, 8vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 10px 0 16px;
+}
+
+.pp-lead {
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.55;
+  color: #b9b9c6;
+  margin: 0 0 28px;
+  max-width: 640px;
+}
+
+/* Buttons */
+.pp-icon-btn,
+.pp-text-btn,
+.pp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.pp-icon-btn {
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.pp-text-btn {
+  background: none;
+  border: none;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d4d4dc;
+}
+.pp-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.pp-btn.primary {
+  background: #fbbf24;
+  border-color: #fbbf24;
+  color: #111;
+}
+.pp-icon-btn:hover,
+.pp-btn:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-1px); }
+.pp-btn.primary:hover { background: #fcd34d; }
+.pp-text-btn:hover { color: #fff; }
+.pp-icon-btn:focus-visible,
+.pp-text-btn:focus-visible,
+.pp-btn:focus-visible,
+.pp-card-main:focus-visible,
+.pp-next:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.pp-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.pp-actions.compact .pp-btn { padding: 7px 13px; font-size: 13px; }
+
+/* Index grid */
+.pp-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+.pp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.pp-card:hover { border-color: rgba(251, 191, 36, 0.45); background: rgba(255, 255, 255, 0.06); }
+.pp-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.pp-card-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.pp-card-desc { font-size: 14px; line-height: 1.5; color: #a9a9b8; }
+.pp-card-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.pp-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d4d4dc;
+}
+.pp-tag.live { background: rgba(34, 197, 94, 0.14); color: #4ade80; }
+.pp-tag.linkedin { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; }
+
+/* Case study */
+.pp-hero-img {
+  display: block;
+  width: 100%;
+  margin-top: 36px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.pp-stack {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pp-stack li {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #d4d4dc;
+}
+.pp-section { margin-top: 44px; }
+.pp-section h2 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b8b9a;
+  margin: 0 0 12px;
+}
+.pp-section p,
+.pp-section li { font-size: 17px; line-height: 1.7; color: #e4e4ea; }
+.pp-section ul { padding-left: 20px; margin: 0; }
+.pp-outcome p {
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.45;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pp-dev-hint {
+  margin-top: 40px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(251, 191, 36, 0.5);
+  border-radius: 12px;
+  font-size: 13px;
+  color: #fcd34d;
+}
+.pp-dev-hint code { color: #fff; }
+
+.pp-next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  margin-top: 72px;
+  padding: 28px 0 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+.pp-next-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  transition: gap 0.25s ease;
+}
+.pp-next:hover .pp-next-title { gap: 18px; }
+
+/* Entry point on the projects screen */
+.pp-open-index {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10002; /* above the TV boot screen and cockpit controls */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font: 600 13px 'Poppins', sans-serif;
+  color: #111;
+  background: #fbbf24;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px -6px rgba(251, 191, 36, 0.6);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.pp-open-index:hover { transform: translateY(-1px); background: #fcd34d; }
+.pp-open-index:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-icon-btn, .pp-btn, .pp-next-title, .pp-open-index { transition: none; }
+}

@@ -23,7 +23,9 @@ import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
 import TVSimulator from './TVSimulator'
 import TourGuide from './TourGuide'
-import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send } from 'lucide-react';
+import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
+import { getProjectBySlug } from './data/projects'
+import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid } from 'lucide-react';
 import { Joystick } from 'react-joystick-component';
 import {
   isRoutePreloaded,
@@ -96,11 +98,24 @@ const SCREEN_DEFINITIONS = [
 const CANVAS_CAMERA_CONFIG = { position: [0, 4, 15], fov: 100 };
 const PAGE_NAVIGATION_SCROLL_THRESHOLD = 420;
 const TRANSITION_RESET_DELAY_MS = 180;
+// A wheel gesture (including trackpad inertia) counts as over once no wheel
+// event has arrived for this long; each gesture moves at most one screen.
 const WHEEL_RESET_DELAY_MS = 250;
+const PROJECTS_SCREEN_INDEX = 2;
+const BASE_DOCUMENT_TITLE = document.title;
+// Screens whose 3D scene uses the arrow keys for movement.
+const ARROW_KEY_SCREEN_IDS = new Set(['skills', 'projects']);
+
 const findScreenIndexByPath = (pathname) => {
-  const normalizedPath = pathname === '' ? '/' : pathname;
+  // "/projects/medplant" belongs to the projects screen.
+  const normalizedPath = `/${pathname.split('/')[1] || ''}`;
   const matchedIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.path === normalizedPath);
   return matchedIndex === -1 ? 0 : matchedIndex;
+};
+
+const getCaseStudySlugFromPath = (pathname) => {
+  const match = pathname.match(/^\/projects\/([^/]+)\/?$/);
+  return match && getProjectBySlug(match[1]) ? match[1] : null;
 };
 
 const NAV_ITEMS = [
@@ -373,6 +388,8 @@ export default function App() {
   const activeScreenIndexRef = useRef(initialScreenIndex)
   const wheelAccumulatorRef = useRef(0)
   const wheelResetTimeoutRef = useRef(null)
+  const wheelGestureLockedRef = useRef(false)
+  const touchGestureLockedRef = useRef(false)
   const transitionResetTimeoutRef = useRef(null)
   const touchStartYRef = useRef(null)
   const isNavigatingRef = useRef(false)
@@ -383,6 +400,9 @@ export default function App() {
   const [fontBlack, setFontBlack] = useState(true)
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showIframe, setShowIframe] = useState(false);
+  const [projectIndexOpen, setProjectIndexOpen] = useState(false);
+  const [caseStudySlug, setCaseStudySlug] = useState(() => getCaseStudySlugFromPath(window.location.pathname));
+  const projectOverlayOpen = projectIndexOpen || caseStudySlug !== null;
   const [tvReady, setTvReady] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -539,6 +559,8 @@ export default function App() {
     if (isNavigatingRef.current) return;
 
     isNavigatingRef.current = true;
+    setProjectIndexOpen(false);
+    setCaseStudySlug(null);
     const importTask = targetScreen.preload
       ? targetScreen.preload().catch((error) => {
           console.warn(`Failed to preload screen "${targetScreen.id}"`, error);
@@ -565,32 +587,55 @@ export default function App() {
     resetTransition();
   };
 
-  const commitPendingNavigation = () => {
-    const pendingNavigation = pendingNavigationRef.current;
-    if (!pendingNavigation || isNavigatingRef.current) return;
-    pendingNavigationRef.current = null;
-    navigateToScreenIndex(pendingNavigation.targetIndex, pendingNavigation.historyMode);
-  };
-
+  // Returns true when the accumulated scroll triggered a screen change.
   const updateScrollDrivenTransition = (delta, historyMode = 'push') => {
-    if (showIframe || isNavigatingRef.current || delta === 0) return false;
+    if (showIframe || projectOverlayOpen || isNavigatingRef.current || delta === 0) return false;
 
-    wheelAccumulatorRef.current += Math.abs(delta);
+    // Accumulate in one direction only, so a small reversal doesn't add up.
+    const accumulated = wheelAccumulatorRef.current;
+    wheelAccumulatorRef.current = Math.sign(accumulated) === Math.sign(delta) ? accumulated + delta : delta;
 
-    if (wheelAccumulatorRef.current >= PAGE_NAVIGATION_SCROLL_THRESHOLD) {
-      wheelAccumulatorRef.current = 0;
-      const direction = delta > 0 ? 1 : -1;
-      const targetIndex = activeScreenIndexRef.current + direction;
+    if (Math.abs(wheelAccumulatorRef.current) < PAGE_NAVIGATION_SCROLL_THRESHOLD) return false;
 
-      if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) {
-        return false;
-      }
+    const direction = wheelAccumulatorRef.current > 0 ? 1 : -1;
+    wheelAccumulatorRef.current = 0;
+    const targetIndex = activeScreenIndexRef.current + direction;
+    if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) return false;
 
-      navigateToScreenIndex(targetIndex, historyMode);
-    }
-
+    navigateToScreenIndex(targetIndex, historyMode);
     return true;
   };
+
+  const openProjectIndex = useCallback(() => {
+    setCaseStudySlug(null);
+    setProjectIndexOpen(true);
+  }, []);
+
+  const closeProjectOverlays = useCallback(() => {
+    if (getCaseStudySlugFromPath(window.location.pathname)) {
+      window.history.pushState({}, '', SCREEN_DEFINITIONS[PROJECTS_SCREEN_INDEX].path);
+    }
+    setProjectIndexOpen(false);
+    setCaseStudySlug(null);
+  }, []);
+
+  const openCaseStudy = useCallback((slug) => {
+    setProjectIndexOpen(false);
+    setCaseStudySlug(slug);
+    window.history.pushState({}, '', `/projects/${slug}`);
+  }, []);
+
+  const backToProjectIndex = useCallback(() => {
+    window.history.pushState({}, '', SCREEN_DEFINITIONS[PROJECTS_SCREEN_INDEX].path);
+    setCaseStudySlug(null);
+    setProjectIndexOpen(true);
+  }, []);
+
+  const caseStudyProject = caseStudySlug ? getProjectBySlug(caseStudySlug) : null;
+
+  useEffect(() => {
+    document.title = caseStudyProject ? `${caseStudyProject.title} | Mehanth` : BASE_DOCUMENT_TITLE;
+  }, [caseStudyProject]);
 
   const navigateToScreen = useCallback((screenId) => {
     const targetIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.id === screenId);
@@ -623,12 +668,19 @@ export default function App() {
   useEffect(() => {
     if (loading) return;
 
-    window.history.replaceState({}, '', SCREEN_DEFINITIONS[activeScreenIndexRef.current].path);
+    const initialSlug = getCaseStudySlugFromPath(window.location.pathname);
+    window.history.replaceState({}, '', initialSlug ? `/projects/${initialSlug}` : SCREEN_DEFINITIONS[activeScreenIndexRef.current].path);
     preloadScreen(activeScreenIndexRef.current + 1);
 
     const handlePopState = () => {
-      const nextIndex = findScreenIndexByPath(window.location.pathname);
-      navigateToScreenIndex(nextIndex, 'replace');
+      const { pathname } = window.location;
+      const nextIndex = findScreenIndexByPath(pathname);
+      if (nextIndex !== activeScreenIndexRef.current) {
+        // The URL is already correct, so don't touch history.
+        navigateToScreenIndex(nextIndex, 'none');
+      }
+      setProjectIndexOpen(false);
+      setCaseStudySlug(getCaseStudySlugFromPath(pathname));
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -682,32 +734,39 @@ export default function App() {
   };
 
   const handleWheel = (event) => {
-    if (showIframe || isNavigatingRef.current) return;
+    if (showIframe || projectOverlayOpen) return;
 
     const isInsideProjectCanvas =
-      activeScreenIndexRef.current === 2 &&
+      activeScreenIndexRef.current === PROJECTS_SCREEN_INDEX &&
       typeof event.target?.closest === 'function' &&
       event.target.closest('.canvas-wrapper');
 
     if (isInsideProjectCanvas) return;
 
+    // Every wheel event (trackpad inertia included) extends the current gesture.
     if (wheelResetTimeoutRef.current) {
       clearTimeout(wheelResetTimeoutRef.current);
     }
-
     wheelResetTimeoutRef.current = setTimeout(() => {
       wheelAccumulatorRef.current = 0;
+      wheelGestureLockedRef.current = false;
     }, WHEEL_RESET_DELAY_MS);
 
-    updateScrollDrivenTransition(event.deltaY, 'push');
+    if (wheelGestureLockedRef.current || isNavigatingRef.current) return;
+
+    if (updateScrollDrivenTransition(event.deltaY, 'push')) {
+      wheelGestureLockedRef.current = true;
+    }
   };
 
   const handleTouchStart = (event) => {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
+    touchGestureLockedRef.current = false;
+    wheelAccumulatorRef.current = 0;
   };
 
   const handleTouchMove = (event) => {
-    if (touchStartYRef.current == null || isNavigatingRef.current || showIframe) return;
+    if (touchStartYRef.current == null || touchGestureLockedRef.current || isNavigatingRef.current || showIframe || projectOverlayOpen) return;
 
     const nextY = event.touches[0]?.clientY;
     if (typeof nextY !== 'number') return;
@@ -715,9 +774,36 @@ export default function App() {
     const delta = touchStartYRef.current - nextY;
     if (Math.abs(delta) >= 4) {
       touchStartYRef.current = nextY;
-      updateScrollDrivenTransition(delta, 'push');
+      if (updateScrollDrivenTransition(delta, 'push')) {
+        touchGestureLockedRef.current = true;
+      }
     }
   };
+
+  // Keyboard navigation between screens. PageUp/PageDown work everywhere; the
+  // arrow keys are left to the 3D scenes that use them for movement.
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (showIframe || projectOverlayOpen || isNavigatingRef.current) return;
+      const target = event.target;
+      if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName)) return;
+
+      const screenId = SCREEN_DEFINITIONS[activeScreenIndexRef.current]?.id;
+      const arrowsFree = !ARROW_KEY_SCREEN_IDS.has(screenId);
+      let direction = 0;
+      if (event.key === 'PageDown' || (arrowsFree && event.key === 'ArrowDown')) direction = 1;
+      else if (event.key === 'PageUp' || (arrowsFree && event.key === 'ArrowUp')) direction = -1;
+      if (!direction) return;
+
+      const targetIndex = activeScreenIndexRef.current + direction;
+      if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) return;
+      event.preventDefault();
+      navigateToScreenIndex(targetIndex, 'push');
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showIframe, projectOverlayOpen]);
 
   const handleTouchEnd = () => {
     touchStartYRef.current = null;
@@ -740,7 +826,27 @@ export default function App() {
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
         </div>
       )}
-      {!loading && (
+      <AnimatePresence>
+        {projectIndexOpen && (
+          <ProjectIndex
+            key="project-index"
+            onClose={closeProjectOverlays}
+            onOpenProject={openCaseStudy}
+            onPreview={openIframe}
+          />
+        )}
+        {caseStudyProject && (
+          <ProjectCaseStudy
+            key="project-case-study"
+            project={caseStudyProject}
+            onBack={backToProjectIndex}
+            onClose={closeProjectOverlays}
+            onOpenProject={openCaseStudy}
+            onPreview={openIframe}
+          />
+        )}
+      </AnimatePresence>
+      {!loading && !projectOverlayOpen && (
         <TourGuide activeScreenIndex={activeScreenIndex} onNavigate={navigateToScreen} />
       )}
       {!loading && (
@@ -1143,6 +1249,11 @@ export default function App() {
                   opacity: 0.8,
                 }} />
 
+                {/* Skip the flight: every project as a plain, accessible list */}
+                <button type="button" className="pp-open-index" onClick={openProjectIndex}>
+                  <LayoutGrid size={15} strokeWidth={2.4} /> All projects
+                </button>
+
                 {/* TV Boot Simulator */}
                 <TVSimulator onReady={() => setTvReady(true)} isReady={tvReady} />
                 <div style={{
@@ -1169,7 +1280,7 @@ export default function App() {
                 <Canvas
                   key={projGlKey}
                   onCreated={handleProjGlCreated}
-                  frameloop={projectsCanvasActive ? 'always' : 'never'}
+                  frameloop={projectsCanvasActive && !projectOverlayOpen ? 'always' : 'never'}
                   dpr={lowPowerMode ? [0.75, 1.1] : [1, 1.5]}
                   camera={CANVAS_CAMERA_CONFIG}
                   style={{
