@@ -1,242 +1,62 @@
-import React, { useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, useGLTF } from '@react-three/drei'
 import useKeyboard from './utils/useKeyboard'
 
-// Detailed stylized fighter jet, modelled nose toward -Z
-// (the parent group flips Y by PI so it ends facing +Z/forward; engines at +Z face the chase camera)
-function Jet({ boostRef, reverseRef, planeColor = '#eef2f7' }) {
-    const body = planeColor
-    const bodyMat = { color: body, metalness: 0.6, roughness: 0.26 }
-    const wingColor = planeColor
-    const panel = { color: '#c7d0db', metalness: 0.5, roughness: 0.35 }
-    const dark = { color: '#1c2530', metalness: 0.7, roughness: 0.3 }
+const PAPER_PLANE_URL = '/models/paper_airplane.glb'
+const CRAFT_LENGTH = 4.7   // nose-to-tail length the chase camera and hit boxes were tuned for
 
-    // Blue-fire turbo exhaust. Tail jets fire when going forward; reverse-thrust
-    // nose jets fire forward when backing up. Length/brightness ride the boost.
-    const flameRefs = useRef([])      // tail (forward thrust)
-    const revFlameRefs = useRef([])   // nose (reverse thrust)
+// The paper plane from the courier layer, flown here as the player craft.
+// Modelled nose toward -Z like the parent expects (the parent group flips Y by PI).
+// Boost makes the paper flutter instead of firing engines.
+function PaperCraft({ boostRef, reverseRef, planeColor = '#eef2f7' }) {
+    const { scene } = useGLTF(PAPER_PLANE_URL)
+    const flutter = useRef()
+
+    // Recentre the GLB (its root node is offset) and scale it to the craft length.
+    const { model, scale } = useMemo(() => {
+        const clone = scene.clone(true)
+        clone.traverse((o) => {
+            if (o.isMesh) {
+                o.material = o.material.clone()
+                o.material.side = THREE.DoubleSide
+            }
+        })
+        const box = new THREE.Box3().setFromObject(clone)
+        const center = box.getCenter(new THREE.Vector3())
+        const dims = box.getSize(new THREE.Vector3())
+        clone.position.sub(center)
+        const centred = new THREE.Group()
+        centred.add(clone)
+        return { model: centred, scale: CRAFT_LENGTH / (Math.max(dims.x, dims.y, dims.z) || 1) }
+    }, [scene])
+
+    // Hull colour from the cockpit controls tints the paper.
+    useEffect(() => {
+        model.traverse((o) => {
+            if (o.isMesh) o.material.color.set(planeColor)
+        })
+    }, [model, planeColor])
+
     useFrame((state) => {
+        if (!flutter.current) return
         const b = boostRef?.current ?? 0
         const t = state.clock.elapsedTime
-        const rev = !!(reverseRef && reverseRef.current)
-        const flick = 0.8 + Math.sin(t * 38) * 0.2
-        const len = (0.55 + b * 2.4)
-        const w = 1 + b * 0.35
-        for (let i = 0; i < flameRefs.current.length; i++) {
-            const g = flameRefs.current[i]; if (!g) continue
-            g.visible = !rev
-            g.scale.z = len * (0.8 + Math.sin(t * 38 + i * 2.1) * 0.2)
-            g.scale.x = w; g.scale.y = w
-        }
-        for (let i = 0; i < revFlameRefs.current.length; i++) {
-            const g = revFlameRefs.current[i]; if (!g) continue
-            g.visible = rev
-            g.scale.z = len * (0.8 + Math.sin(t * 38 + i * 2.1) * 0.2)
-            g.scale.x = w; g.scale.y = w
-        }
+        const amp = 0.015 + b * 0.05
+        flutter.current.rotation.z = Math.sin(t * (9 + b * 14)) * amp
+        flutter.current.rotation.x = Math.sin(t * 6.3) * amp * 0.6 + (reverseRef?.current ? 0.12 : 0)
     })
+
     return (
-        <group>
-            {/* ── Fuselage ── */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.2]}>
-                <cylinderGeometry args={[0.34, 0.44, 2.8, 20]} />
-                <meshStandardMaterial {...bodyMat} />
-            </mesh>
-            {/* Dorsal spine fairing */}
-            <mesh position={[0, 0.28, 0.5]}>
-                <boxGeometry args={[0.3, 0.22, 1.9]} />
-                <meshStandardMaterial {...panel} />
-            </mesh>
-            {/* Belly fuel tank */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.34, 0.4]}>
-                <capsuleGeometry args={[0.16, 1.3, 4, 10]} />
-                <meshStandardMaterial {...dark} />
-            </mesh>
-
-            {/* ── Nose ── */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -1.65]}>
-                <coneGeometry args={[0.34, 1.3, 20]} />
-                <meshStandardMaterial {...bodyMat} />
-            </mesh>
-            {/* Pitot probe tip */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -2.45]}>
-                <cylinderGeometry args={[0.015, 0.04, 0.5, 6]} />
-                <meshStandardMaterial {...dark} />
-            </mesh>
-            {/* Radome band */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -1.15]}>
-                <cylinderGeometry args={[0.345, 0.345, 0.12, 20]} />
-                <meshStandardMaterial color="#9aa6b4" metalness={0.5} roughness={0.4} />
-            </mesh>
-
-            {/* ── Tail taper + nozzle housing ── */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 1.75]}>
-                <coneGeometry args={[0.44, 0.9, 20]} />
-                <meshStandardMaterial color={wingColor} metalness={0.55} roughness={0.3} />
-            </mesh>
-
-            {/* ── Cockpit ── */}
-            {/* Canopy frame */}
-            <mesh position={[0, 0.2, -0.78]}>
-                <boxGeometry args={[0.42, 0.2, 0.95]} />
-                <meshStandardMaterial {...panel} />
-            </mesh>
-            {/* Glass canopy */}
-            <mesh position={[0, 0.27, -0.78]} rotation={[-0.22, 0, 0]}>
-                <sphereGeometry args={[0.3, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
-                <meshStandardMaterial color="#0e2a44" metalness={0.8} roughness={0.05} transparent opacity={0.8} />
-            </mesh>
-
-            {/* ── Air intakes (sides of fuselage) ── */}
-            {[-1, 1].map((s) => (
-                <mesh key={`in${s}`} position={[s * 0.42, -0.08, -0.2]} rotation={[0, 0, s * 0.18]}>
-                    <boxGeometry args={[0.22, 0.34, 1.0]} />
-                    <meshStandardMaterial {...panel} />
-                </mesh>
-            ))}
-            {/* Intake dark mouths */}
-            {[-1, 1].map((s) => (
-                <mesh key={`im${s}`} position={[s * 0.42, -0.08, -0.72]}>
-                    <boxGeometry args={[0.18, 0.28, 0.08]} />
-                    <meshStandardMaterial color="#05070a" metalness={0.4} roughness={0.9} />
-                </mesh>
-            ))}
-
-            {/* ── Canards (forward control surfaces) ── */}
-            {[-1, 1].map((s) => (
-                <mesh key={`cn${s}`} position={[s * 0.6, 0.02, -0.55]} rotation={[0, s * -0.35, s * 0.08]}>
-                    <boxGeometry args={[0.55, 0.04, 0.34]} />
-                    <meshStandardMaterial {...panel} />
-                </mesh>
-            ))}
-
-            {/* ── Swept delta wings ── */}
-            {[-1, 1].map((s) => (
-                <group key={`wing${s}`}>
-                    <mesh position={[s * 1.05, -0.05, 0.55]} rotation={[0, s * -0.2, s * 0.05]}>
-                        <boxGeometry args={[1.9, 0.06, 1.3]} />
-                        <meshStandardMaterial color={wingColor} metalness={0.45} roughness={0.33} />
-                    </mesh>
-                    {/* Gold leading-edge accent */}
-                    <mesh position={[s * 1.5, -0.02, 0.18]} rotation={[0, s * -0.2, 0]}>
-                        <boxGeometry args={[0.7, 0.07, 0.16]} />
-                        <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.4} metalness={0.3} roughness={0.4} toneMapped={false} />
-                    </mesh>
-                    {/* Wingtip missile rail */}
-                    <mesh rotation={[Math.PI / 2, 0, 0]} position={[s * 1.92, -0.03, 0.45]}>
-                        <cylinderGeometry args={[0.05, 0.05, 1.1, 8]} />
-                        <meshStandardMaterial {...dark} />
-                    </mesh>
-                    {/* Missile tip */}
-                    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[s * 1.92, -0.03, -0.12]}>
-                        <coneGeometry args={[0.05, 0.22, 8]} />
-                        <meshStandardMaterial color="#b91c1c" metalness={0.4} roughness={0.5} />
-                    </mesh>
-                    {/* Underwing pylon + drop tank */}
-                    <mesh position={[s * 0.95, -0.16, 0.55]}>
-                        <boxGeometry args={[0.08, 0.18, 0.5]} />
-                        <meshStandardMaterial {...dark} />
-                    </mesh>
-                    <mesh rotation={[Math.PI / 2, 0, 0]} position={[s * 0.95, -0.32, 0.55]}>
-                        <capsuleGeometry args={[0.1, 0.7, 4, 8]} />
-                        <meshStandardMaterial color="#9aa6b4" metalness={0.5} roughness={0.4} />
-                    </mesh>
-                </group>
-            ))}
-
-            {/* ── Twin canted vertical fins ── */}
-            {[-1, 1].map((s) => (
-                <mesh key={`fin${s}`} position={[s * 0.3, 0.42, 1.5]} rotation={[0.3, 0, s * 0.26]}>
-                    <boxGeometry args={[0.06, 0.78, 0.6]} />
-                    <meshStandardMaterial color={wingColor} metalness={0.45} roughness={0.33} />
-                </mesh>
-            ))}
-            {/* Fin gold tips */}
-            {[-1, 1].map((s) => (
-                <mesh key={`ft${s}`} position={[s * 0.42, 0.78, 1.55]} rotation={[0.3, 0, s * 0.26]}>
-                    <boxGeometry args={[0.06, 0.16, 0.5]} />
-                    <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.4} toneMapped={false} />
-                </mesh>
-            ))}
-
-            {/* ── Horizontal stabilizers ── */}
-            {[-1, 1].map((s) => (
-                <mesh key={`hs${s}`} position={[s * 0.58, 0.04, 1.74]} rotation={[0, s * -0.12, 0]}>
-                    <boxGeometry args={[0.9, 0.05, 0.52]} />
-                    <meshStandardMaterial color={wingColor} metalness={0.45} roughness={0.33} />
-                </mesh>
-            ))}
-
-            {/* ── Twin engine nozzles + afterburners (tail, +Z) ── */}
-            {[-0.22, 0.22].map((x, i) => (
-                <group key={`eng${i}`}>
-                    {/* Metal nozzle ring */}
-                    <mesh rotation={[Math.PI / 2, 0, 0]} position={[x, -0.05, 2.12]}>
-                        <cylinderGeometry args={[0.19, 0.22, 0.3, 14]} />
-                        <meshStandardMaterial color="#3a3f47" metalness={0.85} roughness={0.35} />
-                    </mesh>
-                    {/* Glowing afterburner core */}
-                    <mesh rotation={[Math.PI / 2, 0, 0]} position={[x, -0.05, 2.26]}>
-                        <cylinderGeometry args={[0.15, 0.15, 0.16, 14]} />
-                        <meshBasicMaterial color="#27e0ff" toneMapped={false} />
-                    </mesh>
-                    {/* Afterburner glow halo */}
-                    <mesh position={[x, -0.05, 2.4]}>
-                        <sphereGeometry args={[0.34, 14, 14]} />
-                        <meshBasicMaterial color="#27e0ff" transparent opacity={0.34} toneMapped={false} blending={THREE.AdditiveBlending} depthWrite={false} />
-                    </mesh>
-                </group>
-            ))}
-
-            {/* ── Turbo blue-fire exhaust (scales with boost) ── */}
-            {[-0.22, 0.22].map((x, i) => (
-                <group key={`flame${i}`} ref={(el) => { flameRefs.current[i] = el }} position={[x, -0.05, 2.46]}>
-                    {/* outer blue flame */}
-                    <mesh position={[0, 0, 0.6]} rotation={[Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.2, 1.2, 18, 1, true]} />
-                        <meshBasicMaterial color="#1f7bff" transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} />
-                    </mesh>
-                    {/* mid flame */}
-                    <mesh position={[0, 0, 0.46]} rotation={[Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.13, 0.95, 16, 1, true]} />
-                        <meshBasicMaterial color="#5ab0ff" transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} />
-                    </mesh>
-                    {/* white-hot core */}
-                    <mesh position={[0, 0, 0.32]} rotation={[Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.07, 0.7, 14, 1, true]} />
-                        <meshBasicMaterial color="#dff1ff" transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
-                    </mesh>
-                </group>
-            ))}
-
-            {/* ── Reverse-thrust blue fire (nose jets, fire FORWARD when backing up) ── */}
-            {[-0.34, 0.34].map((x, i) => (
-                <group key={`rflame${i}`} ref={(el) => { revFlameRefs.current[i] = el }} position={[x, -0.06, -1.55]} visible={false}>
-                    <mesh position={[0, 0, -0.6]} rotation={[-Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.17, 1.1, 18, 1, true]} />
-                        <meshBasicMaterial color="#1f7bff" transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} />
-                    </mesh>
-                    <mesh position={[0, 0, -0.46]} rotation={[-Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.11, 0.9, 16, 1, true]} />
-                        <meshBasicMaterial color="#5ab0ff" transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} />
-                    </mesh>
-                    <mesh position={[0, 0, -0.32]} rotation={[-Math.PI / 2, 0, 0]}>
-                        <coneGeometry args={[0.06, 0.65, 14, 1, true]} />
-                        <meshBasicMaterial color="#dff1ff" transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
-                    </mesh>
-                    {/* small reverse-thrust nozzle ring */}
-                    <mesh rotation={[Math.PI / 2, 0, 0]}>
-                        <cylinderGeometry args={[0.1, 0.12, 0.16, 12]} />
-                        <meshStandardMaterial color="#3a3f47" metalness={0.85} roughness={0.35} />
-                    </mesh>
-                </group>
-            ))}
+        <group ref={flutter}>
+            <primitive object={model} scale={scale} />
         </group>
     )
 }
+
+useGLTF.preload(PAPER_PLANE_URL)
 
 // First-person cockpit interior — modelled in world units, forward = +Z.
 // (Mounted on a counter-rotated, scale-compensated group so it sits world-aligned.)
@@ -2797,7 +2617,7 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
         <group ref={group} {...props} dispose={null}>
             {/* smaller + camera pulled back so the jet sits deeper in frame, not on top of the lens */}
             <group ref={jetWrapRef} scale={0.3}>
-                <Jet boostRef={boostRef} reverseRef={reverseRef} planeColor={planeColor} />
+                <PaperCraft boostRef={boostRef} reverseRef={reverseRef} planeColor={planeColor} />
             </group>
             {/* First-person cockpit interior — counter-rotates the parent's Y-flip and
                 undoes the parent scale so it renders world-aligned at world units. */}
