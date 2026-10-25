@@ -2,6 +2,7 @@ import { OrbitControls, Sparkles, DeviceOrientationControls, PerspectiveCamera, 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Bloom, EffectComposer, ChromaticAberration, Vignette } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import useResponsiveFov from './utils/useResponsiveFov'
 import * as THREE from 'three'
 
 function Controls() {
@@ -479,6 +480,12 @@ function FloatingCrystals({ lowPowerMode }) {
 
 import { useInView } from 'react-intersection-observer'
 
+// Widens on portrait screens so the galaxy isn't cropped at the sides.
+function IntroCamera() {
+  const fov = useResponsiveFov(40, 1.8)
+  return <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={fov} />
+}
+
 export default function IntroSection({ lowPowerMode = false }) {
   const [ref, inView] = useInView({ threshold: 0 })
   const [cursorColor, setCursorColor] = useState(null)
@@ -510,6 +517,7 @@ export default function IntroSection({ lowPowerMode = false }) {
     <div
       ref={ref}
       className="intro-stage"
+      data-gesture-zone
       style={{
         background: 'radial-gradient(circle at 50% 38%, #2b2735 0%, #18161f 45%, #121117 75%, #0b0a0f 100%)',
         position: 'relative',
@@ -539,7 +547,7 @@ export default function IntroSection({ lowPowerMode = false }) {
 
       <Canvas key={glKey} onCreated={handleGlCreated} frameloop={inView ? 'always' : 'never'} dpr={lowPowerMode ? [0.75, 1] : [1, 1.5]}>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={40} />
+          <IntroCamera />
           <ambientLight intensity={5} />
           <Controls />
           {!lowPowerMode && (

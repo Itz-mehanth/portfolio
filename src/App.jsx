@@ -17,7 +17,6 @@ import './Contact.css'
 import { useAudio } from './context/AudioProvider'
 import { AnimatedChars, AnimatedWords } from './AnimatedText'
 import MagneticButton from './MagneticButton'
-import ContactCharacter from './ContactCharacter'
 import CockpitControls from './CockpitControls'
 import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
@@ -107,6 +106,28 @@ const findScreenIndexByPath = (pathname) => {
   const matchedIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.path === normalizedPath);
   return matchedIndex === -1 ? 0 : matchedIndex;
 };
+
+// Never hold a screen change hostage to a slow preload: show the next screen
+// after this long even if its code or models are still arriving.
+const NAVIGATION_PRELOAD_BUDGET_MS = 350;
+
+// True when the target sits inside a scroll container that can still scroll in
+// this direction, so the gesture should scroll that content, not change screens.
+const canScrollWithin = (target, deltaY, boundary) => {
+  let el = target instanceof Element ? target : null;
+  while (el && el !== boundary) {
+    const { overflowY } = window.getComputedStyle(el);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
+      if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+      if (deltaY < 0 && el.scrollTop > 0) return true;
+    }
+    el = el.parentElement;
+  }
+  return false;
+};
+
+const scheduleIdle = (task) =>
+  'requestIdleCallback' in window ? window.requestIdleCallback(task, { timeout: 2500 }) : setTimeout(task, 700);
 
 const getCaseStudySlugFromPath = (pathname) => {
   const match = pathname.match(/^\/projects\/([^/]+)\/?$/);
@@ -349,6 +370,7 @@ export default function App() {
   const wheelResetTimeoutRef = useRef(null)
   const wheelGestureLockedRef = useRef(false)
   const touchGestureLockedRef = useRef(false)
+  const touchInGestureZoneRef = useRef(false)
   const transitionResetTimeoutRef = useRef(null)
   const touchStartYRef = useRef(null)
   const isNavigatingRef = useRef(false)
@@ -397,7 +419,10 @@ export default function App() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+      setIsMobile(
+        window.matchMedia('(pointer: coarse)').matches ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      );
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -499,6 +524,8 @@ export default function App() {
         })
       );
     }
+    // Warm the next screen's models while the visitor is still on this one.
+    scheduleIdle(() => preloadRouteAssets(screen.id));
 
     return Promise.allSettled(tasks);
   };
@@ -532,7 +559,10 @@ export default function App() {
 
     mountScreen(targetIndex);
 
-    await Promise.allSettled([importTask, assetTask]);
+    await Promise.race([
+      Promise.allSettled([importTask, assetTask]),
+      new Promise((resolve) => setTimeout(resolve, NAVIGATION_PRELOAD_BUDGET_MS)),
+    ]);
     preloadScreen(targetIndex + 1);
 
     activeScreenIndexRef.current = targetIndex;
@@ -679,17 +709,23 @@ export default function App() {
     });
   };
 
+  // Outgoing screen fades and drifts away; incoming fades in and settles from the
+  // direction of travel. Opacity/transform only, so it stays on the compositor.
   const getScreenStyle = (screenIndex, baseStyle = {}) => {
     const isActive = activeScreenIndex === screenIndex;
+    const offset = screenIndex < activeScreenIndex ? -24 : 24;
 
     return {
       ...baseStyle,
       position: 'absolute',
       inset: 0,
       opacity: isActive ? 1 : 0,
+      visibility: isActive ? 'visible' : 'hidden',
       pointerEvents: isActive ? 'auto' : 'none',
-      clipPath: isActive ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)',
-      transition: 'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), clip-path 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+      transform: isActive ? 'none' : `translate3d(0, ${offset}px, 0)`,
+      transition: isActive
+        ? 'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.06s, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.06s, visibility 0s'
+        : 'opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.45s',
       zIndex: isActive ? 1 : 0,
     };
   };
@@ -703,6 +739,7 @@ export default function App() {
       event.target.closest('.canvas-wrapper');
 
     if (isInsideProjectCanvas) return;
+    if (canScrollWithin(event.target, event.deltaY, rootRef.current)) return;
 
     // Every wheel event (trackpad inertia included) extends the current gesture.
     if (wheelResetTimeoutRef.current) {
@@ -724,10 +761,12 @@ export default function App() {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
     touchGestureLockedRef.current = false;
     wheelAccumulatorRef.current = 0;
+    // Drags that start on a 3D stage (joystick, orbiting, driving) never swipe screens.
+    touchInGestureZoneRef.current = !!event.target?.closest?.('[data-gesture-zone]');
   };
 
   const handleTouchMove = (event) => {
-    if (touchStartYRef.current == null || touchGestureLockedRef.current || isNavigatingRef.current || showIframe || projectOverlayOpen) return;
+    if (touchStartYRef.current == null || touchInGestureZoneRef.current || touchGestureLockedRef.current || isNavigatingRef.current || showIframe || projectOverlayOpen) return;
 
     const nextY = event.touches[0]?.clientY;
     if (typeof nextY !== 'number') return;
@@ -735,6 +774,10 @@ export default function App() {
     const delta = touchStartYRef.current - nextY;
     if (Math.abs(delta) >= 4) {
       touchStartYRef.current = nextY;
+      if (canScrollWithin(event.target, delta, rootRef.current)) {
+        wheelAccumulatorRef.current = 0;
+        return;
+      }
       if (updateScrollDrivenTransition(delta, 'push')) {
         touchGestureLockedRef.current = true;
       }
@@ -1181,6 +1224,7 @@ export default function App() {
               className="hide-scrollbar canvas-wrapper"
               data-plane-anchor="projects"
               data-plane-placement="center"
+              data-gesture-zone
               style={{
                 flex: 1,
                 backgroundColor: "var(--ink)",
@@ -1336,12 +1380,15 @@ export default function App() {
                 {isMobile && (<>
                 <div style={{
                   position: 'absolute',
-                  bottom: '20px',
+                  bottom: '24px',
                   left: '20px',
-                  zIndex: 9999
+                  zIndex: 9999,
+                  touchAction: 'none',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
                 }}>
                   <Joystick
-                    size={80}
+                    size={104}
                     sticky={false}
                     baseColor="rgba(255, 255, 255, 0.2)"
                     stickColor="rgba(255, 255, 255, 0.5)"
@@ -1359,6 +1406,9 @@ export default function App() {
                   bottom: '40px',
                   right: '20px',
                   zIndex: 9999,
+                  touchAction: 'none',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '15px'
@@ -1442,12 +1492,9 @@ export default function App() {
             style={getScreenStyle(3, {
               display: 'flex',
               flexDirection: 'column',
-              gap: '2rem',
-              justifyContent: 'center',
               height: '100vh',
-              padding: 'clamp(20px, 5vh, 80px) clamp(12px, 3vw, 40px)',
-              scrollBehavior: 'smooth',
-              background: 'radial-gradient(circle at 50% 12%, rgba(139,92,246,0.10), transparent 45%), radial-gradient(circle at 85% 90%, rgba(236,72,153,0.06), transparent 40%), linear-gradient(180deg, #ffffff 0%, #f7f5fc 100%)',
+              padding: '92px clamp(16px, 4vw, 48px) 0',
+              background: 'radial-gradient(circle at 85% 0%, rgba(251,191,36,0.10), transparent 40%), var(--paper)',
             })}
           >
             <motion.div
@@ -1458,7 +1505,7 @@ export default function App() {
             >
               {isMounted('certificate') ? (
                 <Suspense fallback={<SectionPlaceholder title="Achievement Vault" />}>
-                  <Certificates lowPowerMode={lowPowerMode} />
+                  <Certificates />
                 </Suspense>
               ) : (
                 <SectionPlaceholder title="Achievement Vault" />
@@ -1474,8 +1521,7 @@ export default function App() {
               width: '100vw',
               overflowX: 'hidden',
               scrollBehavior: 'smooth',
-              background: 'linear-gradient(180deg, #f7f8fc 0%, #ffffff 100%)',
-              zIndex: 1000,
+              background: 'var(--paper)',
               display: 'flex',
               alignItems: 'center',
             })}
@@ -1491,7 +1537,7 @@ export default function App() {
                 backgroundColor: 'transparent',
               }}
             >
-              <ContactSection lowPowerMode={lowPowerMode} onSent={() => setPlaneLaunchSignal((n) => n + 1)} />
+              <ContactSection onSent={() => setPlaneLaunchSignal((n) => n + 1)} />
             </motion.div>
           </section>
 
@@ -1504,7 +1550,7 @@ export default function App() {
 }
 
 
-function ContactSection({ lowPowerMode = false, onSent }) {
+function ContactSection({ onSent }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -1514,17 +1560,6 @@ function ContactSection({ lowPowerMode = false, onSent }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
-
-  // Ultron rage burst — poking the mascot ruptures the whole section
-  const [raging, setRaging] = useState(false);
-  const [rageKey, setRageKey] = useState(0);
-  const rageTimer = useRef(null);
-  const triggerRage = () => {
-    setRageKey((k) => k + 1);
-    setRaging(true);
-    if (rageTimer.current) clearTimeout(rageTimer.current);
-    rageTimer.current = setTimeout(() => setRaging(false), 1800);
-  };
 
   // Form validation
   const validateForm = () => {
@@ -1622,74 +1657,49 @@ function ContactSection({ lowPowerMode = false, onSent }) {
   };
 
   const socialLinks = [
-    { href: "mailto:mehanth362@gmail.com", icon: Mail, label: "Email", color: "#EA4335" },
-    { href: "https://linkedin.com/in/mehanth-776892279", icon: Linkedin, label: "LinkedIn", color: "#0077B5" },
-    { href: "https://github.com/itz-mehanth", icon: Github, label: "GitHub", color: "#333" },
-    { href: "https://instagram.com/itz_mehanth", icon: Instagram, label: "Instagram", color: "#E4405F" }
+    { href: "https://linkedin.com/in/mehanth-776892279", icon: Linkedin, label: "LinkedIn" },
+    { href: "https://github.com/itz-mehanth", icon: Github, label: "GitHub" },
+    { href: "https://instagram.com/itz_mehanth", icon: Instagram, label: "Instagram" },
   ];
 
   return (
     <>
-      <section className={`contact-section${raging ? ' is-raging' : ''}`}>
-        {/* soft light glows */}
-        <div className="contact-aurora" aria-hidden="true">
-          <span className="aurora-blob blob-a" />
-          <span className="aurora-blob blob-b" />
-          <span className="aurora-blob blob-c" />
-        </div>
-
-        {/* ── Ultron RAGE burst — erupts across the whole section when poked ── */}
-        {raging && (
-          <div className="rage-fx" key={rageKey} aria-hidden="true">
-            <div className="rage-flash" />
-            <div className="rage-shock" />
-            <div className="rage-shock rage-shock-2" />
-            <div className="rage-shock rage-shock-3" />
-            <div className="rage-bars" />
-            <div className="rage-warning">⚠ SYSTEM BREACH // ULTRON ENRAGED ⚠</div>
-            <div className="rage-vignette" />
-          </div>
-        )}
-
+      <section className="contact-section" data-scrollable>
         <div className="contact-container">
+          <div className="contact-intro">
+            <header className="contact-heading">
+              <span className="section-eyebrow">05 · Contact</span>
+              <h2 className="section-title contact-title">Let&rsquo;s build something <span className="grad">unforgettable.</span></h2>
+              <p className="contact-lede">Got a project, a hackathon squad, or just want to say hi? Send a paper plane. I usually reply within a day.</p>
+              <span className="contact-status"><span className="status-dot" />Available for opportunities</span>
+            </header>
 
-          {/* Header */}
-          <div className="contact-header">
-            <span className="contact-eyebrow"><span className="status-dot" />Available for opportunities</span>
-            <h2>Let&rsquo;s build something <span className="grad">unforgettable</span></h2>
-            <p>Got a project, a hackathon squad, or just wanna say hi? Drop a line &mdash; I usually reply within a day. (My containment unit is watching you. Poke it at your own risk.)</p>
-          </div>
-
-          {/* Main Content */}
-          <div className="contact-content">
-            {/* Left — cursor-watching mascot + quick contact */}
-            <div className="contact-left">
-              <div className="character-stage">
-                <span className="speech-bubble">Poke me&hellip; I dare you</span>
-                <ContactCharacter onEnrage={triggerRage} lowPowerMode={lowPowerMode} />
-              </div>
-              <div className="contact-details">
+            <ul className="contact-list">
+              <li>
                 <a className="contact-item" href="mailto:mehanth362@gmail.com">
                   <span className="ci-icon"><Mail size={18} /></span>
                   <span className="ci-text"><small>Email</small>mehanth362@gmail.com</span>
                 </a>
+              </li>
+              <li>
                 <div className="contact-item static">
                   <span className="ci-icon"><MapPin size={18} /></span>
-                  <span className="ci-text"><small>Based in</small>Bangalore, India &middot; @ VISA</span>
+                  <span className="ci-text"><small>Based in</small>Bangalore, India &middot; SWE Intern @ VISA</span>
                 </div>
-              </div>
-              <div className="social-links">
-                {socialLinks.map(({ href, icon: IconComponent, label, color }, index) => (
-                  <a key={index} href={href} target="_blank" rel="noopener noreferrer" className="social-link" style={{ '--brand-color': color }}>
-                    <IconComponent size={18} />
-                    <span>{label}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
+              </li>
+            </ul>
 
-            {/* Right — Contact Form */}
-            <div className="contact-form-container">
+            <div className="social-links">
+              {socialLinks.map(({ href, icon: IconComponent, label }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="social-link">
+                  <IconComponent size={16} />
+                  <span>{label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="contact-form-container">
               <form className="contact-form" onSubmit={handleSubmit}>
                 {submitStatus === 'success' && (
                   <div className="form-banner success" role="status" aria-live="polite">Message sent! I&rsquo;ll get back to you soon.</div>
@@ -1785,10 +1795,8 @@ function ContactSection({ lowPowerMode = false, onSent }) {
                   {!isSubmitting && <Send size={18} />}
                 </button>
               </form>
-            </div>
           </div>
         </div>
-
       </section>
     </>
   );

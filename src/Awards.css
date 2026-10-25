@@ -1,0 +1,162 @@
+/* Awards — editorial cards in the shared ink / amber system */
+
+.awards {
+  width: 100%;
+  max-width: 1160px;
+  height: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  padding: 8px 4px 32px;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+.awards::-webkit-scrollbar { display: none; }
+
+.awards-heading { margin-bottom: clamp(20px, 4vh, 40px); }
+.awards-lede {
+  margin: 6px 0 0;
+  max-width: 520px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.awards-group + .awards-group { margin-top: clamp(20px, 4vh, 36px); }
+.awards-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.awards-group-title svg { color: var(--accent-strong); }
+
+.award-card {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(18, 17, 23, 0.04), 0 0 0 1px var(--line);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.award-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px -24px rgba(18, 17, 23, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.35);
+}
+
+/* Hackathon wins */
+.awards-wins {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+}
+.award-card.win {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 22px 24px;
+  overflow: hidden;
+}
+.award-index {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 1;
+  color: rgba(18, 17, 23, 0.05);
+  pointer-events: none;
+}
+.award-badge {
+  align-self: flex-start;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.award-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(19px, 2vw, 23px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.award-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.award-story {
+  margin: 10px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Certifications */
+.awards-certs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.award-card.cert {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+.award-card.cert .award-title { font-size: 17px; }
+.award-card.cert .award-meta { margin-top: 3px; }
+.cert-score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--accent-ink);
+  white-space: nowrap;
+}
+.cert-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.cert-link:hover { background: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 640px) {
+  .award-card.cert { grid-template-columns: 1fr auto; }
+  .cert-link { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .award-card, .cert-link { transition: none; }
+  .award-card:hover { transform: none; }
+}

@@ -15,6 +15,7 @@ import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
 import { useInView } from 'react-intersection-observer';
 import { Joystick } from 'react-joystick-component';
+import useResponsiveFov from './utils/useResponsiveFov';
 
 // City colors for different tech domains
 const cityColors = {
@@ -52,8 +53,8 @@ function LoadingFallback() {
 const InstancedContext = React.createContext(null);
 
 function Instances({ children }) {
-  const { nodes: houseNodes, materials: houseMaterials } = useGLTF('models/house.glb');
-  const { nodes: tankNodes, materials: tankMaterials } = useGLTF('models/water tank.glb');
+  const { nodes: houseNodes, materials: houseMaterials } = useGLTF('/models/house.glb');
+  const { nodes: tankNodes, materials: tankMaterials } = useGLTF('/models/water tank.glb');
 
   // Apply Toon Material to loaded nodes
   React.useMemo(() => {
@@ -241,6 +242,12 @@ const CITY_POSITIONS = {
   aiml: [-17, 1.55, -0.1],
 };
 
+// Overview camera; widens on portrait screens so the whole town stays in frame.
+function TownCamera() {
+  const fov = useResponsiveFov(75, 1.5, 90);
+  return <PerspectiveCamera makeDefault position={[0, 6, 10]} fov={fov} />;
+}
+
 export default function SciFiSkillCities({ lowPowerMode = false }) {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
@@ -414,6 +421,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
       <div
         ref={ref}
         className="skills-stage"
+        data-gesture-zone
         style={{
           width: '90vw',
           height: '60vh',
@@ -484,7 +492,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
 
             {/* Car with camera */}
             <Suspense fallback={null}>
-              {!driveMode && <PerspectiveCamera makeDefault position={[0, 6, 10]} />}
+              {!driveMode && <TownCamera />}
               <Car
                 position={cityPathPoints[currentCity].toArray()}
                 path={driveMode ? null : path}
