@@ -45,6 +45,7 @@ const Projects = lazy(loadProjects)
 const IntroSection = lazy(loadIntroSection)
 const Skills = lazy(loadSkills)
 const Certificates = lazy(loadCertificates)
+const FlightLayer = lazy(() => import('./FlightLayer'))
 
 const SCREEN_DEFINITIONS = [
   {
@@ -377,6 +378,8 @@ export default function App() {
   const setView = (v) => { planeViewRef.current = v; setPlaneView(v); };
   const [isMobile, setIsMobile] = useState(false);
   const [lowPowerMode, setLowPowerMode] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [planeLaunchSignal, setPlaneLaunchSignal] = useState(0);
   /* Game State */
   const scoreValueRef = useRef(0);
   const scoreElement = useRef(null);
@@ -416,6 +419,7 @@ export default function App() {
       const limitedMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
       const limitedCpu = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 6;
       setLowPowerMode(mediaQuery.matches || limitedMemory || limitedCpu);
+      setReducedMotion(mediaQuery.matches);
     };
 
     updateQualityMode();
@@ -783,6 +787,16 @@ export default function App() {
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
         </div>
       )}
+      {/* The paper-plane courier that flies between screens (skipped under reduced motion) */}
+      {!reducedMotion && (
+        <Suspense fallback={null}>
+          <FlightLayer
+            activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
+            launchSignal={planeLaunchSignal}
+            hidden={projectOverlayOpen || showIframe}
+          />
+        </Suspense>
+      )}
       <AnimatePresence>
         {projectIndexOpen && (
           <ProjectIndex
@@ -853,7 +867,7 @@ export default function App() {
                 <p className='section-eyebrow' style={{ margin: '30px 0 0' }}>
                   <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} />
                 </p>
-                <h1 className='hero-name' style={{ perspective: '600px' }}>
+                <h1 className='hero-name' data-plane-anchor='lander' style={{ perspective: '600px' }}>
                   <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'inherit' }} />
                 </h1>
                 <p className='hero-role'>
@@ -1130,7 +1144,7 @@ export default function App() {
           >
             <header className='section-heading'>
               <span className='section-eyebrow'>02 · Skills</span>
-              <h2 className='section-title'>Skill Town</h2>
+              <h2 className='section-title' data-plane-anchor='skills'>Skill Town</h2>
             </header>
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
@@ -1165,6 +1179,8 @@ export default function App() {
             {/* Flight stage */}
             <div
               className="hide-scrollbar canvas-wrapper"
+              data-plane-anchor="projects"
+              data-plane-placement="center"
               style={{
                 flex: 1,
                 backgroundColor: "var(--ink)",
@@ -1475,7 +1491,7 @@ export default function App() {
                 backgroundColor: 'transparent',
               }}
             >
-              <ContactSection lowPowerMode={lowPowerMode} />
+              <ContactSection lowPowerMode={lowPowerMode} onSent={() => setPlaneLaunchSignal((n) => n + 1)} />
             </motion.div>
           </section>
 
@@ -1488,7 +1504,7 @@ export default function App() {
 }
 
 
-function ContactSection({ lowPowerMode = false }) {
+function ContactSection({ lowPowerMode = false, onSent }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -1588,6 +1604,7 @@ function ContactSection({ lowPowerMode = false }) {
 
       // With no-cors, we can't read the response, so we assume success
       setSubmitStatus('success');
+      onSent?.();
       setFormData({ name: '', email: '', message: '' });
       setErrors({});
 
@@ -1756,6 +1773,8 @@ function ContactSection({ lowPowerMode = false }) {
                 <button
                   type="submit"
                   className="submit-btn"
+                  data-plane-anchor="contact"
+                  data-plane-placement="perch"
                   disabled={isSubmitting}
                   style={{
                     opacity: isSubmitting ? 0.7 : 1,

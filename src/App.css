@@ -723,6 +723,7 @@ html, body {
   font-weight: 800;
   font-size: clamp(40px, 11vw, 128px);
   white-space: nowrap; /* AnimatedChars renders inline-blocks that could otherwise wrap mid-word */
+  display: inline-block; /* hug the text so the paper plane can perch beside it */
   line-height: 0.95;
   letter-spacing: -0.04em;
   color: var(--ink);

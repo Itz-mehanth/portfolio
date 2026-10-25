@@ -568,7 +568,7 @@ export default function Certificates({ lowPowerMode = false }) {
                 color: '#c79a4b', fontFamily: "'Poppins', sans-serif", marginBottom: '4px',
                 textShadow: '0 1px 6px rgba(0,0,0,0.5)',
               }}>Achievements</div>
-              <h2 style={{
+              <h2 data-plane-anchor="certificate" style={{
                 fontSize: '1.7rem', fontWeight: 800, margin: '0 0 3px', fontFamily: "'Poppins', sans-serif",
                 background: 'linear-gradient(120deg, #f4cf8a, #e8a13c, #b45309)',
                 WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
