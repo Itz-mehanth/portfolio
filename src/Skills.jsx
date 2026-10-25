@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveDpr, AdaptiveEvents, Sparkles } from '@react-three/drei';
+import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveEvents, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import Ground from './utils/models/Ground';
 import { Suspense } from 'react';
@@ -425,7 +425,6 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         data-gesture-zone
         style={{
           width: '90vw',
-          height: '60vh',
           borderRadius: '24px',
           overflow: 'hidden',
           boxShadow: '0 30px 60px -34px rgba(18,17,23,0.45), 0 0 0 1px var(--line)',
@@ -452,7 +451,6 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         >
           <Suspense fallback={null}>
 
-            <AdaptiveDpr pixelated />
             <AdaptiveEvents />
 
             {/* Anime Sky Environment & Sphere */}
@@ -628,9 +626,9 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
             />
           </div>
         )}
-      </div>
 
-      <SkillsGrid skillsByCity={skillsByCity} selectedCity={selectedCity} />
+        {!driveMode && <SkillsGrid skillsByCity={skillsByCity} selectedCity={selectedCity} />}
+      </div>
     </>
   );
 }
@@ -652,16 +650,18 @@ const SkillsGrid = ({ skillsByCity, selectedCity }) => {
 
   return (
     <div className="skills-panel" style={{
-      width: '90vw', margin: '14px 0 60px',
-      padding: '20px 22px', borderRadius: '20px',
-      background: '#fff',
-      boxShadow: '0 1px 2px rgba(18,17,23,0.04), 0 0 0 1px var(--line)',
+      position: 'absolute', left: '16px', bottom: '16px', zIndex: 15,
+      maxWidth: 'min(560px, calc(100% - 32px))',
+      padding: '14px 16px', borderRadius: '18px',
+      background: 'rgba(255,255,255,0.86)',
+      backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+      boxShadow: '0 12px 32px -18px rgba(18,17,23,0.4), 0 0 0 1px var(--line)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
         <span className="section-eyebrow">{CITY_LABELS[selectedCity] || 'Tech stack'}</span>
         <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Click a district in the town to switch</span>
       </div>
-      <ul key={selectedCity} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <ul key={selectedCity} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
         {skills.map((skill, i) => (
           <motion.li
             key={skill.name}
@@ -670,9 +670,9 @@ const SkillsGrid = ({ skillsByCity, selectedCity }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03, duration: 0.25 }}
             style={{
-              padding: '7px 14px', borderRadius: '999px',
-              border: '1px solid var(--line)', background: 'var(--paper)',
-              fontSize: '13px', fontWeight: 500, color: 'var(--ink)',
+              padding: '5px 11px', borderRadius: '999px',
+              border: '1px solid var(--line)', background: '#fff',
+              fontSize: '12.5px', fontWeight: 500, color: 'var(--ink)',
               fontFamily: 'var(--font-body)',
             }}
           >

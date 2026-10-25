@@ -17,15 +17,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-three': ['three'],
-          'vendor-r3f': [
-            '@react-three/fiber',
-            '@react-three/drei',
-            '@react-three/postprocessing',
-          ],
-          'vendor-motion': ['framer-motion'],
+        // Match by path, not package name: listing only top-level packages let
+        // React's runtime (jsx, scheduler) land in the 3D chunk, which forced the
+        // whole 3D stack onto the first page load. 3D libraries are left to load
+        // with the lazy screens that use them.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (/node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react'
+          if (/node_modules[\\/]three[\\/]/.test(id)) return 'vendor-three'
+          if (/node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) return 'vendor-motion'
+          return undefined
         }
       }
     }

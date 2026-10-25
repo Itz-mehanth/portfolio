@@ -910,17 +910,32 @@ html, body {
 @media (max-width: 768px) {
   .portfolio-screen { padding-left: 12px !important; padding-right: 12px !important; }
   .intro-stage,
-  .skills-stage,
-  .skills-panel {
+  .skills-stage {
     width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  .skills-stage { height: 52vh !important; min-height: 280px; }
+  .skills-stage { height: calc(100svh - 168px) !important; min-height: 360px; }
+  /* the skills card floats over the town; undo the older full-width panel rules */
+  .skills-panel {
+    width: auto !important;
+    margin: 0 !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    max-width: none !important;
+    padding: 12px 13px !important;
+  }
   /* Work: full-bleed flight stage below the navbar, no rounded inset */
   #projects.portfolio-screen { padding: 72px 0 0 !important; }
   #projects .canvas-wrapper { width: 100% !important; border-radius: 0 !important; }
   /* Awards & Contact own their own scrolling and padding */
   #certificate.portfolio-screen { padding: 84px 12px 0 !important; }
   #contact.portfolio-screen { padding: 0 !important; }
+}
+
+/* Skill Town fills the screen under its heading; the skills card floats over it */
+.skills-stage { height: calc(100vh - 190px); min-height: 380px; }
+@supports (height: 100svh) {
+  .skills-stage { height: calc(100svh - 190px); }
 }

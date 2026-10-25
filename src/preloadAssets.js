@@ -1,5 +1,8 @@
-import * as THREE from 'three';
-import { useGLTF } from '@react-three/drei';
+// No static three/drei imports: this module is part of the first page load.
+const preloadModel = (url) =>
+  import('@react-three/drei')
+    .then(({ useGLTF }) => useGLTF.preload(url))
+    .catch(() => {});
 
 const MODEL_ASSETS = [
   '/models/paper_airplane.glb',
@@ -109,7 +112,7 @@ export function preloadRouteAssets(routeId, onProgress) {
 
     const tasks = routeAssets.map((url) => {
       if (url.endsWith('.glb')) {
-        useGLTF.preload(url);
+        preloadModel(url);
       }
 
       return warmAsset(url).finally(() => {

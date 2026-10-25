@@ -7,7 +7,7 @@
 // World units are CSS pixels: an orthographic camera with zoom 1 makes
 // (0, 0) the viewport centre, x to the right and y up.
 import { Suspense, useEffect, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -94,6 +94,13 @@ function PaperPlane({ activeScreenId, launchSignal, hidden }) {
     centred.add(clone)
     return { model: centred, length: Math.max(dims.x, dims.y, dims.z) || 1 }
   }, [scene])
+
+  // Render only while something is visible or moving; a parked, hidden plane
+  // shouldn't keep a full-screen transparent canvas redrawing every frame.
+  const setFrameloop = useThree((st) => st.setFrameloop)
+  useEffect(() => {
+    setFrameloop('always')
+  }, [activeScreenId, launchSignal, hidden, setFrameloop])
 
   const root = useRef()       // position on screen
   const heading = useRef()    // rotation around the view axis (direction of travel)
@@ -318,6 +325,9 @@ function PaperPlane({ activeScreenId, launchSignal, hidden }) {
       colors[i * 4 + 3] = Math.pow(1 - dot.age / TRAIL_LIFETIME, 1.5) * 0.85
     })
     trail.geometry.setDrawRange(0, trail.dots.length)
+    if (trail.dots.length === 0 && (s.mode === 'hidden' || s.mode === 'away' || (hidden && s.opacity < 0.01))) {
+      setFrameloop('never')
+    }
     trail.geometry.attributes.position.needsUpdate = true
     trail.geometry.attributes.color.needsUpdate = true
   })
@@ -345,7 +355,7 @@ export default function FlightLayer({ activeScreenId, launchSignal = 0, hidden =
       <Canvas
         orthographic
         camera={{ zoom: 1, position: [0, 0, 1000], near: 1, far: 4000 }}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
         style={{ pointerEvents: 'none' }}
       >

@@ -1,14 +1,4 @@
 // src/App.jsx
-import { Canvas } from '@react-three/fiber'
-import {
-  ScrollControls,
-  Scroll,
-  Html,
-  PerspectiveCamera,
-  Hud,
-  AdaptiveDpr,
-  AdaptiveEvents
-} from '@react-three/drei'
 import React, { Suspense, useRef, useEffect, useState, lazy, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
@@ -18,7 +8,6 @@ import { useAudio } from './context/AudioProvider'
 import { AnimatedChars, AnimatedWords } from './AnimatedText'
 import MagneticButton from './MagneticButton'
 import CockpitControls from './CockpitControls'
-import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
@@ -34,14 +23,12 @@ import {
   warmRemainingAssets
 } from './preloadAssets';
 
-const loadAirplane = () => import('./Airplane')
-const loadProjects = () => import('./Projects')
+const loadProjectsStage = () => import('./ProjectsStage')
 const loadIntroSection = () => import('./IntroSection')
 const loadSkills = () => import('./Skills')
 const loadCertificates = () => import('./Certificates')
 
-const Airplane = lazy(loadAirplane)
-const Projects = lazy(loadProjects)
+const ProjectsStage = lazy(loadProjectsStage)
 const IntroSection = lazy(loadIntroSection)
 const Skills = lazy(loadSkills)
 const Certificates = lazy(loadCertificates)
@@ -70,7 +57,7 @@ const SCREEN_DEFINITIONS = [
     title: 'Project Orbit',
     subtitle: 'Spinning up the flight deck, arcade HUD, and project world.',
     theme: 'light',
-    preload: () => Promise.all([loadProjects(), loadAirplane()]),
+    preload: loadProjectsStage,
   },
   {
     id: 'certificate',
@@ -90,7 +77,6 @@ const SCREEN_DEFINITIONS = [
 ]
 
 
-const CANVAS_CAMERA_CONFIG = { position: [0, 4, 15], fov: 100 };
 const PAGE_NAVIGATION_SCROLL_THRESHOLD = 420;
 const TRANSITION_RESET_DELAY_MS = 180;
 // A wheel gesture (including trackpad inertia) counts as over once no wheel
@@ -344,6 +330,24 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
   );
 });
 
+function IntroStageShell() {
+  return (
+    <div
+      className="intro-stage"
+      aria-hidden="true"
+      style={{
+        position: 'relative',
+        width: '90%',
+        height: '60%',
+        margin: '10px auto',
+        borderRadius: '24px',
+        background: 'radial-gradient(circle at 50% 38%, #2b2735 0%, #18161f 45%, #121117 75%, #0b0a0f 100%)',
+        boxShadow: '0 30px 60px -30px rgba(18,17,23,0.55)',
+      }}
+    />
+  );
+}
+
 function SectionPlaceholder({ title, theme = 'light' }) {
   const isDark = theme === 'dark';
   const barColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
@@ -404,6 +408,8 @@ export default function App() {
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [planeLaunchSignal, setPlaneLaunchSignal] = useState(0);
   const [curtain, setCurtain] = useState(null);
+  // HTML first: the page paints with zero 3D code, then 3D extras mount in idle time.
+  const [idleReady, setIdleReady] = useState(false);
   const curtainCoveredRef = useRef(null);
   // navigateToScreenIndex is captured by long-lived callbacks, so it reads this ref, not state.
   const reducedMotionRef = useRef(reducedMotion);
@@ -441,6 +447,14 @@ export default function App() {
     try {
       console.log('%cHey, fellow dev 👋  Poke around all you like — it\'s clean code and good vibes in here.', 'color:#8b5cf6;font-size:13px;font-weight:700');
     } catch (_) { /* noop */ }
+  }, []);
+
+  useEffect(() => {
+    const handle = scheduleIdle(() => setIdleReady(true));
+    return () => {
+      if ('cancelIdleCallback' in window) window.cancelIdleCallback(handle);
+      else clearTimeout(handle);
+    };
   }, []);
 
   useEffect(() => {
@@ -726,14 +740,6 @@ export default function App() {
 
   const isMounted = (screenId) => mountedScreens.has(screenId);
   const projectsCanvasActive = activeScreenIndex === 2 && isMounted('projects');
-  // WebGL context-loss recovery for the heavy projects canvas
-  const [projGlKey, setProjGlKey] = useState(0);
-  const handleProjGlCreated = ({ gl }) => {
-    gl.domElement.addEventListener('webglcontextlost', (e) => {
-      e.preventDefault();
-      setTimeout(() => setProjGlKey((k) => k + 1), 450);
-    });
-  };
 
   // Outgoing screen fades and drifts away; incoming fades in and settles from the
   // direction of travel. Opacity/transform only, so it stays on the compositor.
@@ -858,7 +864,7 @@ export default function App() {
       )}
       <SectionCurtain curtain={curtain} onCovered={() => curtainCoveredRef.current?.()} />
       {/* The paper-plane courier that flies between screens (skipped under reduced motion) */}
-      {!reducedMotion && (
+      {!reducedMotion && idleReady && (
         <Suspense fallback={null}>
           <FlightLayer
             activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
@@ -1160,12 +1166,12 @@ export default function App() {
                 </AnimatePresence>
               </div>
             </motion.div>
-            {isMounted('lander') ? (
-              <Suspense fallback={<SectionPlaceholder title="Arrival Sequence" />}>
+            {isMounted('lander') && idleReady ? (
+              <Suspense fallback={<IntroStageShell />}>
                 <IntroSection lowPowerMode={lowPowerMode} />
               </Suspense>
             ) : (
-              <SectionPlaceholder title="Arrival Sequence" />
+              <IntroStageShell />
             )}
 
             {/* Scroll indicator */}
@@ -1200,13 +1206,14 @@ export default function App() {
             className="portfolio-screen"
             style={getScreenStyle(1, {
               height: '100vh',
-              padding: '60px 0px 6px 0',
+              padding: '72px 0 20px',
               width: '100vw',
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               alignItems: 'center',
               flexDirection: 'column',
-              background: 'radial-gradient(circle at 50% 0%, rgba(120,196,232,0.18), transparent 45%), linear-gradient(180deg, #ffffff 0%, #f4f9fd 100%)',
+              gap: '14px',
+              background: 'radial-gradient(circle at 50% 0%, rgba(251,191,36,0.08), transparent 45%), var(--paper)',
               overflowX: 'hidden',
               zIndex: 1,
               position: 'relative',
@@ -1297,91 +1304,25 @@ export default function App() {
                 </div>
 
                 {isMounted('projects') ? (
-                <Canvas
-                  key={projGlKey}
-                  onCreated={handleProjGlCreated}
-                  frameloop={projectsCanvasActive && !projectOverlayOpen ? 'always' : 'never'}
-                  dpr={lowPowerMode ? [0.75, 1.1] : [1, 1.5]}
-                  camera={CANVAS_CAMERA_CONFIG}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    display: 'block' // Ensure proper display
-                  }}
-                  gl={{
-                    antialias: !lowPowerMode,
-                    alpha: false,
-                    powerPreference: "high-performance"
-                  }}
-                >
-                  <AdaptiveDpr pixelated />
-                  <AdaptiveEvents />
-                  <ambientLight intensity={5} />
-                  <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
-                  <Suspense fallback={null}>
-
-                    <ScrollControls
-                      maxSpeed={0.25}
-                      distance={6}
-                      pages={1}
-                      damping={0.35}
-                      enabled={activeScreenIndex === 2}
-                      infinite={true}
-                      horizontal={false}
-                    >
-                      <Scroll>
-
-                        <Airplane
-                          contactPage={contactPage}
-                          setContactPage={setContactPage}
-                          ref={avatarRef}
-                          scale={7.5}
-                          position={[0, 0, 0]}
-                          rotation={[0, Math.PI, 0]}
-                          static={false}
-                          isMobile={isMobile}
-                          joystickDataRef={joystickDataRef}
-                          verticalControlRef={verticalControlRef}
-                          planeViewRef={planeViewRef}
-                          planeColor={planeColor}
-                          lowPowerMode={lowPowerMode}
-                        />
-
-                        {!contactPage ? (
-                          <Projects
-                            openIframe={openIframe}
-                            contactPage={contactPage}
-                            avatarRef={avatarRef}
-                            scoreElement={scoreElement}
-                            scoreValueRef={scoreValueRef}
-                            fireRef={fireRef}
-                            lowPowerMode={lowPowerMode}
-                          />
-                        ) : null}
-
-
-                      </Scroll>
-                    </ScrollControls>
-
-                    {/* Lightweight postprocessing for cinematic contrast.
-                        Only mounted while the projects canvas is active, multisampling off
-                        and mipmap bloom to keep GPU memory low (avoids context loss). */}
-                    {projectsCanvasActive && (
-                      <EffectComposer multisampling={0} enableNormalPass={false}>
-                        <Bloom
-                          intensity={0.22}
-                          luminanceThreshold={0.82}
-                          luminanceSmoothing={0.3}
-                          mipmapBlur
-                          radius={0.5}
-                        />
-                        <Vignette eskil={false} offset={0.28} darkness={0.72} />
-                      </EffectComposer>
-                    )}
-                  </Suspense>
-                </Canvas>
+                <Suspense fallback={<SectionPlaceholder title="Project Orbit" theme="dark" />}>
+                  <ProjectsStage
+                    active={projectsCanvasActive && !projectOverlayOpen}
+                    scrollEnabled={activeScreenIndex === 2}
+                    lowPowerMode={lowPowerMode}
+                    isMobile={isMobile}
+                    contactPage={contactPage}
+                    setContactPage={setContactPage}
+                    avatarRef={avatarRef}
+                    joystickDataRef={joystickDataRef}
+                    verticalControlRef={verticalControlRef}
+                    planeViewRef={planeViewRef}
+                    planeColor={planeColor}
+                    openIframe={openIframe}
+                    scoreElement={scoreElement}
+                    scoreValueRef={scoreValueRef}
+                    fireRef={fireRef}
+                  />
+                </Suspense>
                 ) : (
                   <SectionPlaceholder title="Project Orbit" theme="dark" />
                 )}
