@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Bloom, EffectComposer, ChromaticAberration, Vignette } from '@react-three/postprocessing'
 import { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import useResponsiveFov from './utils/useResponsiveFov'
+import CameraEntrance from './utils/CameraEntrance'
 import * as THREE from 'three'
 
 function Controls() {
@@ -548,6 +549,7 @@ export default function IntroSection({ lowPowerMode = false }) {
       <Canvas key={glKey} onCreated={handleGlCreated} frameloop={inView ? 'always' : 'never'} dpr={lowPowerMode ? [0.75, 1] : [1, 1.5]}>
         <Suspense fallback={null}>
           <IntroCamera />
+          <CameraEntrance distanceFactor={7} lift={1.5} duration={2} />
           <ambientLight intensity={5} />
           <Controls />
           {!lowPowerMode && (

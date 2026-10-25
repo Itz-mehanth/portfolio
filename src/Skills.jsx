@@ -16,6 +16,7 @@ import Car from './utils/models/Car';
 import { useInView } from 'react-intersection-observer';
 import { Joystick } from 'react-joystick-component';
 import useResponsiveFov from './utils/useResponsiveFov';
+import CameraEntrance from './utils/CameraEntrance';
 
 // City colors for different tech domains
 const cityColors = {
@@ -472,6 +473,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
               shadow-camera-bottom={-10}
               shadow-bias={-0.0001}
             />
+            {!driveMode && <CameraEntrance distanceFactor={2.6} lift={6} duration={1.8} />}
             {!driveMode && (
               <OrbitControls
                 enableZoom={true}

@@ -22,6 +22,7 @@ import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
+import SectionCurtain, { CURTAIN_COVER_MS, CURTAIN_HOLD_MS } from './SectionCurtain'
 import { getProjectBySlug } from './data/projects'
 import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid } from 'lucide-react';
 import { Joystick } from 'react-joystick-component';
@@ -402,6 +403,11 @@ export default function App() {
   const [lowPowerMode, setLowPowerMode] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [planeLaunchSignal, setPlaneLaunchSignal] = useState(0);
+  const [curtain, setCurtain] = useState(null);
+  const curtainCoveredRef = useRef(null);
+  // navigateToScreenIndex is captured by long-lived callbacks, so it reads this ref, not state.
+  const reducedMotionRef = useRef(reducedMotion);
+  reducedMotionRef.current = reducedMotion;
   /* Game State */
   const scoreValueRef = useRef(0);
   const scoreElement = useRef(null);
@@ -559,9 +565,25 @@ export default function App() {
 
     mountScreen(targetIndex);
 
+    // Sweep the paper curtain over the viewport; its cover time doubles as preload time.
+    const withCurtain = !reducedMotionRef.current;
+    if (withCurtain) {
+      const direction = targetIndex > activeScreenIndexRef.current ? 1 : -1;
+      await new Promise((resolve) => {
+        curtainCoveredRef.current = resolve;
+        setCurtain({
+          key: Date.now(),
+          direction,
+          number: String(targetIndex + 1).padStart(2, '0'),
+          label: NAV_LABELS[targetScreen.id],
+        });
+        setTimeout(resolve, CURTAIN_COVER_MS + 250); // in case the animation callback never fires
+      });
+    }
+
     await Promise.race([
       Promise.allSettled([importTask, assetTask]),
-      new Promise((resolve) => setTimeout(resolve, NAVIGATION_PRELOAD_BUDGET_MS)),
+      new Promise((resolve) => setTimeout(resolve, withCurtain ? 150 : NAVIGATION_PRELOAD_BUDGET_MS)),
     ]);
     preloadScreen(targetIndex + 1);
 
@@ -574,7 +596,11 @@ export default function App() {
       window.history.replaceState({}, '', targetScreen.path);
     }
 
-    // Cinematic transition clears itself via onComplete
+    if (withCurtain) {
+      // Hold the label a beat while the new screen settles underneath, then peel away.
+      await new Promise((resolve) => setTimeout(resolve, CURTAIN_HOLD_MS));
+      setCurtain(null);
+    }
     resetTransition();
   };
 
@@ -830,6 +856,7 @@ export default function App() {
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
         </div>
       )}
+      <SectionCurtain curtain={curtain} onCovered={() => curtainCoveredRef.current?.()} />
       {/* The paper-plane courier that flies between screens (skipped under reduced motion) */}
       {!reducedMotion && (
         <Suspense fallback={null}>

@@ -340,7 +340,7 @@ export default function FlightLayer({ activeScreenId, launchSignal = 0, hidden =
   return (
     <div
       aria-hidden="true"
-      style={{ position: 'fixed', inset: 0, zIndex: 60, pointerEvents: 'none' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 1200, pointerEvents: 'none' }}
     >
       <Canvas
         orthographic
