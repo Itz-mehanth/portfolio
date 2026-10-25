@@ -511,15 +511,15 @@ export default function IntroSection({ lowPowerMode = false }) {
       ref={ref}
       className="intro-stage"
       style={{
-        background: 'radial-gradient(circle at 50% 38%, #3b2a7a 0%, #1b1140 42%, #0a0618 75%, #030109 100%)',
+        background: 'radial-gradient(circle at 50% 38%, #2b2735 0%, #18161f 45%, #121117 75%, #0b0a0f 100%)',
         position: 'relative',
         zIndex: 10,
         width: '90%',
         height: '60%',
-        borderRadius: '20px',
+        borderRadius: '24px',
         overflow: 'hidden',
         margin: '10px auto',
-        boxShadow: '0 24px 60px -20px rgba(80, 50, 200, 0.45), inset 0 0 80px rgba(120, 80, 255, 0.08)',
+        boxShadow: '0 30px 60px -30px rgba(18,17,23,0.55)',
         border: '1px solid rgba(150, 120, 255, 0.15)',
         cursor: cursorColor ? `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='8' fill='${cursorColor}' opacity='0.9'/><circle cx='12' cy='12' r='10' fill='none' stroke='${cursorColor}' stroke-width='2' opacity='0.5'/></svg>`)}") 12 12, auto` : undefined,
       }}
@@ -533,7 +533,7 @@ export default function IntroSection({ lowPowerMode = false }) {
           display: 'flex', alignItems: 'center', gap: '6px',
         }}>
           <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: cursorColor, boxShadow: `0 0 6px ${cursorColor}` }} />
-          <span style={{ color: 'white', fontSize: '10px', fontFamily: "'Quicksand', sans-serif" }}>Cursor painted!</span>
+          <span style={{ color: 'white', fontSize: '10px', fontFamily: "var(--font-body)" }}>Cursor painted!</span>
         </div>
       )}
 

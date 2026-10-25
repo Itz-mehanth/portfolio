@@ -121,13 +121,13 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
             width: '48px',
             height: '48px',
             borderRadius: '50%',
-            background: '#10a37f',
+            background: '#121117',
             border: 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(16,163,127,0.4)',
+            boxShadow: '0 4px 16px rgba(18,17,23,0.35)',
           }}
         >
           <MessageCircle size={20} color="white" />
@@ -173,11 +173,11 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                  <MousePointer2 size={24} color="#10a37f" fill="#10a37f" style={{ filter: 'drop-shadow(0 2px 8px rgba(16,163,127,0.5))' }} />
+                  <MousePointer2 size={24} color="#121117" fill="#fbbf24" style={{ filter: "drop-shadow(0 2px 8px rgba(18,17,23,0.35))" }} />
                 </motion.div>
                 {currentStep.pointerLabel && (
                   <span style={{
-                    background: '#10a37f',
+                    background: '#121117',
                     color: 'white',
                     padding: '4px 10px',
                     borderRadius: '6px',
@@ -222,7 +222,7 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
                     width: '28px', height: '28px', borderRadius: '50%',
-                    background: '#10a37f',
+                    background: '#121117',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <MessageCircle size={14} color="white" />
@@ -235,7 +235,7 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
                       {currentStep.title}
                     </span>
                     <span style={{
-                      color: '#10a37f', fontSize: '9px', fontWeight: 600,
+                      color: '#b45309', fontSize: '9px', fontWeight: 600,
                       fontFamily: "'Poppins', sans-serif", letterSpacing: '0.3px',
                     }}>
                       Portfolio Guide
@@ -259,7 +259,7 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
               <div style={{ padding: '16px' }}>
                 <p style={{
                   color: '#374151', fontSize: '13px', lineHeight: 1.7,
-                  margin: 0, fontFamily: "'Quicksand', sans-serif",
+                  margin: 0, fontFamily: "var(--font-body)",
                 }}>
                   {currentStep.message}
                 </p>
@@ -279,7 +279,7 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
                         width: i === step ? '14px' : '5px',
                         height: '5px',
                         borderRadius: '3px',
-                        background: i === step ? '#10a37f' : i < step ? '#10a37f50' : '#e0e0e0',
+                        background: i === step ? '#121117' : i < step ? 'rgba(18,17,23,0.3)' : '#e0e0e0',
                         transition: 'all 0.3s ease',
                       }}
                     />
@@ -304,12 +304,12 @@ export default function TourGuide({ activeScreenIndex, onNavigate }) {
                     </motion.button>
                   )}
                   <motion.button
-                    whileHover={{ background: '#0d8c6d' }}
+                    whileHover={{ background: '#2a2933' }}
                     whileTap={{ scale: 0.95 }}
                     onClick={next}
                     style={{
                       padding: '7px 14px', borderRadius: '8px',
-                      background: '#10a37f', border: 'none',
+                      background: '#121117', border: 'none',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
                       color: 'white', fontSize: '11px', fontWeight: 600,
                       fontFamily: "'Poppins', sans-serif",

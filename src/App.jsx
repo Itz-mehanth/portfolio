@@ -21,7 +21,6 @@ import ContactCharacter from './ContactCharacter'
 import CockpitControls from './CockpitControls'
 import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import DevicePreview from './DevicePreview'
-import TVSimulator from './TVSimulator'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
 import { getProjectBySlug } from './data/projects'
@@ -53,7 +52,6 @@ const SCREEN_DEFINITIONS = [
     path: '/',
     title: 'Arrival Sequence',
     subtitle: 'Warming up the landing bay and intro world.',
-    accent: '#0ea5e9',
     theme: 'light',
     preload: loadIntroSection,
   },
@@ -62,7 +60,6 @@ const SCREEN_DEFINITIONS = [
     path: '/skills',
     title: 'Skill Town',
     subtitle: 'Loading the skill city and its interactive scene.',
-    accent: '#22c55e',
     theme: 'light',
     preload: loadSkills,
   },
@@ -71,7 +68,6 @@ const SCREEN_DEFINITIONS = [
     path: '/projects',
     title: 'Project Orbit',
     subtitle: 'Spinning up the flight deck, arcade HUD, and project world.',
-    accent: '#fbbf24',
     theme: 'light',
     preload: () => Promise.all([loadProjects(), loadAirplane()]),
   },
@@ -80,7 +76,6 @@ const SCREEN_DEFINITIONS = [
     path: '/certificates',
     title: 'Achievement Vault',
     subtitle: 'Opening the certification archive.',
-    accent: '#a855f7',
     theme: 'light',
     preload: loadCertificates,
   },
@@ -89,7 +84,6 @@ const SCREEN_DEFINITIONS = [
     path: '/contact',
     title: 'Contact Terminal',
     subtitle: 'Preparing the communication channel.',
-    accent: '#fb7185',
     theme: 'light',
   },
 ]
@@ -118,13 +112,16 @@ const getCaseStudySlugFromPath = (pathname) => {
   return match && getProjectBySlug(match[1]) ? match[1] : null;
 };
 
+const ACCENT = '#f59e0b';
+
 const NAV_ITEMS = [
-  { id: 'lander', label: 'Lander' },
+  { id: 'lander', label: 'Home' },
   { id: 'skills', label: 'Skills' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'certificate', label: 'Certificate' },
+  { id: 'projects', label: 'Work' },
+  { id: 'certificate', label: 'Awards' },
   { id: 'contact', label: 'Contact' },
 ]
+const NAV_LABELS = Object.fromEntries(NAV_ITEMS.map(({ id, label }) => [id, label]))
 
 const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -140,8 +137,8 @@ const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
       <div className="navbar-left" style={{ color: fontBlack ? 'black' : 'white', display: 'flex', alignItems: 'center', gap: '9px' }}>
         <span style={{
           width: '9px', height: '9px', borderRadius: '50%',
-          background: 'linear-gradient(135deg, #fbbf24, #ec4899)',
-          boxShadow: '0 0 10px rgba(236,72,153,0.5)',
+          background: ACCENT,
+          boxShadow: '0 0 10px rgba(245,158,11,0.5)',
           flexShrink: 0,
         }} />
         <span className="nav-brand-name" style={{ letterSpacing: '-0.01em' }}>Mehanth</span>
@@ -288,7 +285,8 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
             onClick={() => onNavigate(screen.id)}
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
-            aria-label={`Go to ${screen.id}`}
+            aria-label={`Go to ${NAV_LABELS[screen.id]}`}
+            aria-current={active ? 'true' : undefined}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
               gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: 0,
@@ -306,12 +304,12 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
                 textTransform: 'capitalize', pointerEvents: 'none',
               }}
             >
-              {screen.id}
+              {String(i + 1).padStart(2, '0')} · {NAV_LABELS[screen.id]}
             </motion.span>
             <motion.span
               animate={{
                 height: active ? 26 : 8,
-                backgroundColor: active ? screen.accent : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
+                backgroundColor: active ? ACCENT : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
               }}
               transition={{ type: 'spring', stiffness: 350, damping: 26 }}
               style={{ width: '5px', borderRadius: '999px', display: 'block' }}
@@ -322,46 +320,6 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
     </div>
   );
 });
-
-const ROLES = ['Full Stack Developer', '3D Web Artist', 'Hackathon Winner', 'AI Enthusiast', 'UI/UX Designer'];
-
-function TypingRoles({ isVisible }) {
-  const [roleIndex, setRoleIndex] = useState(0);
-
-  useEffect(() => {
-    if (!isVisible) return;
-    const interval = setInterval(() => {
-      setRoleIndex(i => (i + 1) % ROLES.length);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isVisible]);
-
-  return (
-    <div style={{ height: '28px', margin: '4px 0 10px', overflow: 'hidden' }}>
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={roleIndex}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -14 }}
-          transition={{ duration: 0.3 }}
-          style={{
-            display: 'inline-block',
-            fontSize: '15px',
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 700,
-            background: 'linear-gradient(90deg, #d97706, #ea580c)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '0.5px',
-          }}
-        >
-          {ROLES[roleIndex]}
-        </motion.span>
-      </AnimatePresence>
-    </div>
-  );
-}
 
 function SectionPlaceholder({ title, theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -376,7 +334,7 @@ function SectionPlaceholder({ title, theme = 'light' }) {
         <div style={{ height: '10px', borderRadius: '5px', background: barColor, width: '70%', animation: 'skeleton-pulse 1.5s ease-in-out 0.2s infinite' }} />
         <div style={{ height: '10px', borderRadius: '5px', background: barColor, width: '45%', animation: 'skeleton-pulse 1.5s ease-in-out 0.4s infinite' }} />
       </div>
-      <span style={{ color: textColor, fontSize: '11px', fontFamily: 'Quicksand, sans-serif', letterSpacing: '1px' }}>{title}</span>
+      <span style={{ color: textColor, fontSize: '11px', fontFamily: "var(--font-body)", letterSpacing: '1px' }}>{title}</span>
     </div>
   );
 }
@@ -403,7 +361,6 @@ export default function App() {
   const [projectIndexOpen, setProjectIndexOpen] = useState(false);
   const [caseStudySlug, setCaseStudySlug] = useState(() => getCaseStudySlugFromPath(window.location.pathname));
   const projectOverlayOpen = projectIndexOpen || caseStudySlug !== null;
-  const [tvReady, setTvReady] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -893,13 +850,18 @@ export default function App() {
               margin: '0 auto',
             }}>
               <div className="hero-copy" style={{ width: '70%', minWidth: '280px', flex: '1 1 280px' }}>
-                <p className='Quicksand' style={{ margin: '30px 0 0 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
-                  <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} style={{ fontSize: '16px', color: 'grey' }} />
+                <p className='section-eyebrow' style={{ margin: '30px 0 0' }}>
+                  <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} />
                 </p>
-                <p className='Silkscreen hero-name' style={{ margin: '8px 0 2px', fontSize: 'clamp(44px, 11vw, 92px)', textAlign: 'left', perspective: '600px', lineHeight: 1.02 }}>
+                <h1 className='hero-name' style={{ perspective: '600px' }}>
                   <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'inherit' }} />
+                </h1>
+                <p className='hero-role'>
+                  <AnimatedWords text="Full-stack & 3D web developer" isVisible={activeScreenIndex === 0} delay={0.5} />
                 </p>
-                <TypingRoles isVisible={activeScreenIndex === 0} />
+                <p className='hero-lede'>
+                  <AnimatedWords text="I build fast, interactive 3D experiences for the web. Computer Science at SSN, Chennai." isVisible={activeScreenIndex === 0} delay={0.8} />
+                </p>
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={activeScreenIndex === 0 ? { opacity: 1, x: 0 } : { opacity: 0 }}
@@ -907,13 +869,13 @@ export default function App() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                     padding: '6px 14px', borderRadius: '20px',
-                    background: 'rgba(26, 35, 126, 0.06)',
-                    border: '1px solid rgba(26, 35, 126, 0.12)',
-                    marginBottom: '12px',
+                    background: 'rgba(18, 17, 23, 0.04)',
+                    border: '1px solid var(--line)',
+                    marginBottom: '16px',
                   }}
                 >
                   <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a237e', fontFamily: "'Poppins', sans-serif" }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-body)' }}>
                     Currently interning @ <strong>VISA</strong>, Bangalore
                   </span>
                 </motion.div>
@@ -927,8 +889,8 @@ export default function App() {
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '8px',
                         padding: '12px 22px',
-                        background: 'linear-gradient(120deg, #fbbf24, #f59e0b)',
-                        color: '#1a1a1a',
+                        background: 'var(--accent)',
+                        color: 'var(--ink)',
                         border: 'none',
                         borderRadius: '999px',
                         fontSize: '14px',
@@ -964,12 +926,6 @@ export default function App() {
                     </motion.button>
                   </MagneticButton>
                 </div>
-                <p className='Quicksand' style={{ margin: '10px 0px 5px', fontSize: 'clamp(16px, 4vw, 24px)', textAlign: 'left' }}>
-                  <AnimatedWords text="a Computer Science Engineering student" isVisible={activeScreenIndex === 0} delay={0.5} style={{ fontSize: 'clamp(16px, 4vw, 24px)' }} />
-                </p>
-                <p className='Quicksand' style={{ margin: '5px 0px', fontSize: '16px', textAlign: 'left', color: 'grey' }}>
-                  <AnimatedWords text="with a passion for creating wonders through code, creativity, and innovation." isVisible={activeScreenIndex === 0} delay={0.8} style={{ fontSize: '16px', color: 'grey' }} />
-                </p>
 
                 {/* Social links */}
                 <motion.div
@@ -1072,7 +1028,7 @@ export default function App() {
                           position: 'relative',
                         }}
                       >
-                        <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: "'Quicksand', sans-serif", color: '#1a1a1a' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: "var(--font-body)", color: '#1a1a1a' }}>
                           Hey there! 👋
                         </span>
                         {/* Bubble tail */}
@@ -1139,7 +1095,7 @@ export default function App() {
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
                 }}
               >
-                <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '10px', fontFamily: "'Quicksand', sans-serif", letterSpacing: '1px' }}>
+                <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '10px', fontFamily: "var(--font-body)", letterSpacing: '1px' }}>
                   SCROLL
                 </span>
                 <motion.div
@@ -1172,9 +1128,10 @@ export default function App() {
               position: 'relative',
             })}
           >
-            <h1 className='font-syne kinetic-gradient' style={{
-              fontSize: 'clamp(40px, 9vw, 80px)', fontWeight: 800, margin: 0, letterSpacing: '-0.02em',
-            }}>Skill Town</h1>
+            <header className='section-heading'>
+              <span className='section-eyebrow'>02 · Skills</span>
+              <h2 className='section-title'>Skill Town</h2>
+            </header>
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
                 <Skills lowPowerMode={lowPowerMode} />
@@ -1193,76 +1150,52 @@ export default function App() {
             className="portfolio-screen canvas-text-section hide-scrollbar"
             style={getScreenStyle(2, {
               margin: "0 auto",
-              borderRadius: "30px",
               position: "relative",
               display: "flex",
               height: "100vh",
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
-              padding: "76px 20px 28px",
-              gap: "18px",
+              padding: "84px 20px 20px",
+              gap: "0",
               width: "100vw",
               boxSizing: "border-box",
             })}
           >
-            {/* Google TV Container */}
+            {/* Flight stage */}
             <div
               className="hide-scrollbar canvas-wrapper"
               style={{
                 flex: 1,
-                backgroundColor: "#0a0a0a",
-                borderRadius: "20px",
-                height: "min(74vh, 780px)",
-                width: "min(calc(100vw - 40px), 1500px)",
-                maxWidth: "100%",
-                boxShadow: "0 30px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                backgroundColor: "var(--ink)",
+                borderRadius: "24px",
+                width: "min(100%, 1600px)",
+                minHeight: 0,
                 overflow: "hidden",
                 position: "relative",
-                padding: "8px",
+                boxShadow: "0 30px 60px -30px rgba(18,17,23,0.55)",
               }}
             >
-              {/* Screen area */}
               <div
                 style={{
                   width: "100%",
                   height: "100%",
-                  backgroundColor: "#000",
-                  borderRadius: "14px",
                   overflow: "hidden",
                   position: "relative",
                 }}
               >
-                {/* Google TV ambient glow strip at bottom */}
-                <div style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: "10%",
-                  right: "10%",
-                  height: "3px",
-                  background: "linear-gradient(90deg, #4285f4, #ea4335, #fbbc04, #34a853)",
-                  borderRadius: "2px",
-                  zIndex: 5,
-                  opacity: 0.8,
-                }} />
-
                 {/* Skip the flight: every project as a plain, accessible list */}
                 <button type="button" className="pp-open-index" onClick={openProjectIndex}>
                   <LayoutGrid size={15} strokeWidth={2.4} /> All projects
                 </button>
 
-                {/* TV Boot Simulator */}
-                <TVSimulator onReady={() => setTvReady(true)} isReady={tvReady} />
                 <div style={{
                   position: 'absolute',
                   top: '20px',
                   right: '25px',
                   zIndex: 10,
                   display: 'none',
-                  fontFamily: "'Share Tech Mono', monospace",
+                  fontFamily: "var(--font-mono)",
                   color: '#fbbf24', // Gold color
                   textShadow: '0 0 5px #fbbf24',
                   backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1485,11 +1418,6 @@ export default function App() {
                 </>)}
               </div>
             </div>
-            {/* Google TV Stand */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '-4px' }}>
-              <div style={{ width: '4px', height: '20px', background: '#1a1a1a', borderRadius: '2px' }} />
-              <div style={{ width: '120px', height: '6px', background: 'linear-gradient(180deg, #2a2a2a, #111)', borderRadius: '3px', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }} />
-            </div>
           </section>
 
           <section
@@ -1685,11 +1613,6 @@ function ContactSection({ lowPowerMode = false }) {
 
   return (
     <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-
       <section className={`contact-section${raging ? ' is-raging' : ''}`}>
         {/* soft light glows */}
         <div className="contact-aurora" aria-hidden="true">

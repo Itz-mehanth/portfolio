@@ -417,14 +417,14 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         style={{
           width: '90vw',
           height: '60vh',
-          border: '15px ridge black',
-          borderRadius: '10px',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          boxShadow: '0 30px 60px -34px rgba(18,17,23,0.45), 0 0 0 1px var(--line)',
           position: 'relative',
           zIndex: 10,
           pointerEvents: 'auto',
           cursor: 'grab'
         }}
-        onClick={() => console.log('Canvas container clicked!')}
       >
         <Canvas
           key={glKey}
@@ -553,22 +553,21 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
             position: 'absolute',
             top: '12px',
             right: '12px',
-            padding: '8px 16px',
-            background: driveMode ? 'rgba(239, 68, 68, 0.9)' : 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: '20px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            fontFamily: "'Silkscreen', monospace",
+            padding: '9px 16px',
+            background: driveMode ? 'var(--ink)' : 'var(--accent)',
+            color: driveMode ? '#fff' : 'var(--ink)',
+            border: 'none',
+            borderRadius: '999px',
+            fontSize: '13px',
+            fontWeight: 600,
+            fontFamily: 'var(--font-body)',
             cursor: 'pointer',
             zIndex: 20,
-            backdropFilter: 'blur(4px)',
-            transition: 'all 0.2s ease',
-            letterSpacing: '1px',
+            boxShadow: '0 6px 20px -6px rgba(18,17,23,0.35)',
+            transition: 'background 0.2s ease',
           }}
         >
-          {driveMode ? '✕ EXIT DRIVE' : '🚗 DRIVE MODE'}
+          {driveMode ? 'Exit drive mode' : 'Drive the car'}
         </button>
 
         {/* Drive mode controls hint (desktop) */}
@@ -583,7 +582,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
             color: 'rgba(255, 255, 255, 0.8)',
             borderRadius: '12px',
             fontSize: '11px',
-            fontFamily: "'Quicksand', sans-serif",
+            fontFamily: "var(--font-body)",
             zIndex: 20,
             backdropFilter: 'blur(4px)',
             whiteSpace: 'nowrap',
@@ -626,120 +625,51 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
   );
 }
 
-// Logo URLs from devicon CDN
-const SKILL_LOGOS = {
-  'Python': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
-  'JavaScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
-  'TypeScript': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-  'Dart': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg',
-  'C': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg',
-  'C++': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
-  'Java': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
-  'SQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
-  'HTML': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',
-  'CSS': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg',
-  'Tailwind CSS': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-original.svg',
-  'React.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
-  'Next.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
-  'Vue.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg',
-  'Angular': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg',
-  'Chart.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/d3js/d3js-original.svg',
-  'Flutter': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg',
-  'Node.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
-  'Express.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg',
-  'Flask': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg',
-  'Spring Boot': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg',
-  'REST API': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg',
-  'WebSockets': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/socketio/socketio-original.svg',
-  'WebRTC': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/webflow/webflow-original.svg',
-  'Apache Kafka': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apachekafka/apachekafka-original.svg',
-  'Apache Spark': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
-  'PostgreSQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg',
-  'MySQL': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
-  'MongoDB': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg',
-  'Redis': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg',
-  'React Three Fiber': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg',
-  'Three.js': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg',
-  'Unity': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg',
-  'Godot': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/godot/godot-original.svg',
-  'Blender': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg',
-  'Figma': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',
-  'Docker': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg',
-  'Git': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
-  'Firebase': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg',
-  'Raspberry Pi': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/raspberrypi/raspberrypi-original.svg',
-  'PySpark': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
-  'Spark Streaming': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
-  'Spark MLlib': 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apachespark/apachespark-original.svg',
-  'TensorFlow': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg',
-  'OpenCV': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg',
-  'CNNs': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg',
+const CITY_LABELS = {
+  languages: 'Languages',
+  web: 'Web',
+  mobile: 'Mobile',
+  backend: 'Backend',
+  database: 'Databases',
+  arvr: 'AR / VR & 3D',
+  uiux: 'UI / UX',
+  tools: 'Tools',
+  aiml: 'AI / ML',
 };
 
 const SkillsGrid = ({ skillsByCity, selectedCity }) => {
   const skills = skillsByCity[selectedCity] || [];
-  const prevSkills = useRef(skills);
-  const [animateKey, setAnimateKey] = useState(0);
-
-  useEffect(() => {
-    setAnimateKey(k => k + 1);
-    prevSkills.current = skills;
-  }, [selectedCity]);
 
   return (
     <div className="skills-panel" style={{
-      width: '90vw', margin: '12px 0 60px',
-      padding: '22px', borderRadius: '18px',
-      background: 'rgba(255,255,255,0.9)',
-      backdropFilter: 'blur(8px)',
-      boxShadow: '0 1px 2px rgba(16,24,40,0.04), 0 16px 40px -18px rgba(99,102,241,0.18)',
-      border: '1px solid rgba(99,102,241,0.08)',
+      width: '90vw', margin: '14px 0 60px',
+      padding: '20px 22px', borderRadius: '20px',
+      background: '#fff',
+      boxShadow: '0 1px 2px rgba(18,17,23,0.04), 0 0 0 1px var(--line)',
     }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px',
-      }}>
-        <span className="kinetic-gradient font-syne" style={{
-          fontSize: '15px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase',
-        }}>Tech Stack</span>
-        <span style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(99,102,241,0.25), transparent)' }} />
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+        <span className="section-eyebrow">{CITY_LABELS[selectedCity] || 'Tech stack'}</span>
+        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Click a district in the town to switch</span>
       </div>
-      <div key={animateKey} style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-        gap: '12px',
-      }}>
+      <ul key={selectedCity} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {skills.map((skill, i) => (
-          <motion.div
+          <motion.li
             key={skill.name}
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: i * 0.04, type: 'spring', damping: 18, stiffness: 150 }}
-            whileHover={{ y: -6, scale: 1.05, boxShadow: '0 12px 26px -8px rgba(99,102,241,0.35)' }}
+            title={skill.description}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03, duration: 0.25 }}
             style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '8px', padding: '16px 8px', borderRadius: '14px',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%)',
-              border: '1px solid rgba(99,102,241,0.10)',
-              cursor: 'default', transition: 'box-shadow 0.2s',
+              padding: '7px 14px', borderRadius: '999px',
+              border: '1px solid var(--line)', background: 'var(--paper)',
+              fontSize: '13px', fontWeight: 500, color: 'var(--ink)',
+              fontFamily: 'var(--font-body)',
             }}
           >
-            <img
-              src={SKILL_LOGOS[skill.name] || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/devicon/devicon-original.svg'}
-              alt={skill.name}
-              style={{ width: '38px', height: '38px', objectFit: 'contain' }}
-              loading="lazy"
-            />
-            <span style={{
-              fontSize: '11px', fontWeight: 600, color: '#1a1a1a',
-              textAlign: 'center', fontFamily: "'Poppins', sans-serif",
-              lineHeight: 1.2,
-            }}>
-              {skill.name}
-            </span>
-          </motion.div>
+            {skill.name}
+          </motion.li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };
-

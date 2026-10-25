@@ -677,20 +677,12 @@ html, body {
 
 /* === MOBILE RESPONSIVE === */
 @media (max-width: 768px) {
-  .Silkscreen {
-    font-size: 32px !important;
-  }
-
   .navbar {
     padding: 0 16px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .Silkscreen {
-    font-size: 28px !important;
-  }
-
   .portfolio-screen {
     /* clear the fixed 80px navbar on phones (was 68px — tucked content under it) */
     padding: 88px 14px 18px !important;
@@ -699,14 +691,58 @@ html, body {
 
 /* ============ Typography flourishes ============ */
 
-/* Hero name — retro layered 3D pop */
+/* ---- Shared type system: eyebrow + display title, used by every section ---- */
+.section-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.section-eyebrow {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(36px, 7vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* Hero */
 .hero-name {
-  color: #161235;
-  letter-spacing: 1px;
-  text-shadow:
-    3px 3px 0 #fbbf24,
-    6px 6px 0 #ec4899,
-    9px 9px 0 rgba(139, 92, 246, 0.55);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 11vw, 128px);
+  white-space: nowrap; /* AnimatedChars renders inline-blocks that could otherwise wrap mid-word */
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin: 6px 0 14px;
+  text-align: left;
+}
+.hero-role {
+  font-family: var(--font-body);
+  font-size: clamp(18px, 2.4vw, 26px);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.hero-lede {
+  font-family: var(--font-body);
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 520px;
+  margin: 0 0 20px;
 }
 
 /* Reusable animated gradient text (for headings) */
@@ -722,7 +758,7 @@ html, body {
 @keyframes kineticFlow { to { background-position: 300% 0; } }
 
 .font-display { font-family: 'Space Grotesk', 'Poppins', sans-serif; }
-.font-syne { font-family: 'Syne', 'Space Grotesk', sans-serif; }
+.font-syne { font-family: var(--font-display); }
 
 /* ---- kinetic marquee band ---- */
 .km-band {
@@ -744,7 +780,7 @@ html, body {
 .km-item {
   display: inline-flex;
   align-items: center;
-  font-family: 'Syne', 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(1.3rem, 3.8vw, 2.4rem);
   line-height: 1;
@@ -766,7 +802,6 @@ html, body {
 /* ---- a11y: silence ambient/loader motion under reduced-motion ---- */
 @media (prefers-reduced-motion: reduce) {
   [class*="anime-"] { animation: none !important; }
-  .hero-name { text-shadow: 2px 2px 0 #ec4899; }
 }
 
 /* ---- Projects controls + balloon hint (auto-fades) ---- */
@@ -826,7 +861,6 @@ html, body {
     margin: 10px auto !important; flex: 0 0 auto;
   }
   .hero-photo { width: 150px !important; height: 150px !important; }
-  .hero-name { letter-spacing: 0; }
 
   /* Skills: smaller heading + drive-scene + panel, and scrollable so the
      skill panel below the canvas is actually reachable */
@@ -859,7 +893,6 @@ html, body {
   .km-band { display: none !important; }
   .hero-photo { width: 118px !important; height: 118px !important; }
   .hero-portrait { flex: 1 1 100% !important; }
-  .hero-name { text-shadow: 2px 2px 0 #fbbf24, 4px 4px 0 #ec4899; }
 
   /* Skills compacts further */
   .skills-stage { height: 40vh !important; min-height: 220px; border-width: 6px !important; }

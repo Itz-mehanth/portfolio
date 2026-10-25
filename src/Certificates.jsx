@@ -574,7 +574,7 @@ export default function Certificates({ lowPowerMode = false }) {
                 WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.35)',
               }}>My Bookshelf</h2>
-              <p style={{ color: '#e7dcc3', fontSize: '0.78rem', margin: 0, fontFamily: "'Quicksand', sans-serif", textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>Pick a book to read the story</p>
+              <p style={{ color: '#e7dcc3', fontSize: '0.78rem', margin: 0, fontFamily: "var(--font-body)", textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>Pick a book to read the story</p>
             </div>
           </motion.div>
         )}
@@ -625,9 +625,9 @@ export default function Certificates({ lowPowerMode = false }) {
                         <span style={{ color: '#d97706', fontSize: '10px', fontWeight: 800, letterSpacing: '1px', fontFamily: "'Poppins', sans-serif" }}>{pages[page].badge.toUpperCase()}</span>
                       </div>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a1a1a', margin: '0 0 3px', fontFamily: "'Poppins', sans-serif" }}>{pages[page].title}</h3>
-                      <p style={{ color: '#888', fontSize: '0.75rem', margin: '0 0 12px', fontFamily: "'Quicksand', sans-serif" }}>{pages[page].venue} &middot; {pages[page].date}</p>
+                      <p style={{ color: '#888', fontSize: '0.75rem', margin: '0 0 12px', fontFamily: "var(--font-body)" }}>{pages[page].venue} &middot; {pages[page].date}</p>
                       <div style={{ width: '28px', height: '2px', background: '#fbbf24', marginBottom: '12px' }} />
-                      <p style={{ color: '#444', fontSize: '0.85rem', lineHeight: 1.7, margin: 0, fontFamily: "'Quicksand', sans-serif", fontStyle: 'italic' }}>&ldquo;{pages[page].story}&rdquo;</p>
+                      <p style={{ color: '#444', fontSize: '0.85rem', lineHeight: 1.7, margin: 0, fontFamily: "var(--font-body)", fontStyle: 'italic' }}>&ldquo;{pages[page].story}&rdquo;</p>
                     </>
                   ) : (
                     <>
@@ -636,9 +636,9 @@ export default function Certificates({ lowPowerMode = false }) {
                         <span style={{ color: '#059669', fontSize: '10px', fontWeight: 800, letterSpacing: '1px', fontFamily: "'Poppins', sans-serif" }}>{pages[page].score}</span>
                       </div>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1a1a1a', margin: '0 0 3px', fontFamily: "'Poppins', sans-serif" }}>{pages[page].title}</h3>
-                      <p style={{ color: '#888', fontSize: '0.75rem', margin: '0 0 12px', fontFamily: "'Quicksand', sans-serif" }}>{pages[page].issuer} &middot; {pages[page].date}</p>
+                      <p style={{ color: '#888', fontSize: '0.75rem', margin: '0 0 12px', fontFamily: "var(--font-body)" }}>{pages[page].issuer} &middot; {pages[page].date}</p>
                       <div style={{ width: '28px', height: '2px', background: '#34d399', marginBottom: '12px' }} />
-                      <p style={{ color: '#444', fontSize: '0.85rem', lineHeight: 1.7, margin: '0 0 10px', fontFamily: "'Quicksand', sans-serif", fontStyle: 'italic' }}>&ldquo;{pages[page].story}&rdquo;</p>
+                      <p style={{ color: '#444', fontSize: '0.85rem', lineHeight: 1.7, margin: '0 0 10px', fontFamily: "var(--font-body)", fontStyle: 'italic' }}>&ldquo;{pages[page].story}&rdquo;</p>
                       {pages[page].url && (
                         <a href={pages[page].url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#2563eb', fontSize: '11px', fontWeight: 600, textDecoration: 'none', fontFamily: "'Poppins', sans-serif" }}>
                           <ExternalLink size={12} /> View Certificate
