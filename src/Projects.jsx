@@ -359,15 +359,6 @@ export function OceanWorld({ lowPowerMode = false, avatarRef }) {
         />
       ))}
 
-      {/* === SUBTLE HORIZON HAZE at zone edges === */}
-      <mesh position={[0, -8, ZONE_Z - ZONE_W + 2]} rotation={[0, 0, 0]}>
-        <planeGeometry args={[200, 14, 1, 1]} />
-        <meshBasicMaterial color="#a8d8ea" transparent opacity={0.18} depthWrite={false} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, -8, ZONE_Z + ZONE_W - 2]} rotation={[0, 0, 0]}>
-        <planeGeometry args={[200, 14, 1, 1]} />
-        <meshBasicMaterial color="#a8d8ea" transparent opacity={0.18} depthWrite={false} side={THREE.DoubleSide} />
-      </mesh>
     </group>
   );
 }

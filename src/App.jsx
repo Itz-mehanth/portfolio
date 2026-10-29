@@ -15,7 +15,7 @@ import HomeHero from './HomeHero'
 import Scribble from './Scribble'
 import './Motion.css'
 import { getProjectBySlug } from './data/projects'
-import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid } from 'lucide-react';
+import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid, Plus, X } from 'lucide-react';
 import { Joystick } from 'react-joystick-component';
 import {
   isRoutePreloaded,
@@ -941,34 +941,17 @@ export default function App() {
 
             id="projects"
             className={screenClass(2, 'canvas-text-section hide-scrollbar')}
-            style={getScreenStyle(2, {
-              margin: "0 auto",
-              position: "relative",
-              display: "flex",
-              height: "100vh",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "84px 20px 20px",
-              gap: "0",
-              width: "100vw",
-              boxSizing: "border-box",
-            })}
+            style={getScreenStyle(2, { overflow: 'hidden', background: 'var(--ink)' })}
           >
             {/* Flight stage */}
             <div
               className="hide-scrollbar canvas-wrapper layer"
               data-gesture-zone
               style={{
-                '--d': 1,
-                flex: 1,
+                position: 'absolute',
+                inset: 0,
                 backgroundColor: "var(--ink)",
-                borderRadius: "24px",
-                width: "min(100%, 1600px)",
-                minHeight: 0,
                 overflow: "hidden",
-                position: "relative",
-                boxShadow: "0 30px 60px -30px rgba(18,17,23,0.55)",
               }}
             >
               <div
@@ -979,10 +962,24 @@ export default function App() {
                   position: "relative",
                 }}
               >
-                {/* Skip the flight: every project as a plain, accessible list */}
-                <button type="button" className="pp-open-index" onClick={openProjectIndex}>
-                  <LayoutGrid size={15} strokeWidth={2.4} /> All projects
-                </button>
+                {/* Editorial header over the scene's top-left corner. "All projects" is the
+                    non-3D way to browse everything, so nobody has to fly. */}
+                <div className="work-fade" aria-hidden="true" />
+                <header className="sheet-header work-header layer" style={{ '--d': 1 }}>
+                  <Scribble style={{ left: '-112px', top: '70px' }}>{'From ideas\nto real projects'}</Scribble>
+                  <span className="section-eyebrow">03 · Work</span>
+                  <h2 className="section-title">The flight world</h2>
+                  <p className="sheet-lede">Fly through my projects. Each balloon is a project with its story and links.</p>
+                  <div className="sheet-actions">
+                    <button type="button" className="pill-btn ink" onClick={() => setCockpitOpen((o) => !o)} aria-pressed={cockpitOpen}>
+                      {cockpitOpen ? <X size={15} strokeWidth={2.4} /> : <Plus size={15} strokeWidth={2.4} />}
+                      {cockpitOpen ? 'Exit cockpit' : 'Enter cockpit'}
+                    </button>
+                    <button type="button" className="pill-btn" onClick={openProjectIndex}>
+                      <LayoutGrid size={15} strokeWidth={2.2} /> All projects
+                    </button>
+                  </div>
+                </header>
 
                 <div style={{
                   position: 'absolute',
@@ -1030,6 +1027,7 @@ export default function App() {
 
                 {/* Cockpit control room — hull color + camera view */}
                 <CockpitControls
+                  hideToggle
                   open={cockpitOpen}
                   setOpen={setCockpitOpen}
                   view={planeView}

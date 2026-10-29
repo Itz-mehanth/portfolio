@@ -247,13 +247,23 @@ balloons), `src/Airplane.jsx` (your plane and cameras), `src/Blaster.jsx`,
 `src/CoinField.jsx`, `src/CockpitControls.jsx` · project data:
 `src/data/projects.js` · **WebGL**.
 
-The section is one large dark rounded stage (layer 1) holding a 3D flight
-through five worlds, with your projects floating along the route as balloons.
+The flight world fills the whole sheet. A soft paper corner at the top left
+carries the editorial header (layer 1):
+- **"03 · Work"** and the title **"The flight world"**.
+- "Fly through my projects. Each balloon is a project with its story and links."
+- Two buttons: **Enter cockpit** (ink; toggles the cockpit panel and becomes
+  "Exit cockpit") and **All projects** (outlined; opens the plain project list).
+- A handwritten margin note, "From ideas to real projects" (wide screens only).
+
+Only the header's buttons take clicks, so flying is never blocked. On phones the
+header shrinks to the title and the two buttons.
 
 ### Your craft
 A **paper airplane** (`public/models/paper_airplane.glb`), seen from behind in
-the chase camera. Boosting makes the paper flutter harder. Its colour follows
-the hull colour picked in the cockpit panel.
+the chase camera, about 3.4 units long. The flight scene is lit very brightly,
+so the paper's base colour is scaled down until it shades instead of clipping to
+flat white; you can see its folds. Boosting makes the paper flutter harder. Its
+colour follows the hull colour picked in the cockpit panel.
 
 ### The route (front to back)
 1. **Dawn:** warm peach sky; the start.
@@ -290,13 +300,14 @@ banner. The banner shows:
 Balloon styles go diamond, then gold, then platinum along the route. Coins along
 the way count up as you collect them (the score display is currently hidden).
 
-### Cockpit controls (button top left: "ENTER COCKPIT")
+### Cockpit controls ("Enter cockpit" in the header)
+The panel opens at the bottom left:
 - **Camera views:** Cockpit (first person, inside the old jet cockpit), Chase
   (default), Top, Left, Right, Front.
 - **Hull colours:** Titanium, Crimson, Ion Blue, Solar Gold, Emerald, Plasma,
   Lime, Stealth.
 
-### "All projects" button (top right of the stage)
+### "All projects" (in the header)
 Opens the plain project list (section 7), so nobody has to fly to see your work.
 
 ---

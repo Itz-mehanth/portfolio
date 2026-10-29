@@ -24,11 +24,11 @@ const COLORS = [
 
 const CYAN = '#27e0ff';
 
-export default function CockpitControls({ open, setOpen, view, setView, color, setColor }) {
+export default function CockpitControls({ open, setOpen, view, setView, color, setColor, hideToggle = false }) {
   return (
     <>
-      {/* Enter / Exit button */}
-      <button
+      {/* Enter / Exit button (skipped when the Work header drives the cockpit) */}
+      {!hideToggle && <button
         onClick={() => setOpen(!open)}
         style={{
           position: 'absolute', top: '74px', left: '20px', zIndex: 10001,
@@ -48,7 +48,7 @@ export default function CockpitControls({ open, setOpen, view, setView, color, s
       >
         <span style={{ fontSize: '14px' }}>{open ? '✕' : '⌖'}</span>
         {open ? 'Exit Cockpit' : 'Enter Cockpit'}
-      </button>
+      </button>}
 
       <AnimatePresence>
         {open && (
@@ -59,7 +59,8 @@ export default function CockpitControls({ open, setOpen, view, setView, color, s
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', stiffness: 260, damping: 26 }}
             style={{
-              position: 'absolute', top: '120px', left: '20px', zIndex: 10001,
+              position: 'absolute', zIndex: 10001,
+              ...(hideToggle ? { bottom: '24px', left: '24px' } : { top: '120px', left: '20px' }),
               width: 'min(290px, 78vw)',
               padding: '18px 18px 20px',
               fontFamily: "ui-monospace, 'SF Mono', 'Courier New', monospace",

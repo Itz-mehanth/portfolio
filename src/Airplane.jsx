@@ -6,7 +6,10 @@ import { Text, useGLTF } from '@react-three/drei'
 import useKeyboard from './utils/useKeyboard'
 
 const PAPER_PLANE_URL = '/models/paper_airplane.glb'
-const CRAFT_LENGTH = 4.7   // nose-to-tail length the chase camera and hit boxes were tuned for
+const CRAFT_LENGTH = 3.4   // nose-to-tail length in the chase view
+// The flight scene is lit hard (ambient 5), so the paper's base colour is scaled
+// down until the lights shade it instead of clipping every face to flat white.
+const PAPER_ALBEDO = 0.3
 
 // The paper plane from the courier layer, flown here as the player craft.
 // Modelled nose toward -Z like the parent expects (the parent group flips Y by PI).
@@ -36,7 +39,7 @@ function PaperCraft({ boostRef, reverseRef, planeColor = '#eef2f7' }) {
     // Hull colour from the cockpit controls tints the paper.
     useEffect(() => {
         model.traverse((o) => {
-            if (o.isMesh) o.material.color.set(planeColor)
+            if (o.isMesh) o.material.color.set(planeColor).multiplyScalar(PAPER_ALBEDO)
         })
     }, [model, planeColor])
 
@@ -245,7 +248,7 @@ function Cockpit({ planeColor = '#eef2f7', telemetry, viewRef }) {
                             <group position={[0, 0.33, 0]}>
                                 {line(0.7, 0.012, 0, 0, 0.5)}
                                 <group ref={headTape}>
-                                    {Array.from({ length: 11 }, (_, i) => line(0.006, 0.03, -0.4 + i * 0.16, 0, 0.7))}
+                                    {Array.from({ length: 11 }, (_, i) => <group key={i}>{line(0.006, 0.03, -0.4 + i * 0.16, 0, 0.7)}</group>)}
                                 </group>
                                 {line(0.012, 0.05, 0, -0.03, 0.95)}
                             </group>
@@ -254,7 +257,7 @@ function Cockpit({ planeColor = '#eef2f7', telemetry, viewRef }) {
                             <group position={[-0.52, 0, 0]}>
                                 <mesh><planeGeometry args={[0.13, 0.46]} /><meshBasicMaterial color={HG} transparent opacity={0.07} toneMapped={false} depthWrite={false} /></mesh>
                                 <group ref={spdTape}>
-                                    {Array.from({ length: 11 }, (_, i) => line(0.05, 0.006, 0.02, -0.24 + i * 0.12, 0.7))}
+                                    {Array.from({ length: 11 }, (_, i) => <group key={i}>{line(0.05, 0.006, 0.02, -0.24 + i * 0.12, 0.7)}</group>)}
                                 </group>
                                 {line(0.13, 0.012, 0, 0.06, 0.95)}{line(0.13, 0.012, 0, -0.06, 0.95)}
                                 <Text position={[0, 0.28, 0]} fontSize={0.045} color={HG} anchorX="center" anchorY="middle">SPD</Text>
@@ -264,7 +267,7 @@ function Cockpit({ planeColor = '#eef2f7', telemetry, viewRef }) {
                             <group position={[0.52, 0, 0]}>
                                 <mesh><planeGeometry args={[0.13, 0.46]} /><meshBasicMaterial color={HG} transparent opacity={0.07} toneMapped={false} depthWrite={false} /></mesh>
                                 <group ref={altTape}>
-                                    {Array.from({ length: 11 }, (_, i) => line(0.05, 0.006, -0.02, -0.24 + i * 0.12, 0.7))}
+                                    {Array.from({ length: 11 }, (_, i) => <group key={i}>{line(0.05, 0.006, -0.02, -0.24 + i * 0.12, 0.7)}</group>)}
                                 </group>
                                 {line(0.13, 0.012, 0, 0.06, 0.95)}{line(0.13, 0.012, 0, -0.06, 0.95)}
                                 <Text position={[0, 0.28, 0]} fontSize={0.045} color={HG} anchorX="center" anchorY="middle">ALT</Text>
