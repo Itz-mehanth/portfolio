@@ -8,16 +8,22 @@
 
 /* Design tokens: one ink, one accent, two typefaces. Everything else derives from these. */
 :root {
-  --ink: #0d0d0f;
-  --ink-2: #3f3f4a;
-  --muted: #6b6b78;
-  --paper: #f4f3ef;
-  --line: rgba(18, 17, 23, 0.08);
-  --accent: #fbbf24;       /* fills: buttons, markers, highlights */
-  --accent-strong: #f59e0b;
-  --accent-ink: #b45309;   /* accent for text on light backgrounds (AA contrast) */
+  --ink: #111114;
+  --ink-2: #3c3d45;
+  --muted: #6f707a;
+  --paper: #f4f1ea;        /* warm paper: every editorial sheet */
+  --card: #fffefa;         /* elevated paper: cards, forms, pills */
+  --line: #e1ded7;
+  --accent: #ffb51b;       /* signature amber: brand dot, primary CTA, active rail marker */
+  --accent-strong: #f2a20c;
+  --accent-ink: #9a5b00;   /* amber for text on paper (AA contrast) */
+  --gold: #c9962b;         /* restrained metal for award marks */
+  --success: #138a4e;
   --font-display: 'Syne', 'Poppins', system-ui, sans-serif;
   --font-body: 'Poppins', system-ui, sans-serif;
+  --font-hand: 'Caveat', 'Segoe Print', cursive;   /* margin annotations only */
+  /* Faint paper fibre, generated (no image download). */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 

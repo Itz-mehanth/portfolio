@@ -284,6 +284,24 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
       position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)',
       display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '14px', zIndex: 100,
     }}>
+      {/* Current section number, rolling to the new one on every move */}
+      <span aria-hidden="true" style={{ height: '16px', overflow: 'hidden', marginBottom: '2px' }}>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={activeIndex}
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -16, opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              display: 'block', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '13px',
+              lineHeight: '16px', letterSpacing: '-0.02em', color: fontBlack ? '#111114' : '#ffffff',
+            }}
+          >
+            {String(activeIndex + 1).padStart(2, '0')}
+          </motion.span>
+        </AnimatePresence>
+      </span>
       {SCREEN_DEFINITIONS.map((screen, i) => {
         const active = activeIndex === i;
         const isHov = hovered === i;
@@ -317,7 +335,7 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
             <motion.span
               animate={{
                 height: active ? 26 : 8,
-                backgroundColor: active ? (fontBlack ? '#0d0d0f' : '#ffffff') : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
+                backgroundColor: active ? (fontBlack ? '#111114' : '#ffffff') : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
               }}
               transition={{ type: 'spring', stiffness: 350, damping: 26 }}
               style={{ width: '5px', borderRadius: '999px', display: 'block' }}
@@ -881,10 +899,14 @@ export default function App() {
           {/* Premium section navigation rail */}
           {!isMobile && <NavDots activeIndex={activeScreenIndex} fontBlack={fontBlack} onNavigate={navigateToScreen} />}
           <section id='lander'
-            className={screenClass(0)}
-            style={getScreenStyle(0, { background: 'var(--paper)', overflow: 'hidden' })}
+            className={screenClass(0, 'paper-sheet')}
+            style={getScreenStyle(0, { overflow: 'hidden' })}
           >
-            <HomeHero onViewWork={() => navigateToScreen('projects')} onDownloadCV={handleDownloadCV} />
+            <HomeHero
+              active={activeScreenIndex === 0}
+              onViewWork={() => navigateToScreen('projects')}
+              onDownloadCV={handleDownloadCV}
+            />
           </section>
 
           <section id='skills'
