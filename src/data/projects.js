@@ -10,9 +10,27 @@
 //   built:      ["What you built", "Key technical decision", ...]
 //   outcome:    the measurable result: users, accuracy, prize, latency...
 //   image:      "/projects/<slug>.jpg" (put screenshots in public/projects/)
-// z is the projects balloon position along the flight path.
+// z is the projects balloon position along the flight path. Leave it out for a
+// project that has no public link yet: it gets a page but no balloon.
 
 export const PROJECTS = [
+  {
+    slug: "handforge",
+    title: "SURGE: Hands of Heroes",
+    description: "Hands-only mixed-reality hero combat for Meta Quest, built on WebXR.",
+    type: "xr",
+    year: "2026",
+    stack: ["WebXR", "Meta IWSDK", "Three.js", "TypeScript", "Vitest"],
+    problem: "An entry for the Meta VR Start Developer Competition 2026 (Gaming track): a hero game a judge can open from a URL, understand in seconds and finish in minutes, played entirely with bare hands, no controllers.",
+    built: [
+      "Ten heroes driven by real hand gestures: palm blasts, energy claws, a storm hammer, a light bow, twin katanas, telekinesis, webs and spell sigils",
+      "Room-scale mixed reality: enemies pour out of your scanned walls, the floor is repainted per world, and each level's alien sky tears into your room",
+      "A Verlet physics solver with ragdolls, gibs and destructible props that collide with the real room's walls and tables",
+      "Eight regions, 24 missions and multi-phase boss fights, with a synthesised score and layered sound effects",
+      "Screen play for phones and laptops: taps and swipes are turned into full hand poses, so every hero runs its real gesture code",
+      "Built for Quest 3 at 72 fps: no full-screen post-processing, pooled particles, no per-frame allocation",
+    ],
+  },
   {
     slug: "medplant",
     title: "MedPlant",

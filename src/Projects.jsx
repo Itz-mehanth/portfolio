@@ -1648,7 +1648,7 @@ export default function Projects({ openIframe, contactPage, avatarRef, scoreElem
 
   // ... (previous logic for coins)
 
-  const asteroidData = PROJECTS;
+  const asteroidData = PROJECTS.filter((project) => project.z != null);
 
 
 

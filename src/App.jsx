@@ -31,6 +31,7 @@ const ProjectsStage = lazy(loadProjectsStage)
 const Skills = lazy(loadSkills)
 const Certificates = lazy(loadCertificates)
 const FlightLayer = lazy(() => import('./FlightLayer'))
+const HeroRift = lazy(() => import('./HeroRift'))
 
 const SCREEN_DEFINITIONS = [
   {
@@ -905,11 +906,19 @@ export default function App() {
               scrollBehavior: 'smooth',
             })}
           >
+            {/* The paper behind the hero tears open onto an alien sky (raw WebGL, no three.js) */}
+            {idleReady && (
+              <Suspense fallback={null}>
+                <HeroRift active={activeScreenIndex === 0} />
+              </Suspense>
+            )}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={activeScreenIndex === 0 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
               style={{
+              position: 'relative',
+              zIndex: 1,
               display: 'flex',
               flexDirection: 'row',
               flexWrap: 'wrap',

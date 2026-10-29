@@ -4,7 +4,7 @@ import { X, ArrowLeft, ArrowRight, ArrowUpRight, Github, MonitorPlay } from 'luc
 import { PROJECTS } from './data/projects'
 import './ProjectPages.css'
 
-const TYPE_LABELS = { live: 'Live', github: 'Open source', linkedin: 'Showcase' }
+const TYPE_LABELS = { live: 'Live', github: 'Open source', linkedin: 'Showcase', xr: 'WebXR · Mixed reality' }
 
 // Focus the dialog when it opens, close on Escape, and hand focus back to
 // whatever opened it when it closes.
