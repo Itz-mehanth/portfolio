@@ -60,7 +60,7 @@ const TOUR_STEPS = [
   {
     section: 3,
     title: "Achievements",
-    message: "Hackathon wins and certifications live here. Click any hackathon card to expand the story behind it!",
+    message: "Hackathon wins and certifications live here, each with the story behind it. Every certificate has a View link to the original.",
     position: { top: '15%', left: '10%' },
     pointer: { top: '45%', left: '30%' },
     pointerLabel: "Click to expand",
