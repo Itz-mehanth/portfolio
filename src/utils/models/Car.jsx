@@ -16,7 +16,7 @@ function isOverGround(x, z) {
          z >= GROUND_BOUNDS.minZ && z <= GROUND_BOUNDS.maxZ
 }
 
-export default function Car({ path, onReachEnd, driveMode = false, keysRef, cityPositions, ...props }) {
+export default function Car({ path, onReachEnd, driveMode = false, keysRef, cityPositions, isOverGround: isOverGroundProp, spawn, ...props }) {
   const { nodes, materials } = useGLTF('/models/car.glb')
   const characterRef = useRef()
   const tRef = useRef(0)
@@ -27,7 +27,8 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
   const velocityRef = useRef(new THREE.Vector3())
   const rotationRef = useRef(0)
   const gravityVelRef = useRef(0)
-  const spawnPos = useRef(new THREE.Vector3(8, 1.55, -1.5))
+  const spawnPos = useRef(spawn ? spawn.clone() : new THREE.Vector3(8, 1.55, -1.5))
+  const groundTest = isOverGroundProp || isOverGround
   const { camera } = useThree()
 
   useFrame((_, delta) => {
@@ -63,7 +64,7 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
       characterRef.current.position.z += velocityRef.current.z * delta * 10
 
       // Check if car is over the ground platform
-      const overGround = isOverGround(
+      const overGround = groundTest(
         characterRef.current.position.x,
         characterRef.current.position.z
       )

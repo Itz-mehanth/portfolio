@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useThree } from '@react-three/fiber';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveEvents, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
-import Ground from './utils/models/Ground';
+import SkillIsland, {
+  DISTRICT_CENTERS, DISTRICT_POSITIONS, DISTRICT_ROAD_POINTS, PARK_TANKS, PARK_TREES, PARK_WINDMILLS,
+  SPAWN_POINT, SelectionRing, isOnIsland, pathBetween,
+} from './SkillIsland';
 import { Suspense } from 'react';
 import House from './utils/models/House';
 import WaterTank from './utils/models/WaterTank';
@@ -183,73 +187,41 @@ function Scroll({ open, skills }) {
   );
 }
 
-// Updated city order with new categories
-const cityOrder = ['languages', 'web', 'mobile', 'backend', 'database', 'arvr', 'uiux', 'tools', 'aiml'];
-
-const cityPathPoints = {
-  languages: new THREE.Vector3(8, 1.6, -0.5),
-  web: new THREE.Vector3(5, 1.6, 0.2),
-  mobile: new THREE.Vector3(2, 1.6, 0.5),
-  backend: new THREE.Vector3(-1, 1.6, 0.4),
-  database: new THREE.Vector3(-4, 1.6, 0.3),
-  arvr: new THREE.Vector3(-7, 1.6, 0.5),
-  uiux: new THREE.Vector3(-10, 1.6, 0.4),
-  tools: new THREE.Vector3(-13, 1.6, 0.3),
-  aiml: new THREE.Vector3(-16, 1.6, 0.4),
-};
-
-const getCityToCityPath = (fromId, toId) => {
-  const fromIndex = cityOrder.indexOf(fromId);
-  const toIndex = cityOrder.indexOf(toId);
-  if (fromIndex === -1 || toIndex === -1 || fromId == toId) return null;
-
-  const pathSlice = cityOrder.slice(
-    Math.min(fromIndex, toIndex),
-    Math.max(fromIndex, toIndex) + 1
-  );
-
-  const orderedPoints = (fromIndex <= toIndex ? pathSlice : pathSlice.reverse()).map(
-    (id) => cityPathPoints[id]
-  );
-
-  return new THREE.CatmullRomCurve3(orderedPoints, false, 'catmullrom', 0.5);
-};
-
 function ToonSky({ lowPowerMode = false }) {
   return (
     <>
-      <color attach="background" args={['#7ec8ee']} />
-      <fog attach="fog" args={['#bfe4f5', 34, 130]} />
+      <color attach="background" args={['#9fd8f2']} />
+      <fog attach="fog" args={['#c8e9f7', 48, 125]} />
       <ambientLight intensity={0.8} />
       <directionalLight position={[14, 16, -8]} intensity={1.9} color="#fff3d6" />
       <hemisphereLight skyColor="#9bd4f0" groundColor="#5a8c4a" intensity={0.5} />
 
       {/* Ground-level pollen / dust motes drifting over the town (stays in frame) */}
-      <Sparkles count={lowPowerMode ? 20 : 55} size={2.5} scale={[40, 5, 16]} position={[-4, 3, 0]} speed={0.2} opacity={0.45} color="#fff7d6" />
+      <Sparkles count={lowPowerMode ? 16 : 40} size={2.5} scale={[24, 4, 16]} position={[0, 3.2, 0]} speed={0.2} opacity={0.45} color="#fff7d6" />
     </>
   );
 }
 
-// Hoisted static data — never recreated
-const CITY_POSITIONS = {
-  languages: [8, 1.55, -1.5],
-  web: [5, 1.55, -3],
-  mobile: [2, 1.55, -0],
-  backend: [-1, 1.55, -3.2],
-  database: [-4, 1.55, -0.6],
-  arvr: [-7, 1.55, -2.8],
-  uiux: [-10, 1.55, -0.9],
-  tools: [-13, 1.55, -3.4],
-  aiml: [-17, 1.55, -0.1],
-};
-
 // Overview camera; widens on portrait screens so the whole town stays in frame.
+// On wide screens the view is shifted so the town sits on the right, clear of the
+// editorial column on the left.
 function TownCamera() {
-  const fov = useResponsiveFov(75, 1.5, 90);
-  return <PerspectiveCamera makeDefault position={[0, 6, 10]} fov={fov} />;
+  const fov = useResponsiveFov(52, 1.5, 85);
+  const ref = useRef();
+  const width = useThree((s) => s.size.width);
+  const height = useThree((s) => s.size.height);
+  useEffect(() => {
+    const cam = ref.current;
+    if (!cam) return undefined;
+    if (width > 900) cam.setViewOffset(width, height, -width * 0.13, 0, width, height);
+    else cam.clearViewOffset();
+    cam.updateProjectionMatrix();
+    return () => cam.clearViewOffset();
+  }, [width, height, fov]);
+  return <PerspectiveCamera ref={ref} makeDefault position={[0, 15, 22.5]} fov={fov} />;
 }
 
-export default function SciFiSkillCities({ lowPowerMode = false }) {
+export default function SciFiSkillCities({ lowPowerMode = false, header = null }) {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
@@ -300,54 +272,22 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
   const handleCityClick = (id) => {
     setSelectedCity(id);
 
-    const pathToTarget = getCityToCityPath(currentCity, id);
+    const pathToTarget = pathBetween(currentCity, id);
     setPath(pathToTarget);
   };
 
-  // City positions hoisted to module scope for perf — see CITY_POSITIONS above
-  const cityPositions = CITY_POSITIONS;
+  const cityPositions = DISTRICT_POSITIONS;
 
-  // Updated decorative element positions
-  const windmillPositions = {
-    pos1: [-5, 1, -4],
-    pos2: [-8, 1, -4.5],
-    pos3: [-11, 1, -4.2],
-    pos4: [-14, 1, -4.8],
-    pos5: [3, 1, -4.3],
-    pos6: [6, 1, -4.1],
-  };
+  // Island props. The windmill and tank models sit offset from their own origins
+  // (about (0.2, 5.15) and (1.43, 3.64)), so those offsets are subtracted here.
+  const WINDMILL_SCALE = 1.8;   // the origin offset scales with the model
+  const windmillPositions = Object.fromEntries(PARK_WINDMILLS.map(([x, z], i) => [`w${i}`, [x - 0.2 * WINDMILL_SCALE, 1.55 - 0.14 * WINDMILL_SCALE, z - 5.15 * WINDMILL_SCALE]]));
+  const treePositions = Object.fromEntries(PARK_TREES.map(([x, z], i) => [`t${i}`, [x, 1.3, z]]));
+  const tankPositions = Object.fromEntries(PARK_TANKS.map(([x, z], i) => [`k${i}`, [x - 1.43, 1.1, z - 3.64]]));
 
-  const treePositions = {
-    tree1: [-18, 1.3, 0],
-    tree2: [-15, 1.3, 1],
-    tree3: [-12, 1.3, 1.5],
-    tree4: [-9, 1.3, 1.2],
-    tree5: [-6, 1.3, 1.8],
-    tree6: [-3, 1.3, 1.3],
-    tree7: [0, 1.3, 1.6],
-    tree8: [3, 1.3, 1.4],
-    tree9: [6, 1.3, 1.7],
-    tree10: [9, 1.3, 1.1],
-    tree11: [10, 1.3, -0.8],
-    tree12: [7, 1.3, 0.9],
-    tree13: [4, 1.3, 0.7],
-  };
-
-  const tankPositions = {
-    tank1: [-17, 1.1, -2],
-    tank2: [-14, 1.1, -1.5],
-    tank3: [-11, 1.1, -1.8],
-    tank4: [-8, 1.1, -1.3],
-    tank5: [-5, 1.1, -1.9],
-    tank6: [-2, 1.1, -1.4],
-    tank7: [1, 1.1, -1.7],
-    tank8: [4, 1.1, -1.2],
-    tank9: [9, 1.1, -3.5],
-  };
-
-  const visibleWindmills = Object.entries(windmillPositions).slice(0, lowPowerMode ? 4 : undefined);
-  const visibleTrees = Object.entries(treePositions).slice(0, lowPowerMode ? 8 : undefined);
-  const visibleTanks = Object.entries(tankPositions).slice(0, lowPowerMode ? 6 : undefined);
+  const visibleWindmills = Object.entries(windmillPositions).slice(0, lowPowerMode ? 2 : undefined);
+  const visibleTrees = Object.entries(treePositions).slice(0, lowPowerMode ? 12 : undefined);
+  const visibleTanks = Object.entries(tankPositions);
 
   // Updated skills by city based on the new skill list
   const skillsByCity = {
@@ -424,11 +364,7 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         className="skills-stage"
         data-gesture-zone
         style={{
-          width: '90vw',
-          borderRadius: '24px',
           overflow: 'hidden',
-          boxShadow: '0 30px 60px -34px rgba(18,17,23,0.45), 0 0 0 1px var(--line)',
-          position: 'relative',
           zIndex: 10,
           pointerEvents: 'auto',
           cursor: 'grab'
@@ -466,11 +402,11 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
               intensity={1.4}
               shadow-mapSize-width={lowPowerMode ? 512 : 1024}
               shadow-mapSize-height={lowPowerMode ? 512 : 1024}
-              shadow-camera-far={50}
-              shadow-camera-left={-20}
-              shadow-camera-right={20}
-              shadow-camera-top={10}
-              shadow-camera-bottom={-10}
+              shadow-camera-far={60}
+              shadow-camera-left={-16}
+              shadow-camera-right={16}
+              shadow-camera-top={14}
+              shadow-camera-bottom={-14}
               shadow-bias={-0.0001}
             />
             {!driveMode && <CameraEntrance distanceFactor={2.6} lift={6} duration={1.8} />}
@@ -480,54 +416,45 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
                 enablePan={true}
                 enableRotate={true}
                 maxPolarAngle={Math.PI / 2.3}
-                minDistance={5}
-                maxDistance={60}
+                minDistance={8}
+                maxDistance={34}
                 enableDamping={true}
                 dampingFactor={0.05}
               />
             )}
 
-            {/* Ground */}
-            <Suspense fallback={null}>
-              <Ground scale={4} />
-            </Suspense>
+            {/* The island: terraces, ring road, sea, waterfall, dock, boat, rocks, clouds */}
+            <SkillIsland lowPowerMode={lowPowerMode} />
+            <SelectionRing districtId={selectedCity} />
 
             {/* Car with camera */}
             <Suspense fallback={null}>
               {!driveMode && <TownCamera />}
               <Car
-                position={cityPathPoints[currentCity].toArray()}
+                position={DISTRICT_ROAD_POINTS[currentCity].toArray()}
                 path={driveMode ? null : path}
                 driveMode={driveMode}
                 keysRef={driveKeysRef}
-                cityPositions={cityPositions}
-                onReachEnd={() => {
-                  console.log('Reached:', selectedCity);
-                  setCurrentCity(selectedCity);
-                }}
+                cityPositions={DISTRICT_CENTERS}
+                isOverGround={isOnIsland}
+                spawn={SPAWN_POINT}
+                onReachEnd={() => setCurrentCity(selectedCity)}
               />
             </Suspense>
-
-            {/* UI Elements */}
-            <Billboard position={[0, -2, 1.5]}>
-              <Text fontSize={1} position={[0, 1, 0]} color="#000000" anchorX="center" anchorY="middle">
-                🚩 Click any house to explore skills
-              </Text>
-            </Billboard>
 
             {/* Decorative elements */}
             <group>
               {/* Windmills */}
               {visibleWindmills.map(([id, pos]) => (
                 <Suspense key={id} fallback={<LoadingFallback />}>
-                  <WindMills position={pos} />
+                  <WindMills position={pos} scale={WINDMILL_SCALE} />
                 </Suspense>
               ))}
 
               {/* Trees */}
               {visibleTrees.map(([id, pos]) => (
                 <Suspense key={id} fallback={<LoadingFallback />}>
-                  <Tree position={pos} scale={1} />
+                  <Tree position={pos} scale={1.35} />
                 </Suspense>
               ))}
 
@@ -561,8 +488,8 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
           onClick={() => setDriveMode(!driveMode)}
           style={{
             position: 'absolute',
-            top: '12px',
-            right: '12px',
+            top: '96px',
+            right: '56px',
             padding: '9px 16px',
             background: driveMode ? 'var(--paper)' : 'var(--ink)',
             color: driveMode ? 'var(--ink)' : 'var(--paper)',
@@ -629,7 +556,12 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
           </div>
         )}
 
-        {!driveMode && <SkillsGrid skillsByCity={skillsByCity} selectedCity={selectedCity} />}
+        {/* Paper fade + editorial column: header, then the selected district's skills */}
+        <div className="skills-fade" aria-hidden="true" />
+        <div className="skills-overlay">
+          {header}
+          {!driveMode && <SkillsGrid skillsByCity={skillsByCity} selectedCity={selectedCity} />}
+        </div>
       </div>
     </>
   );
@@ -651,14 +583,7 @@ const SkillsGrid = ({ skillsByCity, selectedCity }) => {
   const skills = skillsByCity[selectedCity] || [];
 
   return (
-    <div className="skills-panel" style={{
-      position: 'absolute', left: '16px', bottom: '16px', zIndex: 15,
-      maxWidth: 'min(560px, calc(100% - 32px))',
-      padding: '14px 16px', borderRadius: '18px',
-      background: 'rgba(255,255,255,0.86)',
-      backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-      boxShadow: '0 12px 32px -18px rgba(18,17,23,0.4), 0 0 0 1px var(--line)',
-    }}>
+    <div className="skills-panel layer" style={{ '--d': 3 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
         <span className="section-eyebrow">{CITY_LABELS[selectedCity] || 'Tech stack'}</span>
         <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Click a district in the town to switch</span>

@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-29 (depth-deck redesign; Home hero is 3D type; HandForge is the lead project)._
+_Last updated: 2026-10-29 (reference-brief redesign in progress: warm editorial system, Home cutaway, Skill Town island)._
 
 ---
 
@@ -165,31 +165,58 @@ There is no photo of you on Home. It was removed on purpose in the redesign.
 
 ## 5. 02 · Skills — Skill Town
 
-File: `src/Skills.jsx` · models: `src/utils/models/*` · **WebGL**.
+Files: `src/Skills.jsx` (scene, districts, camera, drive mode, skills card),
+`src/SkillIsland.jsx` (island, sea, layout), `src/utils/models/*` (house, water
+tank, tree, windmill, car) · **WebGL**.
 
 ### Layout
-- A heading **"02 · Skills"** and the title **"Skill Town"** (layer 1).
-- Below it, the **3D town** fills the rest of the screen in a rounded panel.
-- A **skills card** floats over the bottom-left corner of the town.
+- The 3D island fills the whole sheet.
+- A warm paper fade on the left carries an editorial column:
+  - **"02 · Skills"**, the title **"Skill Town"**, and "Explore the different
+    areas I work with. Click any house to see the skills in that district."
+  - Below it, the **skills card** for the selected district.
+- A handwritten margin note, "Different skills, same destination", sits beside
+  the title (wide screens only).
+- On wide screens the camera view is shifted, so the island sits on the right,
+  clear of the column.
+- **"Drive the car"** (ink pill) is at the top right.
 
-### The town
-- A low-poly island town. Each **district is one skill area**, marked by a
-  house with a sign: Languages, Web, Mobile, Backend, Database, AR/VR, UI/UX,
-  Tools and AI/ML.
-- Around the districts: water tanks, windmills, trees and a road the car drives
-  along.
-- **Click a district** and the car drives there along the road; the skills card
-  switches to that district.
-- **Camera:** you can rotate, pan and zoom it (zoom 5–60 units; you can't look
-  from below the ground). On arrival, the camera swoops down from high above
-  into the overview (`src/utils/CameraEntrance.jsx`).
-- On portrait screens the view widens, so the whole town stays in frame
-  (`src/utils/useResponsiveFov.js`).
-- The scene only renders while it's on screen.
+### The island (`SkillIsland.jsx`)
+Built from cheap procedural geometry plus the existing models:
+- **Two terraces:** a grassy top with terracotta cliffs, and a wider sandy
+  terrace with darker cliffs below it, so the coast steps down like the
+  reference. The coastline is an ellipse with a gentle wobble.
+- **Ring road:** a sandy oval road around the island.
+- **Nine districts** (Languages, Web, Mobile, Backend, Database, AR/VR, UI/UX,
+  Tools, AI/ML) evenly spaced along the road's outer edge. Each has a house, a
+  water tank and a dark sign board facing the camera.
+- **Central park:** trees and two water tanks inside the ring, a few rocks, and
+  a ring of trees around the outer edge.
+- **Two windmills** on the back edge.
+- **Sea:** turquoise in the shallows, blue further out. A white foam line
+  breathes at the shore, and small glints drift near the island. The far edge
+  fades into the sky.
+- **Waterfall:** pours over the front-left cliff, with a splash at its foot.
+- **Wooden dock and boat:** a dock at the front right, and a small sailboat that
+  bobs and rocks beside it.
+- **Clouds:** a few low-poly clouds drifting slowly behind the island (skipped
+  in low-power mode).
+- A flat **amber ring** pulses under the selected district.
 
-### Skills card (floating, translucent white)
-Shows the selected district's name and its skills as small chips. Hover a chip
-to see a one-line description. It hides while you're driving.
+### Interaction
+- **Click a house:** that district becomes selected, its sign highlights, the
+  amber ring moves under it, and the car drives there along the ring road, the
+  shorter way round.
+- **Camera:** rotate, pan and zoom it (zoom 8–34 units; you can't look from
+  below the ground). On arrival the camera swoops down from high above
+  (`src/utils/CameraEntrance.jsx`). On portrait screens the view widens
+  (`src/utils/useResponsiveFov.js`). The scene only renders while it's on screen.
+- **Phones:** the column becomes a compact title at the top and the skills card
+  along the bottom, with the island between them.
+
+### Skills card (translucent cream, in the left column)
+Shows the selected district's name and its skills as chips. Hover a chip to see
+a one-line description. It hides while you're driving.
 
 | District | Skills |
 |---|---|
@@ -204,11 +231,11 @@ to see a one-line description. It hides while you're driving.
 | AI / ML | TensorFlow, OpenCV, CNNs |
 
 ### Drive mode
-- The **"Drive the car"** button (ink pill, top right of the town) hands you the
-  car.
-- **Desktop:** drive with WASD or the arrow keys. A small hint shows the
-  controls.
-- **Phones:** a joystick appears bottom left.
+- **"Drive the car"** hands you the car. Drive with WASD or the arrow keys on
+  desktop, or the joystick on phones.
+- Solid ground follows the island's real coastline: drive off the edge and you
+  fall, then respawn at the Languages district.
+- The car bumps off the houses.
 - Press **"Exit drive mode"** to return to the overview camera.
 
 ---

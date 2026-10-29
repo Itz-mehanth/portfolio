@@ -12,6 +12,7 @@ import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
 import HomeHero from './HomeHero'
+import Scribble from './Scribble'
 import './Motion.css'
 import { getProjectBySlug } from './data/projects'
 import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid } from 'lucide-react';
@@ -346,6 +347,17 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
     </div>
   );
 });
+
+function SkillsHeader() {
+  return (
+    <header className="sheet-header layer" style={{ '--d': 1 }}>
+      <Scribble style={{ left: '-118px', top: '64px' }}>{'Different skills,\nsame destination'}</Scribble>
+      <span className="section-eyebrow">02 · Skills</span>
+      <h2 className="section-title">Skill Town</h2>
+      <p className="sheet-lede">Explore the different areas I work with. Click any house to see the skills in that district.</p>
+    </header>
+  );
+}
 
 function SectionPlaceholder({ title, theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -911,28 +923,11 @@ export default function App() {
 
           <section id='skills'
             className={screenClass(1)}
-            style={getScreenStyle(1, {
-              height: '100vh',
-              padding: '72px 0 20px',
-              width: '100vw',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              flexDirection: 'column',
-              gap: '14px',
-              background: 'radial-gradient(circle at 50% 0%, rgba(251,191,36,0.08), transparent 45%), var(--paper)',
-              overflowX: 'hidden',
-              zIndex: 1,
-              position: 'relative',
-            })}
+            style={getScreenStyle(1, { overflow: 'hidden', background: '#bfe3f2' })}
           >
-            <header className='section-heading layer' style={{ '--d': 1 }}>
-              <span className='section-eyebrow'>02 · Skills</span>
-              <h2 className='section-title'>Skill Town</h2>
-            </header>
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
-                <Skills lowPowerMode={lowPowerMode} />
+                <Skills lowPowerMode={lowPowerMode} header={<SkillsHeader />} />
               </Suspense>
             ) : (
               <SectionPlaceholder title="Skill Town" />
