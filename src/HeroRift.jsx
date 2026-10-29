@@ -64,6 +64,7 @@ void main() {
 
   // Tear field: > 0 inside. Elliptical falloff, torn up by noise, grown by uOpen.
   float d = length((p - c) * vec2(0.85, 1.15)) / uRadius;
+  if (d > 1.9) { gl_FragColor = vec4(0.0); return; }        // far from the tear: skip the noise entirely
   float n = fbm(vec3(p * 3.2, uTime * 0.06));
   float fibres = noise(vec3(p * 18.0, uTime * 0.08));       // jagged, fibrous paper edge
   float field = (1.0 - d) * 1.2 + (n - 0.5) * 1.0 + (fibres - 0.5) * 0.32 - (1.0 - uOpen) * 1.4;
@@ -140,7 +141,7 @@ export default function HeroRift({ active = true }) {
   useEffect(() => {
     const canvas = canvasRef.current
     const gl = canvas?.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, powerPreference: 'low-power' })
-    if (!gl) return undefined
+    if (!gl || gl.isContextLost()) return undefined
 
     const vs = compile(gl, gl.VERTEX_SHADER, VERTEX)
     const fs = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT)
@@ -174,24 +175,6 @@ export default function HeroRift({ active = true }) {
     gl.uniform3fv(u('uEdge'), PALETTE.edge)
     gl.uniform3fv(u('uHot'), PALETTE.hot)
 
-    const resize = () => {
-      const scale = Math.min(window.devicePixelRatio || 1, MAX_DPR) * RENDER_SCALE
-      const w = Math.max(1, Math.round(canvas.clientWidth * scale))
-      const h = Math.max(1, Math.round(canvas.clientHeight * scale))
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w
-        canvas.height = h
-      }
-      gl.viewport(0, 0, w, h)
-      gl.uniform2f(uRes, w, h)
-      const { center, radius } = layoutFor(canvas.clientWidth, canvas.clientHeight)
-      gl.uniform2f(uCenter, center[0], center[1])
-      gl.uniform1f(uRadius, radius)
-    }
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
-    resize()
-
     // Cursor, smoothed so the tear drifts rather than snaps.
     const target = { x: 0.5, y: 0.5 }
     const mouse = { x: 0.5, y: 0.5 }
@@ -210,10 +193,30 @@ export default function HeroRift({ active = true }) {
       gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
 
+    // Reduced motion: a single still frame, fully open, redrawn on every resize.
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const resize = () => {
+      const scale = Math.min(window.devicePixelRatio || 1, MAX_DPR) * RENDER_SCALE
+      const w = Math.max(1, Math.round(canvas.clientWidth * scale))
+      const h = Math.max(1, Math.round(canvas.clientHeight * scale))
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w   // resizing clears the drawing buffer
+        canvas.height = h
+      }
+      gl.viewport(0, 0, w, h)
+      gl.uniform2f(uRes, w, h)
+      const { center, radius } = layoutFor(canvas.clientWidth, canvas.clientHeight)
+      gl.uniform2f(uCenter, center[0], center[1])
+      gl.uniform1f(uRadius, radius)
+      if (still) draw(12, 1)
+    }
+    const observer = new ResizeObserver(resize)
+    observer.observe(canvas)
+    resize()
+
     let frame = 0
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      draw(12, 1)   // one still frame, fully open
-    } else {
+    if (!still) {
       const start = performance.now()
       const loop = (now) => {
         frame = requestAnimationFrame(loop)
@@ -227,11 +230,16 @@ export default function HeroRift({ active = true }) {
       frame = requestAnimationFrame(loop)
     }
 
+    // Free GPU resources but keep the context alive: StrictMode (dev) unmounts and
+    // remounts, and getContext() would hand the remount the same, now-lost context.
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
       window.removeEventListener('pointermove', onPointer)
-      gl.getExtension('WEBGL_lose_context')?.loseContext()
+      gl.deleteBuffer(buffer)
+      gl.deleteProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
     }
   }, [])
 
