@@ -485,6 +485,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null }
 
         {/* Drive Mode Toggle */}
         <button
+          className="drive-toggle"
           onClick={() => setDriveMode(!driveMode)}
           style={{
             position: 'absolute',

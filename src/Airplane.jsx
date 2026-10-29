@@ -2469,6 +2469,7 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
     const cockpitRef = useRef()
     const keysRef = useKeyboard()
     const { camera } = useThree()
+    const desiredOffset = useRef(new THREE.Vector3())
 
     // Physics parameters — tuned slower so each world reads longer in flight
     const baseSpeed = 0.62
@@ -2607,7 +2608,11 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
             camera.lookAt(p.x, p.y + 1.2, p.z + 24)
         } else {
             const desired = VIEWS[view] || VIEWS.chase
-            cameraOffset.current.lerp(desired, Math.min(1, delta * 3.5)) // smooth view transitions
+            // Portrait screens are narrow, so pull the camera back to keep the plane's wings in frame.
+            const aspect = state.size.width / Math.max(1, state.size.height)
+            const pullBack = aspect < 1 ? Math.min(1.9, 1 / aspect) : 1
+            desiredOffset.current.copy(desired).multiplyScalar(pullBack)
+            cameraOffset.current.lerp(desiredOffset.current, Math.min(1, delta * 3.5)) // smooth view transitions
             targetCameraPos.current.copy(p).add(cameraOffset.current)
             camera.position.lerp(targetCameraPos.current, Math.min(1, delta * 6))
             camera.lookAt(p.x, p.y + 0.5, p.z)

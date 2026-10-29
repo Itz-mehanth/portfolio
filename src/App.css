@@ -764,7 +764,7 @@ html, body {
   position: absolute;
   font-family: var(--font-hand);
   font-weight: 500;
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1.05;
   color: var(--ink-2);
   transform: rotate(-12deg);
@@ -1057,6 +1057,8 @@ html, body {
     justify-content: space-between;
   }
   .skills-overlay .sheet-lede { display: none; }
+  .skills-overlay { bottom: 84px; }   /* clear of the tour button */
+  .drive-toggle { top: 150px !important; right: 14px !important; }
   .skills-overlay .section-title { font-size: clamp(32px, 9vw, 44px); }
   .skills-panel { padding: 12px 13px !important; }
 }

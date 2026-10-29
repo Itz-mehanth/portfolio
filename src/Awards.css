@@ -160,3 +160,45 @@
   .award-card, .cert-link { transition: none; }
   .award-card:hover { transform: none; }
 }
+
+/* ==== Brief phase E: editorial header, gold marks, certification cards ==== */
+/* The list scrolls inside itself, which clips anything outside its box, so the left
+   margin (where the handwritten note lives) is padding inside it. */
+.awards { max-width: calc(1180px + 8vw); margin: 0; padding-left: clamp(20px, 8vw, 132px); }
+.awards-heading { margin-bottom: clamp(18px, 3.5vh, 36px); max-width: 760px; }
+.awards-heading .section-title { font-size: clamp(38px, 4.7vw, 68px); }
+.award-card { background: var(--card); }
+
+.award-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.award-head .award-badge { margin-bottom: 0; }
+.award-mark { color: var(--gold); flex-shrink: 0; }
+
+/* Certifications: a row of three cards (one column on narrow screens) */
+.awards-certs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+.award-card.cert {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'star main score'
+    'star main link';
+  align-items: start;
+  gap: 4px 14px;
+  padding: 18px 18px 16px;
+}
+.cert-star { grid-area: star; color: var(--gold); margin-top: 2px; }
+.award-card.cert .cert-main { grid-area: main; }
+.award-card.cert .cert-score { grid-area: score; justify-self: end; font-size: 20px; }
+.award-card.cert .cert-link { grid-area: link; justify-self: end; align-self: end; padding: 6px 12px; font-size: 12px; }
+.award-card.cert .award-title { font-size: 15px; line-height: 1.25; }
+.award-card.cert .award-meta { font-size: 12px; line-height: 1.45; }
+
+@media (max-width: 640px) {
+  .award-card.cert {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'star main score' 'star link link';
+  }
+  .award-card.cert .cert-link { justify-self: start; }
+}

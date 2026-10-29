@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-29 (reference-brief redesign in progress: warm editorial system, Home cutaway, Skill Town island)._
+_Last updated: 2026-10-30 (reference-brief redesign: warm editorial system, Home cutaway, Skill Town island, full-bleed flight world, Awards cards, phone pass)._
 
 ---
 
@@ -131,35 +131,52 @@ root, so mouse movement never re-renders React.
 
 ## 4. 01 · Home
 
-File: `src/HomeHero.jsx` · styles: `src/Home.css` · no WebGL.
+Files: `src/HomeHero.jsx`, `src/Home.css`, `src/HeroRift.jsx` (the space
+cutaway), `src/Scribble.jsx` (margin notes).
 
-An editorial, near-monochrome composition. From top to bottom:
+A warm editorial paper sheet with a faint drafting grid, in two halves.
 
+### Left: the hero copy
 | Element | What it is | Depth layer |
 |---|---|---|
-| Top rule | A thin line with three labels: **"Mehanth — Portfolio 2026"**, **"Full-stack & 3D web developer"**, **"Chennai · Bangalore"** (the third is hidden on phones) | 1 |
+| Eyebrow | **"01 · Home"** | 0 |
+| Greeting | **"HI, I'M"** in amber | 1 |
 | **3D name** | "Mehanth" as real 3D type (see below) | its own entrance |
-| Lede | "I build fast, interactive 3D experiences for the web. Software Engineer Intern at VISA, Computer Science at SSN." | 2 |
-| Buttons | **View work** (ink, goes to Work) and **Download CV** (outline, opens the CV on Google Drive in a new tab) | 3 |
-| Social links | GitHub ↗ · LinkedIn ↗ · Instagram ↗ · Email ↗ (underline on hover) | 3 |
-| Scroll cue | "SCROLL" over a thin line that draws itself downward on a loop (desktop only) | 1 |
-| Drafting grid | Faint 80 px grid lines fading out at the edges, drifting on a deep layer | 4 |
-| "01" numeral | A huge outlined "01" in the bottom-right corner, barely visible, on the deepest layer | 5 |
+| Role | **"Full-stack & 3D web developer"** | 1 |
+| Intro | "I build fast, interactive 3D experiences for the web. Software Engineer Intern at VISA, Computer Science at SSN." | 2 |
+| Status pill | A green dot and **"Currently interning @ VISA, Bangalore"** | 2 |
+| Buttons | **Download CV** (amber, primary; opens the CV on Google Drive) and **View work →** (outlined; goes to Work) | 3 |
+| Social icons | GitHub, LinkedIn, Instagram, Email as square icon buttons, each with an accessible label and tooltip | 3 |
+| Margin note | "Welcome to my world", handwritten, with a drawn arrow (wide screens only) | none |
+| Scroll cue | "SCROLL" over a line that draws itself downward (desktop only) | 1 |
+
+### Right: the space cutaway
+- The paper behind the hero is torn open, with a jagged, burning amber edge,
+  onto a living alien sky (`HeroRift.jsx`, raw WebGL, no three.js):
+  - a violet nebula spiralling into a bright core
+  - stars streaming out toward you
+  - a turning ringed planet
+  - two small planets, terracotta and gold, on tilted orbits that pass behind
+    and in front of it
+- **Parallax:** the hole stays fixed to the page while the sky inside moves
+  with the mouse, so it reads as depth. Embers drift off the rim.
+- It loads only after the HTML has painted, pauses when you leave Home, and
+  shows one still frame under reduced motion.
+- **A paper airplane** (an SVG) drifts out of the cutaway, pointing toward the
+  Work section.
+- On phones the cutaway sits in the top-right corner, above the copy.
+
+There is no profile photo on Home; the current design doesn't use one.
 
 ### The 3D name
-- It is built from **twelve stacked copies** of the word inside a CSS
-  `preserve-3d` stage. Each copy sits 2.4 px further back and is a slightly
-  lighter grey, so the name has real thickness, like a block cut from paper
-  stock, and the face is solid ink.
-- It **tilts with the mouse**: up to about 16° up or down and 22° left or
-  right, around a slight resting tilt of 6°, so the extruded sides show as you
-  move.
-- **Entrance:** arriving on Home, the name swings up from lying nearly flat
-  (−72°) into place over about 1.5 s. Leaving, it tips away in the other
-  direction.
-- Under "reduce motion", the name stays still at its resting tilt.
-
-There is no photo of you on Home. It was removed on purpose in the redesign.
+- Built from **twelve stacked copies** of the word inside a CSS
+  `preserve-3d` stage. Each copy sits 2.2 px further back and is slightly
+  lighter, so the name has real thickness, with a solid ink face.
+- It **tilts gently with the mouse** (about 10° up/down and 14° left/right,
+  around a 5° resting tilt) and stays readable.
+- **Entrance:** arriving on Home, it swings up from nearly flat (−74°) and
+  settles with a slight overshoot.
+- Under "reduce motion" it stays still.
 
 ---
 
@@ -363,27 +380,39 @@ section 15).
 
 ## 8. 04 · Awards
 
-File: `src/Certificates.jsx` · styles: `src/Awards.css` · no WebGL.
+Files: `src/Certificates.jsx`, `src/Awards.css` · no WebGL.
 
-- **Heading** (layer 1): "04 · Awards", the title **"Proof of work"**, and
+A warm paper sheet, left-aligned like the other sections.
+
+- **Header** (layer 1): "04 · Awards", the title **"Proof of work"**, and
   "Three hackathon wins in 2026, and the certifications behind the
-  fundamentals."
-- **Hackathons** (layer 2): three white cards, each with a faint large number,
-  an ink badge, the title, venue · year, and the story behind it.
-  - **1st Place:** Data Sprint 3.0, Sri Sairam Engineering College, 2026: "Won
-    the hackathon on my birthday. 40+ teams sang happy birthday at midnight."
+  fundamentals." A margin note reads "Recognitions that push me forward"
+  (wide screens only).
+- **Hackathons** (layer 2): three cream cards, each with:
+  - a small gold mark (trophy for first place, then a medal and an award
+    ribbon)
+  - an ink badge
+  - a faint large number in the corner
+  - the title, venue · year, and the story
+
+  The three wins:
+  - **1st Place:** Data Sprint 3.0, Sri Sairam Engineering College, 2026:
+    "Won the hackathon on my birthday. 40+ teams sang happy birthday at
+    midnight."
   - **Best Performance:** TechathonX 2026, Prathyusha Engineering College:
     "Powered by pure sleep deprivation. Last-minute ideas actually work."
   - **Winner:** Impact Nexus, SSN College of Engineering, 2026: "Won at our own
     college with an Agentic Ads Platform."
-- **Certifications** (layer 3): three rows, each with the title, issuer · year ·
-  note, a large score, and a **View ↗** link to the certificate on Google Drive.
+- **Certifications** (layer 3): three cards in a row (stacked on phones), each
+  with a gold star, the title, issuer · year · note, the score at the top right,
+  and a **View ↗** link to the certificate on Google Drive.
   - Top 1% NPTEL C++: **92%**
   - Top 5% Competitive Programming (NPTEL): **85%**
   - UI/UX Design Figma (Cybernaut): **Certified**
 
 Cards rise in one after another and lift on hover. The section scrolls on its
-own when it is taller than the screen.
+own when it is taller than the screen, and only changes section once you reach
+the end.
 
 ---
 
@@ -415,17 +444,32 @@ Two columns on desktop, stacked on phones.
 
 ## 10. Visual system
 
-Defined in `src/index.css` (tokens) and `src/App.css` (shared type).
+Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 
-- **Palette (near-monochrome):** ink `#0d0d0f`, paper `#f4f3ef`, greys for
-  secondary text and lines. **Amber appears in one place only:** the dot beside
-  "Mehanth" in the navbar. Colour on the site comes from the 3D worlds in Skills
-  and Work.
-- **Type:** Syne for display (the name, section titles, scores) and Poppins for
-  everything else. These are the only two fonts loaded.
-- **Section headings:** a small grey uppercase label (`.section-eyebrow`, e.g.
-  "02 · Skills") over a large Syne title (`.section-title`).
-- **Shapes:** rounded panels (20–24 px), pill buttons, thin 1 px lines.
+- **Palette (warm editorial):**
+  - paper `#F4F1EA` (every editorial sheet, with a faint generated paper fibre)
+  - card `#FFFEFA`
+  - ink `#111114`
+  - muted `#6F707A`
+  - line `#E1DED7`
+  - signature amber `#FFB51B`
+  - restrained gold `#C9962B`
+  - green `#138A4E` for status
+- **Where amber appears:** the brand dot, the primary CTA (Download CV), "HI,
+  I'M", the selected-district ring in Skill Town, and the cutaway's burning
+  edge. Everything else in the interface is neutral. Strong colour comes from
+  the 3D worlds.
+- **Type:**
+  - Syne for display (the name, section titles, scores)
+  - Poppins for everything else
+  - Caveat, only for the handwritten margin notes
+- **Shared pieces:**
+  - `.sheet-header`: left-aligned eyebrow, title, lede and actions
+  - `.pill-btn`: ink, amber and outlined variants
+  - `.section-eyebrow`, small grey uppercase, e.g. "02 · Skills"
+  - `Scribble`: margin notes, hidden below 1100 px
+- **Shapes:** cream cards with 20–24 px radius, thin borders and soft shadows;
+  pill buttons; 1 px lines.
 - **Focus:** a 2 px ink outline on every keyboard-focused control.
 
 ---
@@ -463,14 +507,23 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared type).
 
 ## 13. Phones and tablets
 
-- Touch devices are detected by pointer type, so iPads count too.
-- Home stacks into one column, the name shrinks to fit, and the scroll cue hides.
-- **Skill Town** fills the screen width; the skills card spans the bottom edge;
-  orbiting and driving never swipe you to another section.
-- **Work** goes edge to edge below the navbar, with a larger joystick plus FIRE,
-  ↑ and ↓ buttons. The controls are touch-locked so the browser can't steal the
-  drag.
-- Awards and Contact scroll within themselves before a swipe changes section.
+- Touch devices are detected by pointer type, so iPads count too. The navbar
+  becomes a hamburger menu.
+- **Home:** the space cutaway moves to the top-right corner and the hero copy
+  sits below it. The name shrinks to fit the width. Extra bottom padding keeps
+  the social icons clear of the tour button, and the scroll cue hides.
+- **Skill Town:** a compact title at the top with "Drive the car" below it, the
+  island in the middle, and the skills card along the bottom (above the tour
+  button). Orbiting and driving never swipe you to another section.
+- **Work:**
+  - The header shrinks to the title and the two buttons.
+  - The chase camera pulls back on portrait screens, so the plane's wings and
+    the islands stay in view.
+  - A large joystick plus FIRE, ↑ and ↓ buttons appear, touch-locked so the
+    browser can't steal the drag.
+  - The tour button steps aside on Work, so it doesn't sit on the joystick.
+- **Awards and Contact** stack into one column and scroll within themselves
+  before a swipe changes section.
 
 ---
 

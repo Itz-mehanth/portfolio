@@ -351,7 +351,7 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
 function SkillsHeader() {
   return (
     <header className="sheet-header layer" style={{ '--d': 1 }}>
-      <Scribble style={{ left: '-118px', top: '64px' }}>{'Different skills,\nsame destination'}</Scribble>
+      <Scribble style={{ left: '-104px', top: '64px' }}>{'Different skills,\nsame destination'}</Scribble>
       <span className="section-eyebrow">02 · Skills</span>
       <h2 className="section-title">Skill Town</h2>
       <p className="sheet-lede">Explore the different areas I work with. Click any house to see the skills in that district.</p>
@@ -898,7 +898,8 @@ export default function App() {
           />
         )}
       </AnimatePresence>
-      {!loading && !projectOverlayOpen && (
+      {/* On phones the Work joystick owns the bottom-left corner, so the tour button steps aside there */}
+      {!loading && !projectOverlayOpen && !(isMobile && activeScreenIndex === 2) && (
         <TourGuide activeScreenIndex={activeScreenIndex} onNavigate={navigateToScreen} />
       )}
       {!loading && (
@@ -966,7 +967,7 @@ export default function App() {
                     non-3D way to browse everything, so nobody has to fly. */}
                 <div className="work-fade" aria-hidden="true" />
                 <header className="sheet-header work-header layer" style={{ '--d': 1 }}>
-                  <Scribble style={{ left: '-112px', top: '70px' }}>{'From ideas\nto real projects'}</Scribble>
+                  <Scribble style={{ left: '-104px', top: '70px' }}>{'From ideas\nto real projects'}</Scribble>
                   <span className="section-eyebrow">03 · Work</span>
                   <h2 className="section-title">The flight world</h2>
                   <p className="sheet-lede">Fly through my projects. Each balloon is a project with its story and links.</p>
@@ -1155,13 +1156,12 @@ export default function App() {
 
           <section
             id='certificate'
-            className={screenClass(3)}
+            className={screenClass(3, 'paper-sheet')}
             style={getScreenStyle(3, {
               display: 'flex',
               flexDirection: 'column',
               height: '100vh',
-              padding: '92px clamp(16px, 4vw, 48px) 0',
-              background: 'radial-gradient(circle at 85% 0%, rgba(251,191,36,0.10), transparent 40%), var(--paper)',
+              padding: '92px clamp(16px, 3vw, 48px) 0 0',
             })}
           >
             <motion.div

@@ -176,9 +176,10 @@
 }
 
 @media (max-width: 900px) {
-  .home { align-items: end; padding: 96px 18px 32px; }
+  /* bottom room so the tour button never covers the social links */
+  .home { align-items: end; padding: 96px 18px 88px; }
   .home-copy { max-width: 100%; }
-  .home-name-slice, .home-name-face { font-size: clamp(48px, 16vw, 110px); }
+  .home-name-slice, .home-name-face { font-size: clamp(44px, 14.2vw, 100px); }
   .home-plane { left: auto; right: 8%; top: 31%; width: 72px; }
   .home-scroll { display: none; }
 }

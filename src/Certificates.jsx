@@ -1,6 +1,10 @@
-import { ArrowUpRight, Trophy, Award } from 'lucide-react';
+import { ArrowUpRight, Trophy, Award, Medal, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Scribble from './Scribble';
 import './Awards.css';
+
+// A small, restrained gold mark per win: first place gets the trophy.
+const WIN_MARKS = [Trophy, Medal, Award];
 
 const hackathonPages = [
   { title: "Data Sprint 3.0", venue: "Sri Sairam Engineering College", date: "2026", badge: "1st Place", story: "Won the hackathon on my birthday. 40+ teams sang happy birthday at midnight." },
@@ -23,24 +27,31 @@ const reveal = (i) => ({
 export default function Certificates() {
   return (
     <div className="awards" data-scrollable>
-      <header className="section-heading awards-heading layer" style={{ '--d': 1 }}>
+      <header className="sheet-header awards-heading layer" style={{ '--d': 1 }}>
+        <Scribble style={{ left: '-104px', top: '58px' }}>{'Recognitions that\npush me forward'}</Scribble>
         <span className="section-eyebrow">04 · Awards</span>
         <h2 className="section-title">Proof of work</h2>
-        <p className="awards-lede">Three hackathon wins in 2026, and the certifications behind the fundamentals.</p>
+        <p className="sheet-lede">Three hackathon wins in 2026, and the certifications behind the fundamentals.</p>
       </header>
 
       <section className="awards-group layer" style={{ '--d': 2 }} aria-labelledby="awards-hackathons">
         <h3 id="awards-hackathons" className="awards-group-title"><Trophy size={16} /> Hackathons</h3>
         <ol className="awards-wins">
-          {hackathonPages.map((win, i) => (
+          {hackathonPages.map((win, i) => {
+            const Mark = WIN_MARKS[i] || Award;
+            return (
             <motion.li key={win.title} className="award-card win" {...reveal(i)}>
               <span className="award-index">{String(i + 1).padStart(2, '0')}</span>
-              <span className="award-badge">{win.badge}</span>
+              <span className="award-head">
+                <Mark className="award-mark" size={20} strokeWidth={1.8} aria-hidden="true" />
+                <span className="award-badge">{win.badge}</span>
+              </span>
               <h4 className="award-title">{win.title}</h4>
               <p className="award-meta">{win.venue} · {win.date}</p>
               <p className="award-story">{win.story}</p>
             </motion.li>
-          ))}
+            );
+          })}
         </ol>
       </section>
 
@@ -49,6 +60,7 @@ export default function Certificates() {
         <ul className="awards-certs">
           {certPages.map((cert, i) => (
             <motion.li key={cert.title} className="award-card cert" {...reveal(i + 3)}>
+              <Star className="cert-star" size={18} strokeWidth={1.8} aria-hidden="true" />
               <div className="cert-main">
                 <h4 className="award-title">{cert.title}</h4>
                 <p className="award-meta">{cert.issuer} · {cert.date} · {cert.story}</p>
