@@ -1,0 +1,190 @@
+/* Home — editorial, near-monochrome. Depth comes from 3D type and parallax, not colour. */
+
+.home {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  padding: 104px clamp(20px, 5vw, 72px) 40px;
+  overflow: hidden;
+  color: var(--ink);
+}
+
+/* Fine drafting grid, drifting on the deepest layer. */
+.home-grid {
+  position: absolute;
+  inset: -80px;
+  background-image:
+    linear-gradient(to right, rgba(13, 13, 15, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 13, 15, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 85%);
+  pointer-events: none;
+}
+
+/* Oversized section numeral, barely there, deepest of all. */
+.home-index {
+  position: absolute;
+  right: clamp(12px, 4vw, 64px);
+  bottom: -0.18em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(160px, 30vw, 440px);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(13, 13, 15, 0.06);
+  pointer-events: none;
+  user-select: none;
+}
+
+.home-top {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+/* ---- 3D extruded name ---- */
+.home-name {
+  align-self: center;
+  margin: 0;
+  perspective: 1100px;
+  perspective-origin: 50% 40%;
+  font-weight: 800;
+  line-height: 0.86;
+}
+.home-name-enter,
+.home-name-stage {
+  display: inline-grid;
+  transform-style: preserve-3d;
+}
+.home-name-enter {
+  transform-origin: 50% 100%;
+  transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, opacity 0.9s ease 0.15s;
+}
+.portfolio-screen.is-future .home-name-enter { transform: translate3d(0, 28%, -240px) rotateX(-72deg); opacity: 0; transition-delay: 0s; }
+.portfolio-screen.is-past .home-name-enter { transform: translate3d(0, -20%, -200px) rotateX(48deg); opacity: 0; transition-delay: 0s; }
+.home-name-stage {
+  /* --mx / --my are -1..1, smoothed in JS and set on the app root */
+  transform: rotateX(calc(var(--my, 0) * 16deg + 6deg)) rotateY(calc(var(--mx, 0) * -22deg));
+}
+.home-name-slice,
+.home-name-face {
+  grid-area: 1 / 1;
+  font-family: var(--font-display);
+  font-size: clamp(56px, 13.2vw, 210px);
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+}
+.home-name-face {
+  color: var(--ink);
+  transform: translateZ(0);
+}
+.home-name-slice {
+  /* Receding slices, lighter as they go back: the extrusion reads as paper stock. */
+  transform: translateZ(calc(var(--i) * -2.4px));
+  color: rgb(calc(70 + var(--i) * 12), calc(69 + var(--i) * 12), calc(74 + var(--i) * 11));
+}
+
+.home-bottom {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'lede actions'
+    'socials actions';
+  align-items: end;
+  gap: 18px 40px;
+}
+.home-lede {
+  grid-area: lede;
+  margin: 0;
+  max-width: 460px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.home-actions { grid-area: actions; display: flex; gap: 10px; align-self: end; }
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: 600 14px var(--font-body);
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+.home-btn:hover { background: var(--ink); color: var(--paper); transform: translateY(-2px); }
+.home-btn.primary { background: var(--ink); color: var(--paper); }
+.home-btn.primary:hover { background: #2a2a30; }
+
+.home-socials { grid-area: socials; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.home-socials a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+.home-socials a:hover { border-color: var(--ink); }
+
+.home-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.home-scroll i {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(var(--ink), transparent);
+  transform-origin: top;
+  animation: homeScroll 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes homeScroll {
+  0% { transform: scaleY(0); }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+@media (max-width: 768px) {
+  .home { padding: 92px 18px 28px; }
+  .home-top span:nth-child(3) { display: none; }
+  .home-bottom { grid-template-columns: 1fr; grid-template-areas: 'lede' 'actions' 'socials'; }
+  .home-name-slice, .home-name-face { font-size: clamp(44px, 15vw, 110px); }
+  .home-scroll { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-name-enter { transition: none; }
+  .home-name-stage { transform: rotateX(6deg); }
+  .home-scroll i { animation: none; }
+}

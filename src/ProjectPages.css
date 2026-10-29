@@ -36,7 +36,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #fbbf24;
+  color: #8b8b9a;
 }
 
 .pp-title {
@@ -94,13 +94,13 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 .pp-btn.primary {
-  background: #fbbf24;
-  border-color: #fbbf24;
-  color: #111;
+  background: #f4f3ef;
+  border-color: #f4f3ef;
+  color: #0d0d0f;
 }
 .pp-icon-btn:hover,
 .pp-btn:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-1px); }
-.pp-btn.primary:hover { background: #fcd34d; }
+.pp-btn.primary:hover { background: #ffffff; }
 .pp-text-btn:hover { color: #fff; }
 .pp-icon-btn:focus-visible,
 .pp-text-btn:focus-visible,
@@ -158,7 +158,7 @@
   padding-top: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #fbbf24;
+  color: #f4f3ef;
 }
 
 .pp-tag {
@@ -173,7 +173,7 @@
 }
 .pp-tag.live { background: rgba(34, 197, 94, 0.14); color: #4ade80; }
 .pp-tag.linkedin { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; }
-.pp-tag.xr { background: rgba(251, 191, 36, 0.16); color: #fbbf24; }
+.pp-tag.xr { background: rgba(255, 255, 255, 0.1); color: #f4f3ef; }
 
 /* Case study */
 .pp-hero-img {
@@ -267,14 +267,14 @@
   padding: 9px 16px;
   border-radius: 999px;
   font: 600 13px 'Poppins', sans-serif;
-  color: #111;
-  background: #fbbf24;
+  color: #0d0d0f;
+  background: #f4f3ef;
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 20px -6px rgba(251, 191, 36, 0.6);
+  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.5);
   transition: transform 0.2s ease, background 0.2s ease;
 }
-.pp-open-index:hover { transform: translateY(-1px); background: #fcd34d; }
+.pp-open-index:hover { transform: translateY(-1px); background: #ffffff; }
 .pp-open-index:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {

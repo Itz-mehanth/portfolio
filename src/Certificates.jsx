@@ -23,13 +23,13 @@ const reveal = (i) => ({
 export default function Certificates() {
   return (
     <div className="awards" data-scrollable>
-      <header className="section-heading awards-heading">
+      <header className="section-heading awards-heading layer" style={{ '--d': 1 }}>
         <span className="section-eyebrow">04 · Awards</span>
-        <h2 className="section-title" data-plane-anchor="certificate">Proof of work</h2>
+        <h2 className="section-title">Proof of work</h2>
         <p className="awards-lede">Three hackathon wins in 2026, and the certifications behind the fundamentals.</p>
       </header>
 
-      <section className="awards-group" aria-labelledby="awards-hackathons">
+      <section className="awards-group layer" style={{ '--d': 2 }} aria-labelledby="awards-hackathons">
         <h3 id="awards-hackathons" className="awards-group-title"><Trophy size={16} /> Hackathons</h3>
         <ol className="awards-wins">
           {hackathonPages.map((win, i) => (
@@ -44,7 +44,7 @@ export default function Certificates() {
         </ol>
       </section>
 
-      <section className="awards-group" aria-labelledby="awards-certs">
+      <section className="awards-group layer" style={{ '--d': 3 }} aria-labelledby="awards-certs">
         <h3 id="awards-certs" className="awards-group-title"><Award size={16} /> Certifications</h3>
         <ul className="awards-certs">
           {certPages.map((cert, i) => (

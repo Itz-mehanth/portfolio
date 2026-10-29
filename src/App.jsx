@@ -11,7 +11,8 @@ import CockpitControls from './CockpitControls'
 import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
-import SectionCurtain, { CURTAIN_COVER_MS, CURTAIN_HOLD_MS } from './SectionCurtain'
+import HomeHero from './HomeHero'
+import './Motion.css'
 import { getProjectBySlug } from './data/projects'
 import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid } from 'lucide-react';
 import { Joystick } from 'react-joystick-component';
@@ -30,8 +31,6 @@ const loadCertificates = () => import('./Certificates')
 const ProjectsStage = lazy(loadProjectsStage)
 const Skills = lazy(loadSkills)
 const Certificates = lazy(loadCertificates)
-const FlightLayer = lazy(() => import('./FlightLayer'))
-const HeroRift = lazy(() => import('./HeroRift'))
 
 const SCREEN_DEFINITIONS = [
   {
@@ -94,7 +93,9 @@ const findScreenIndexByPath = (pathname) => {
 
 // Never hold a screen change hostage to a slow preload: show the next screen
 // after this long even if its code or models are still arriving.
-const NAVIGATION_PRELOAD_BUDGET_MS = 350;
+const NAVIGATION_PRELOAD_BUDGET_MS = 220;
+// Navigation stays locked while the sheets travel, so a second flick can't stack moves.
+const DECK_SETTLE_MS = 760;
 
 // True when the target sits inside a scroll container that can still scroll in
 // this direction, so the gesture should scroll that content, not change screens.
@@ -316,7 +317,7 @@ const NavDots = React.memo(({ activeIndex, fontBlack, onNavigate }) => {
             <motion.span
               animate={{
                 height: active ? 26 : 8,
-                backgroundColor: active ? ACCENT : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
+                backgroundColor: active ? (fontBlack ? '#0d0d0f' : '#ffffff') : (isHov ? (fontBlack ? '#1a1a1a' : '#ffffff') : muted),
               }}
               transition={{ type: 'spring', stiffness: 350, damping: 26 }}
               style={{ width: '5px', borderRadius: '999px', display: 'block' }}
@@ -386,11 +387,6 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [lowPowerMode, setLowPowerMode] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const [planeLaunchSignal, setPlaneLaunchSignal] = useState(0);
-  const [curtain, setCurtain] = useState(null);
-  // HTML first: the page paints with zero 3D code, then 3D extras mount in idle time.
-  const [idleReady, setIdleReady] = useState(false);
-  const curtainCoveredRef = useRef(null);
   // navigateToScreenIndex is captured by long-lived callbacks, so it reads this ref, not state.
   const reducedMotionRef = useRef(reducedMotion);
   reducedMotionRef.current = reducedMotion;
@@ -429,13 +425,31 @@ export default function App() {
     } catch (_) { /* noop */ }
   }, []);
 
+  // Cursor parallax for every .layer and the 3D name: -1..1, eased, written as CSS
+  // variables on the app root so no React state changes on mouse move.
   useEffect(() => {
-    const handle = scheduleIdle(() => setIdleReady(true));
-    return () => {
-      if ('cancelIdleCallback' in window) window.cancelIdleCallback(handle);
-      else clearTimeout(handle);
+    if (reducedMotion) return undefined;
+    const target = { x: 0, y: 0 };
+    const current = { x: 0, y: 0 };
+    let frame = 0;
+    const tick = () => {
+      current.x += (target.x - current.x) * 0.08;
+      current.y += (target.y - current.y) * 0.08;
+      rootRef.current?.style.setProperty('--mx', current.x.toFixed(4));
+      rootRef.current?.style.setProperty('--my', current.y.toFixed(4));
+      frame = Math.abs(target.x - current.x) + Math.abs(target.y - current.y) > 0.001 ? requestAnimationFrame(tick) : 0;
     };
-  }, []);
+    const onMove = (e) => {
+      target.x = (e.clientX / window.innerWidth) * 2 - 1;
+      target.y = (e.clientY / window.innerHeight) * 2 - 1;
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      cancelAnimationFrame(frame);
+    };
+  }, [reducedMotion]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -559,25 +573,9 @@ export default function App() {
 
     mountScreen(targetIndex);
 
-    // Sweep the paper curtain over the viewport; its cover time doubles as preload time.
-    const withCurtain = !reducedMotionRef.current;
-    if (withCurtain) {
-      const direction = targetIndex > activeScreenIndexRef.current ? 1 : -1;
-      await new Promise((resolve) => {
-        curtainCoveredRef.current = resolve;
-        setCurtain({
-          key: Date.now(),
-          direction,
-          number: String(targetIndex + 1).padStart(2, '0'),
-          label: NAV_LABELS[targetScreen.id],
-        });
-        setTimeout(resolve, CURTAIN_COVER_MS + 250); // in case the animation callback never fires
-      });
-    }
-
     await Promise.race([
       Promise.allSettled([importTask, assetTask]),
-      new Promise((resolve) => setTimeout(resolve, withCurtain ? 150 : NAVIGATION_PRELOAD_BUDGET_MS)),
+      new Promise((resolve) => setTimeout(resolve, NAVIGATION_PRELOAD_BUDGET_MS)),
     ]);
     preloadScreen(targetIndex + 1);
 
@@ -590,10 +588,8 @@ export default function App() {
       window.history.replaceState({}, '', targetScreen.path);
     }
 
-    if (withCurtain) {
-      // Hold the label a beat while the new screen settles underneath, then peel away.
-      await new Promise((resolve) => setTimeout(resolve, CURTAIN_HOLD_MS));
-      setCurtain(null);
+    if (!reducedMotionRef.current) {
+      await new Promise((resolve) => setTimeout(resolve, DECK_SETTLE_MS));
     }
     resetTransition();
   };
@@ -721,24 +717,34 @@ export default function App() {
   const isMounted = (screenId) => mountedScreens.has(screenId);
   const projectsCanvasActive = activeScreenIndex === 2 && isMounted('projects');
 
-  // Outgoing screen fades and drifts away; incoming fades in and settles from the
-  // direction of travel. Opacity/transform only, so it stays on the compositor.
-  const getScreenStyle = (screenIndex, baseStyle = {}) => {
-    const isActive = activeScreenIndex === screenIndex;
-    const offset = screenIndex < activeScreenIndex ? -24 : 24;
+  // Depth deck (see Motion.css): the screen you leave tilts back and falls away into
+  // depth; the next rises from below in perspective and settles flat. Screens on
+  // either side wait in those poses, so moving backwards plays the move in reverse.
+  const screenState = (screenIndex) =>
+    screenIndex === activeScreenIndex ? 'is-active' : screenIndex < activeScreenIndex ? 'is-past' : 'is-future';
+  const screenClass = (screenIndex, extra = '') => `portfolio-screen ${screenState(screenIndex)} ${extra}`.trim();
 
+  const getScreenStyle = (screenIndex, baseStyle = {}) => {
+    const state = screenState(screenIndex);
+    const still = reducedMotion;
+    const poses = {
+      'is-active': 'none',
+      'is-past': still ? 'none' : 'translate3d(0, -16%, -460px) rotateX(14deg) scale(0.9)',
+      'is-future': still ? 'none' : 'translate3d(0, 62%, -300px) rotateX(-20deg) scale(0.94)',
+    };
     return {
       ...baseStyle,
       position: 'absolute',
       inset: 0,
-      opacity: isActive ? 1 : 0,
-      visibility: isActive ? 'visible' : 'hidden',
-      pointerEvents: isActive ? 'auto' : 'none',
-      transform: isActive ? 'none' : `translate3d(0, ${offset}px, 0)`,
-      transition: isActive
-        ? 'opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.06s, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.06s, visibility 0s'
-        : 'opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.45s',
-      zIndex: isActive ? 1 : 0,
+      opacity: state === 'is-active' ? 1 : 0,
+      visibility: state === 'is-active' ? 'visible' : 'hidden',
+      pointerEvents: state === 'is-active' ? 'auto' : 'none',
+      transform: poses[state],
+      transformOrigin: '50% 50%',
+      transition: state === 'is-active'
+        ? 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, opacity 0.55s ease 0.08s, visibility 0s'
+        : 'transform 0.95s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.6s ease 0.25s, visibility 0s linear 0.95s',
+      zIndex: state === 'is-active' ? 2 : 1,
     };
   };
 
@@ -842,17 +848,6 @@ export default function App() {
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
         </div>
       )}
-      <SectionCurtain curtain={curtain} onCovered={() => curtainCoveredRef.current?.()} />
-      {/* The paper-plane courier that flies between screens (skipped under reduced motion) */}
-      {!reducedMotion && idleReady && (
-        <Suspense fallback={null}>
-          <FlightLayer
-            activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
-            launchSignal={planeLaunchSignal}
-            hidden={projectOverlayOpen || showIframe}
-          />
-        </Suspense>
-      )}
       <AnimatePresence>
         {projectIndexOpen && (
           <ProjectIndex
@@ -877,13 +872,7 @@ export default function App() {
         <TourGuide activeScreenIndex={activeScreenIndex} onNavigate={navigateToScreen} />
       )}
       {!loading && (
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-          }}>
+        <div className="screens">
           <Navbar
             fontBlack={fontBlack}
             activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
@@ -892,298 +881,14 @@ export default function App() {
           {/* Premium section navigation rail */}
           {!isMobile && <NavDots activeIndex={activeScreenIndex} fontBlack={fontBlack} onNavigate={navigateToScreen} />}
           <section id='lander'
-            className="portfolio-screen"
-            style={getScreenStyle(0, {
-              padding: '40px 0',
-              height: '100vh',
-              width: '100vw',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flexDirection: 'column',
-              background: 'radial-gradient(circle at 88% 12%, rgba(251,191,36,0.10), transparent 40%), var(--paper)',
-              overflowX: 'hidden',
-              scrollBehavior: 'smooth',
-            })}
+            className={screenClass(0)}
+            style={getScreenStyle(0, { background: 'var(--paper)', overflow: 'hidden' })}
           >
-            {/* The paper behind the hero tears open onto an alien sky (raw WebGL, no three.js) */}
-            {idleReady && (
-              <Suspense fallback={null}>
-                <HeroRift active={activeScreenIndex === 0} />
-              </Suspense>
-            )}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={activeScreenIndex === 0 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '90%',
-              margin: '0 auto',
-            }}>
-              <div className="hero-copy" style={{ width: '70%', minWidth: '280px', flex: '1 1 280px' }}>
-                <p className='section-eyebrow' style={{ margin: '30px 0 0' }}>
-                  <AnimatedWords text="Hi, I'm" isVisible={activeScreenIndex === 0} />
-                </p>
-                <h1 className='hero-name' data-plane-anchor='lander' style={{ perspective: '600px' }}>
-                  <AnimatedChars text="Mehanth" isVisible={activeScreenIndex === 0} delay={0.2} style={{ fontSize: 'inherit' }} />
-                </h1>
-                <p className='hero-role'>
-                  <AnimatedWords text="Full-stack & 3D web developer" isVisible={activeScreenIndex === 0} delay={0.5} />
-                </p>
-                <p className='hero-lede'>
-                  <AnimatedWords text="I build fast, interactive 3D experiences for the web. Computer Science at SSN, Chennai." isVisible={activeScreenIndex === 0} delay={0.8} />
-                </p>
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={activeScreenIndex === 0 ? { opacity: 1, x: 0 } : { opacity: 0 }}
-                  transition={{ delay: 1.2, duration: 0.4 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    padding: '6px 14px', borderRadius: '20px',
-                    background: 'rgba(18, 17, 23, 0.04)',
-                    border: '1px solid var(--line)',
-                    marginBottom: '16px',
-                  }}
-                >
-                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-body)' }}>
-                    Currently interning @ <strong>VISA</strong>, Bangalore
-                  </span>
-                </motion.div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <MagneticButton strength={0.25}>
-                    <motion.button
-                      onClick={handleDownloadCV}
-                      whileHover={{ scale: 1.04, y: -3, boxShadow: '0 12px 28px -6px rgba(245,158,11,0.55)' }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        padding: '12px 22px',
-                        background: 'var(--accent)',
-                        color: 'var(--ink)',
-                        border: 'none',
-                        borderRadius: '999px',
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        fontFamily: 'Poppins',
-                        boxShadow: '0 8px 20px -6px rgba(245,158,11,0.45)',
-                      }}
-                    >
-                      <Download size={16} strokeWidth={2.5} /> Download CV
-                    </motion.button>
-                  </MagneticButton>
-                  <MagneticButton strength={0.25}>
-                    <motion.button
-                      onClick={() => navigateToScreen('projects')}
-                      whileHover={{ scale: 1.04, y: -3, background: 'rgba(26,26,26,0.04)' }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '7px',
-                        padding: '12px 20px',
-                        background: 'transparent',
-                        color: '#1a1a1a',
-                        border: '1.5px solid rgba(26,26,26,0.2)',
-                        borderRadius: '999px',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'Poppins',
-                      }}
-                    >
-                      View Work <ArrowRight size={15} strokeWidth={2.5} />
-                    </motion.button>
-                  </MagneticButton>
-                </div>
-
-                {/* Social links */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={activeScreenIndex === 0 ? { opacity: 1, y: 0 } : { opacity: 0 }}
-                  transition={{ delay: 1.4, duration: 0.4 }}
-                  style={{ display: 'flex', gap: '10px', marginTop: '18px' }}
-                >
-                  {[
-                    { Icon: Github, url: 'https://github.com/itz-mehanth', label: 'GitHub' },
-                    { Icon: Linkedin, url: 'https://linkedin.com/in/mehanth-776892279', label: 'LinkedIn' },
-                    { Icon: Instagram, url: 'https://instagram.com/itz_mehanth', label: 'Instagram' },
-                    { Icon: Mail, url: 'mailto:mehanth362@gmail.com', label: 'Email' },
-                  ].map(({ Icon, url, label }) => (
-                    <motion.a
-                      key={label}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      whileHover={{ y: -4, scale: 1.1, boxShadow: '0 8px 18px rgba(0,0,0,0.12)' }}
-                      whileTap={{ scale: 0.92 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      style={{
-                        width: '40px', height: '40px', borderRadius: '12px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: '#ffffff',
-                        border: '1px solid rgba(0,0,0,0.08)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                        color: '#1a1a1a',
-                      }}
-                    >
-                      <Icon size={18} strokeWidth={2} />
-                    </motion.a>
-                  ))}
-                </motion.div>
-              </div>
-
-              {/* Right: Animated Image with rotating ring + character */}
-              <div className="hero-portrait" style={{ flex: '0 0 200px', textAlign: 'center', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-                <motion.div
-                  className="hero-photo"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{ position: 'relative', width: '200px', height: '200px', cursor: 'pointer' }}
-                  onClick={() => setShowCharacter(true)}
-                >
-                  {/* Rotating gradient ring */}
-                  {/* <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                    style={{
-                      position: 'absolute', inset: '-6px',
-                      borderRadius: '18px',
-                      background: 'conic-gradient(from 0deg, #fbbf24, #f59e0b, #ec4899, #8b5cf6, #3b82f6, #fbbf24)',
-                      padding: '3px',
-                    }}
-                  >
-                    <div style={{ width: '100%', height: '100%', borderRadius: '15px', background: 'white' }} />
-                  </motion.div> */}
-                  <img
-                    src='/mehanth-developer.jpg'
-                    alt='Mehanth - Full Stack Developer & 3D Artist'
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '15px',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  />
-                </motion.div>
-
-                {/* Character illustration that slides in */}
-                <AnimatePresence>
-                  {showCharacter && (
-                    <motion.div
-                      initial={{ x: 120, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: 120, opacity: 0 }}
-                      transition={{ type: 'spring', damping: 15, stiffness: 120 }}
-                      onClick={() => setShowCharacter(false)}
-                      style={{
-                        position: 'absolute', right: '0px', bottom: '-20px',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {/* Speech bubble */}
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.3, type: 'spring', damping: 12 }}
-                        style={{
-                          background: 'white', borderRadius: '12px',
-                          padding: '8px 14px', marginBottom: '6px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          border: '1px solid #e5e7eb',
-                          position: 'relative',
-                        }}
-                      >
-                        <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: "var(--font-body)", color: '#1a1a1a' }}>
-                          Hey there! 👋
-                        </span>
-                        {/* Bubble tail */}
-                        <div style={{
-                          position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%) rotate(45deg)',
-                          width: '10px', height: '10px', background: 'white',
-                          border: '1px solid #e5e7eb', borderTop: 'none', borderLeft: 'none',
-                        }} />
-                      </motion.div>
-
-                      {/* SVG Character illustration */}
-                      <svg width="80" height="100" viewBox="0 0 80 100" fill="none">
-                        {/* Body */}
-                        <rect x="25" y="45" width="30" height="35" rx="6" fill="#1a1a1a" />
-                        {/* Head */}
-                        <circle cx="40" cy="30" r="16" fill="#f5d0a9" />
-                        {/* Hair */}
-                        <path d="M24 26 C24 16 32 10 40 10 C48 10 56 16 56 26 C56 20 48 15 40 15 C32 15 24 20 24 26Z" fill="#1a1a1a" />
-                        {/* Eyes */}
-                        <circle cx="35" cy="30" r="2" fill="#1a1a1a" />
-                        <circle cx="45" cy="30" r="2" fill="#1a1a1a" />
-                        {/* Smile */}
-                        <path d="M35 36 Q40 40 45 36" stroke="#1a1a1a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                        {/* Waving arm */}
-                        <motion.g
-                          animate={{ rotate: [0, -15, 15, -15, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-                          style={{ originX: '55px', originY: '55px' }}
-                        >
-                          <rect x="55" y="48" width="8" height="25" rx="4" fill="#f5d0a9" transform="rotate(-30 55 48)" />
-                          {/* Hand */}
-                          <circle cx="62" cy="42" r="5" fill="#f5d0a9" />
-                        </motion.g>
-                        {/* Left arm */}
-                        <rect x="17" y="50" width="8" height="22" rx="4" fill="#f5d0a9" />
-                        {/* Legs */}
-                        <rect x="30" y="78" width="8" height="18" rx="4" fill="#2563eb" />
-                        <rect x="42" y="78" width="8" height="18" rx="4" fill="#2563eb" />
-                        {/* Shoes */}
-                        <rect x="28" y="93" width="12" height="5" rx="2.5" fill="#1a1a1a" />
-                        <rect x="40" y="93" width="12" height="5" rx="2.5" fill="#1a1a1a" />
-                      </svg>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-            {/* Scroll indicator */}
-            {activeScreenIndex === 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 2 }}
-                style={{
-                  position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                }}
-              >
-                <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '10px', fontFamily: "var(--font-body)", letterSpacing: '1px' }}>
-                  SCROLL
-                </span>
-                <motion.div
-                  animate={{ y: [0, 6, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12l7 7 7-7" stroke="rgba(0,0,0,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* kinetic typographic marquee band */}
+            <HomeHero onViewWork={() => navigateToScreen('projects')} onDownloadCV={handleDownloadCV} />
           </section>
 
           <section id='skills'
-            className="portfolio-screen"
+            className={screenClass(1)}
             style={getScreenStyle(1, {
               height: '100vh',
               padding: '72px 0 20px',
@@ -1199,9 +904,9 @@ export default function App() {
               position: 'relative',
             })}
           >
-            <header className='section-heading'>
+            <header className='section-heading layer' style={{ '--d': 1 }}>
               <span className='section-eyebrow'>02 · Skills</span>
-              <h2 className='section-title' data-plane-anchor='skills'>Skill Town</h2>
+              <h2 className='section-title'>Skill Town</h2>
             </header>
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
@@ -1218,7 +923,7 @@ export default function App() {
           <section
 
             id="projects"
-            className="portfolio-screen canvas-text-section hide-scrollbar"
+            className={screenClass(2, 'canvas-text-section hide-scrollbar')}
             style={getScreenStyle(2, {
               margin: "0 auto",
               position: "relative",
@@ -1235,11 +940,10 @@ export default function App() {
           >
             {/* Flight stage */}
             <div
-              className="hide-scrollbar canvas-wrapper"
-              data-plane-anchor="projects"
-              data-plane-placement="center"
+              className="hide-scrollbar canvas-wrapper layer"
               data-gesture-zone
               style={{
+                '--d': 1,
                 flex: 1,
                 backgroundColor: "var(--ink)",
                 borderRadius: "24px",
@@ -1436,7 +1140,7 @@ export default function App() {
 
           <section
             id='certificate'
-            className="portfolio-screen"
+            className={screenClass(3)}
             style={getScreenStyle(3, {
               display: 'flex',
               flexDirection: 'column',
@@ -1463,7 +1167,7 @@ export default function App() {
 
           {/* Contact Section */}
           <section id='contact'
-            className="portfolio-screen"
+            className={screenClass(4)}
             style={getScreenStyle(4, {
               height: '100vh',
               width: '100vw',
@@ -1485,7 +1189,7 @@ export default function App() {
                 backgroundColor: 'transparent',
               }}
             >
-              <ContactSection onSent={() => setPlaneLaunchSignal((n) => n + 1)} />
+              <ContactSection />
             </motion.div>
           </section>
 
@@ -1614,11 +1318,11 @@ function ContactSection({ onSent }) {
     <>
       <section className="contact-section" data-scrollable>
         <div className="contact-container">
-          <div className="contact-intro">
+          <div className="contact-intro layer" style={{ '--d': 1 }}>
             <header className="contact-heading">
               <span className="section-eyebrow">05 · Contact</span>
               <h2 className="section-title contact-title">Let&rsquo;s build something <span className="grad">unforgettable.</span></h2>
-              <p className="contact-lede">Got a project, a hackathon squad, or just want to say hi? Send a paper plane. I usually reply within a day.</p>
+              <p className="contact-lede">Got a project, a hackathon squad, or just want to say hi? I usually reply within a day.</p>
               <span className="contact-status"><span className="status-dot" />Available for opportunities</span>
             </header>
 
@@ -1647,7 +1351,7 @@ function ContactSection({ onSent }) {
             </div>
           </div>
 
-          <div className="contact-form-container">
+          <div className="contact-form-container layer" style={{ '--d': 2 }}>
               <form className="contact-form" onSubmit={handleSubmit}>
                 {submitStatus === 'success' && (
                   <div className="form-banner success" role="status" aria-live="polite">Message sent! I&rsquo;ll get back to you soon.</div>
@@ -1731,8 +1435,6 @@ function ContactSection({ onSent }) {
                 <button
                   type="submit"
                   className="submit-btn"
-                  data-plane-anchor="contact"
-                  data-plane-placement="perch"
                   disabled={isSubmitting}
                   style={{
                     opacity: isSubmitting ? 0.7 : 1,

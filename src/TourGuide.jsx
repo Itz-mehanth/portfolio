@@ -13,7 +13,7 @@ const TOUR_STEPS = [
   {
     section: 0,
     title: "The Hero",
-    message: "This is the landing page. Mehanth is a full-stack and 3D web developer, currently interning at VISA. Watch the paper plane: it follows you through every section.",
+    message: "This is the landing page. Mehanth is a full-stack and 3D web developer, currently interning at VISA. Move your mouse: the name is real 3D type, and every section moves in depth.",
     position: { top: '20%', left: '10%' },
     pointer: null,
   },

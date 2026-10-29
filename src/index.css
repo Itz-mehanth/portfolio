@@ -8,10 +8,10 @@
 
 /* Design tokens: one ink, one accent, two typefaces. Everything else derives from these. */
 :root {
-  --ink: #121117;
+  --ink: #0d0d0f;
   --ink-2: #3f3f4a;
   --muted: #6b6b78;
-  --paper: #fbfaf7;
+  --paper: #f4f3ef;
   --line: rgba(18, 17, 23, 0.08);
   --accent: #fbbf24;       /* fills: buttons, markers, highlights */
   --accent-strong: #f59e0b;
@@ -28,7 +28,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-strong);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 

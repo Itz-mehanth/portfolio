@@ -40,6 +40,8 @@ export default function ProjectsStage({
     <Canvas
       key={glKey}
       onCreated={handleCreated}
+      // Layout size, not the transformed box: the screen arrives tilted and scaled.
+      resize={{ offsetSize: true, scroll: false }}
       frameloop={active ? 'always' : 'never'}
       // Fixed resolution: adaptive DPR switched resolution mid-flight, which read as flicker.
       dpr={lowPowerMode ? 1 : [1, 1.5]}

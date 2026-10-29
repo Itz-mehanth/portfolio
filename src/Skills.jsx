@@ -437,6 +437,8 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
         <Canvas
           key={glKey}
           onCreated={handleGlCreated}
+          // Layout size, not the transformed box: the screen arrives tilted and scaled.
+          resize={{ offsetSize: true, scroll: false }}
           frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 6, 20], fov: 60 }}
           dpr={lowPowerMode ? [0.75, 1] : [1, 1.5]}
@@ -562,8 +564,8 @@ export default function SciFiSkillCities({ lowPowerMode = false }) {
             top: '12px',
             right: '12px',
             padding: '9px 16px',
-            background: driveMode ? 'var(--ink)' : 'var(--accent)',
-            color: driveMode ? '#fff' : 'var(--ink)',
+            background: driveMode ? 'var(--paper)' : 'var(--ink)',
+            color: driveMode ? 'var(--ink)' : 'var(--paper)',
             border: 'none',
             borderRadius: '999px',
             fontSize: '13px',
