@@ -60,41 +60,82 @@ void main() {
   vec2 uv = gl_FragCoord.xy / uRes;
   vec2 p = vec2(uv.x * aspect, uv.y);                       // height units, y up
   vec2 mouse = (uMouse - 0.5) * vec2(aspect, 1.0);
-  vec2 c = vec2(uCenter.x * aspect, uCenter.y) + mouse * 0.05;
+  // The hole is cut in the page, so it barely moves; what's behind it moves a lot.
+  vec2 c = vec2(uCenter.x * aspect, uCenter.y) + mouse * 0.015;
+
+  vec2 e = (p - c) * vec2(0.85, 1.15);
+  float d = length(e) / uRadius;
+  if (d > 2.1) { gl_FragColor = vec4(0.0); return; }        // far from the tear: skip everything
+
+  // Embers peeling off the burning rim and drifting out over the page.
+  // Angles are measured from a rotated frame so atan's +-pi seam sits at the upper
+  // right, under the hero photo, instead of cutting embers on the visible left rim.
+  vec3 ember = vec3(0.0);
+  float emberA = 0.0;
+  const float SEAM = 2.3562;                                 // 3*pi/4
+  vec2 er = vec2(cos(SEAM) * e.x - sin(SEAM) * e.y, sin(SEAM) * e.x + cos(SEAM) * e.y);
+  float ang = atan(er.y, er.x);
+  for (int i = 0; i < 2; i++) {
+    float fi = float(i);
+    float cells = 46.0 + fi * 17.0;
+    float cell = floor((ang / 6.2831853 + 0.5) * cells);
+    float h1 = hash(vec3(cell, fi, 3.0));
+    if (h1 > 0.55) {
+      float life = fract(uTime * (0.16 + 0.12 * h1) + h1 * 7.0);
+      float a0 = ((cell + 0.5 + (hash(vec3(cell, fi, 9.0)) - 0.5) * 0.6) / cells - 0.5) * 6.2831853;
+      vec2 ep = vec2(cos(a0), sin(a0)) * (0.92 + life * 0.8) * uRadius;
+      float size = (0.006 + 0.008 * (1.0 - life)) * uRadius / 0.3;
+      float glow = (1.0 - smoothstep(0.0, size, length(er - ep))) * (1.0 - life) * smoothstep(0.0, 0.08, life);
+      ember += mix(vec3(1.0, 0.42, 0.05), uHot, pow(1.0 - life, 3.0)) * glow * 1.4;
+      emberA = max(emberA, glow);
+    }
+  }
 
   // Tear field: > 0 inside. Elliptical falloff, torn up by noise, grown by uOpen.
-  float d = length((p - c) * vec2(0.85, 1.15)) / uRadius;
-  if (d > 1.9) { gl_FragColor = vec4(0.0); return; }        // far from the tear: skip the noise entirely
   float n = fbm(vec3(p * 3.2, uTime * 0.06));
   float fibres = noise(vec3(p * 18.0, uTime * 0.08));       // jagged, fibrous paper edge
   float field = (1.0 - d) * 1.2 + (n - 0.5) * 1.0 + (fibres - 0.5) * 0.32 - (1.0 - uOpen) * 1.4;
-  if (field < -0.11) { gl_FragColor = vec4(0.0); return; }  // untouched paper
+  if (field < -0.11) { gl_FragColor = vec4(ember, min(1.0, emberA)); return; }  // paper (+ embers)
 
-  // Alien sky with a little parallax against the cursor.
-  vec2 q = p - mouse * 0.035;
-  float h = clamp((q.y - c.y) / (uRadius * 1.6) + 0.5, 0.0, 1.0);
-  vec3 sky = mix(uHorizon * 0.7, uTop, smoothstep(-0.05, 0.42, h));   // a thin glowing horizon
-  float neb = fbm(vec3(q * 2.4 + vec2(uTime * 0.012, 0.0), 3.7 + uTime * 0.025));
+  // Behind the hole, in portal units. Deeper layers shift further with the cursor.
+  vec2 sv = (p - c) / uRadius;
+
+  // Far layer: the sky and a nebula slowly spiralling into a bright far core.
+  vec2 qf = sv + mouse * 0.9;
+  float rl = length(qf);
+  float sw = uTime * 0.05 + 0.6 / (rl + 0.35);
+  vec2 qs = vec2(cos(sw) * qf.x - sin(sw) * qf.y, sin(sw) * qf.x + cos(sw) * qf.y);
+  float neb = fbm(vec3(qs * 1.3, 3.7 + uTime * 0.03));
+  vec3 sky = mix(uHorizon * 0.7, uTop, smoothstep(-0.55, 0.35, qf.y));
   sky = mix(sky, uCloud * 2.0, smoothstep(0.38, 0.8, neb) * 0.85);
   sky += vec3(0.9, 0.3, 0.65) * pow(smoothstep(0.6, 0.95, neb), 2.0) * 0.35;
   sky += uHorizon * pow(smoothstep(0.62, 1.0, neb), 3.0) * 0.3;
+  sky += uHot * 0.22 * exp(-rl * rl * 7.0);
 
-  // Twinkling stars, one soft point per lucky grid cell.
-  vec2 cell = floor(q * 170.0);
-  float st = hash(vec3(cell, 1.0));
-  float star = step(0.993, st) * (1.0 - smoothstep(0.0, 0.42, length(fract(q * 170.0) - 0.5)));
-  sky += vec3(star) * (0.55 + 0.45 * sin(uTime * 2.2 + st * 50.0));
+  // Stars streaming out of the portal toward you: four depth slices that grow as they near.
+  for (int i = 0; i < 4; i++) {
+    float fi = float(i);
+    float z = fract(uTime * 0.07 + fi * 0.25);              // 0 = deep inside, 1 = at the mouth
+    vec2 g = (sv + mouse * mix(0.9, 0.1, z)) * mix(7.0, 0.8, z) + fi * 13.7;
+    vec2 id = floor(g);
+    float h = hash(vec3(id, fi + 5.0));
+    if (h > 0.8) {
+      vec2 o = (vec2(hash(vec3(id, fi + 11.0)), hash(vec3(id, fi + 17.0))) - 0.5) * 0.7;
+      float s = length(fract(g) - 0.5 - o);
+      float fade = smoothstep(0.0, 0.25, z) * (1.0 - smoothstep(0.8, 1.0, z));
+      sky += vec3(0.92, 0.95, 1.0) * (1.0 - smoothstep(0.0, mix(0.03, 0.17, z * z), s)) * fade * 1.3;
+    }
+  }
 
-  // Ringed planet, lit from the upper left, with faint storm bands.
-  float R = uRadius * 0.3;
-  vec2 pc = c + uRadius * vec2(-0.14, -0.12);   // clear of the hero photo, which overlaps the tear's upper right
-  vec2 v = (q - pc) / R;
+  // Middle layer: a ringed planet, turning, lit from the upper left.
+  vec2 v = (sv + mouse * 0.45 - vec2(-0.14, -0.12)) / 0.3;   // clear of the hero photo (upper right)
   float r = length(v);
   float body = 1.0 - smoothstep(0.97, 1.0, r);
   vec3 normal = vec3(v, sqrt(max(0.0, 1.0 - r * r)));
   float lit = clamp(dot(normal, normalize(vec3(-0.55, 0.6, 0.6))), 0.0, 1.0);
-  float bands = 0.08 * sin(v.y * 22.0 + noise(vec3(v * 3.0, uTime * 0.1)) * 3.0);
-  vec3 planet = uPlanet * (0.08 + 0.92 * lit + bands) + uHorizon * pow(1.0 - normal.z, 3.0) * 0.6 * body;
+  float lon = atan(v.x, max(normal.z, 0.001)) + uTime * 0.12;  // longitude, so the bands rotate
+  float bands = 0.09 * sin(v.y * 22.0 + noise(vec3(lon * 2.5, v.y * 5.0, 1.0)) * 3.5);
+  vec3 planet = uPlanet * (0.06 + 0.94 * lit + bands) + uHorizon * pow(1.0 - normal.z, 3.0) * 0.6 * body;
   float ca = cos(-0.35), sa = sin(-0.35);
   vec2 rv = vec2(ca * v.x - sa * v.y, sa * v.x + ca * v.y);
   float rr = length(vec2(rv.x, rv.y * 3.4));
@@ -103,18 +144,24 @@ void main() {
   sky = mix(sky, planet, body);
   sky = mix(sky, uPlanet * 0.9, ringVisible * 0.7);
 
-  // Burning edge: amber band with a flickering white-hot core, charred paper outside.
+  // Depth: the inside darkens toward the rim, like looking down a tunnel mouth.
+  sky *= mix(0.22, 1.0, smoothstep(0.0, 0.45, field));
+
+  // Burning edge: amber band with a flickering white-hot core.
   float inside = smoothstep(0.0, 0.015, field);
-  float band = 1.0 - smoothstep(0.0, 0.065, abs(field));
+  float band = 1.0 - smoothstep(0.0, 0.06, abs(field));
   float flicker = 0.75 + 0.25 * noise(vec3(p * 24.0, uTime * 3.0));
   vec3 burn = mix(uEdge, uHot, pow(band, 4.0)) * (1.1 + 0.6 * flicker);
   vec3 col = mix(sky, burn, band);
   float alpha = max(inside, band);
-  float charred = smoothstep(-0.11, -0.035, field) * (1.0 - inside) * (1.0 - band);
-  col = mix(col, vec3(0.16, 0.08, 0.03), charred);
-  alpha = max(alpha, charred * 0.5);
 
-  gl_FragColor = vec4(col * alpha, alpha);   // premultiplied
+  // Charred paper lip, shaded by which way it faces the light: reads as curled, not printed.
+  float facing = 0.5 + 0.5 * dot(normalize(p - c), normalize(vec2(-0.6, 0.8)));
+  float charred = smoothstep(-0.11, -0.03, field) * (1.0 - inside) * (1.0 - band);
+  col = mix(col, mix(vec3(0.09, 0.045, 0.02), vec3(0.5, 0.32, 0.15), facing), charred);
+  alpha = max(alpha, charred * 0.6);
+
+  gl_FragColor = vec4(col * alpha + ember, min(1.0, max(alpha, emberA)));   // premultiplied
 }
 `
 
@@ -223,8 +270,8 @@ export default function HeroRift({ active = true }) {
         if (!activeRef.current || document.hidden) return
         const t = (now - start) / 1000
         const k = Math.min(1, Math.max(0, (t - 0.15) / OPEN_SECONDS))
-        mouse.x += (target.x - mouse.x) * 0.05
-        mouse.y += (target.y - mouse.y) * 0.05
+        mouse.x += (target.x - mouse.x) * 0.07
+        mouse.y += (target.y - mouse.y) * 0.07
         draw(t, 1 - Math.pow(1 - k, 3))
       }
       frame = requestAnimationFrame(loop)
