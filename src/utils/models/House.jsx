@@ -1,7 +1,8 @@
 import React, { useRef } from 'react'
 import { useGLTF, Outlines } from '@react-three/drei'
 
-export default function House(props) {
+// wallColor / roofColor (optional) override the GLB's walls and its orange-brown roof.
+export default function House({ wallColor, roofColor, ...props }) {
   const { nodes, materials } = useGLTF('/models/house.glb')
   return (
     <group {...props} dispose={null}>
@@ -11,7 +12,7 @@ export default function House(props) {
           receiveShadow
           geometry={nodes.Cube.geometry}
         >
-          <meshToonMaterial color={materials.Material.color} />
+          <meshToonMaterial color={wallColor || materials.Material.color} />
           <Outlines thickness={0.9} color="black" />
         </mesh>
         <mesh
@@ -19,7 +20,7 @@ export default function House(props) {
           receiveShadow
           geometry={nodes.Cube_1.geometry}
         >
-          <meshToonMaterial color={materials['Material.001'].color} />
+          <meshToonMaterial color={roofColor || materials['Material.001'].color} />
           <Outlines thickness={0.9} color="black" />
         </mesh>
         <mesh

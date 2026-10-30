@@ -16,7 +16,7 @@ function isOverGround(x, z) {
          z >= GROUND_BOUNDS.minZ && z <= GROUND_BOUNDS.maxZ
 }
 
-export default function Car({ path, onReachEnd, driveMode = false, keysRef, cityPositions, isOverGround: isOverGroundProp, spawn, ...props }) {
+export default function Car({ path, onReachEnd, driveMode = false, keysRef, cityPositions, isOverGround: isOverGroundProp, spawn, groundY = 1.55, position, ...props }) {
   const { nodes, materials } = useGLTF('/models/car.glb')
   const characterRef = useRef()
   const tRef = useRef(0)
@@ -29,10 +29,19 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
   const gravityVelRef = useRef(0)
   const spawnPos = useRef(spawn ? spawn.clone() : new THREE.Vector3(8, 1.55, -1.5))
   const groundTest = isOverGroundProp || isOverGround
+  // The model's wheels hang below its origin; measured once, then added to every height.
+  const liftRef = useRef(null)
   const { camera } = useThree()
 
   useFrame((_, delta) => {
     if (!characterRef.current) return
+    if (liftRef.current === null) {
+      const box = new THREE.Box3().setFromObject(characterRef.current)
+      if (box.isEmpty()) return
+      liftRef.current = characterRef.current.position.y - box.min.y
+      characterRef.current.position.y += liftRef.current
+    }
+    const lift = liftRef.current
 
     if (driveMode && keysRef?.current) {
       // Free drive mode — keyboard/joystick controls
@@ -69,7 +78,7 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
         characterRef.current.position.z
       )
 
-      const groundLevel = 1.55
+      const groundLevel = groundY + lift
 
       if (overGround && characterRef.current.position.y <= groundLevel) {
         // On solid ground
@@ -115,6 +124,7 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
       // Respawn if fell too far
       if (characterRef.current.position.y < -15) {
         characterRef.current.position.copy(spawnPos.current)
+        characterRef.current.position.y += lift
         velocityRef.current.set(0, 0, 0)
         gravityVelRef.current = 0
         rotationRef.current = 0
@@ -147,7 +157,7 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
       }
 
       const point = path.getPointAt(nextT)
-      characterRef.current.position.copy(point)
+      characterRef.current.position.set(point.x, point.y + lift, point.z)
 
       const tangent = path.getTangentAt(Math.min(nextT, 1)).normalize()
       tangent.y = 0
@@ -192,7 +202,14 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
   )
 
   return (
-    <group scale={0.3} ref={characterRef} {...props} dispose={null}>
+    <group
+      scale={0.3}
+      ref={characterRef}
+      // Re-applied by React when the resting district changes: keep the wheel lift.
+      position={position && liftRef.current !== null ? [position[0], position[1] + liftRef.current, position[2]] : position}
+      {...props}
+      dispose={null}
+    >
       <group rotateY={Math.PI / 2} scale={[0.52, 0.288, 0.52]}>
         <Part geometry={nodes.Cube001_1.geometry} material={materials['Material.003']} />
         <Part geometry={nodes.Cube001_2.geometry} material={materials['Material.003']} />

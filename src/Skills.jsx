@@ -5,15 +5,9 @@ import { Canvas } from '@react-three/fiber';
 import { Text, PerspectiveCamera, OrbitControls, QuadraticBezierLine, Billboard, useGLTF, Merged, AdaptiveEvents, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import SkillIsland, {
-  DISTRICT_CENTERS, DISTRICT_POSITIONS, DISTRICT_ROAD_POINTS, PARK_TANKS, PARK_TREES, PARK_WINDMILLS,
-  SPAWN_POINT, SelectionRing, isOnIsland, pathBetween,
+  DISTRICT_ROAD_POINTS, DRIVE_OBSTACLES, GROUND_Y, SPAWN_POINT, SelectionRing, isOnIsland, pathBetween,
 } from './SkillIsland';
 import { Suspense } from 'react';
-import House from './utils/models/House';
-import WaterTank from './utils/models/WaterTank';
-import Tank from './utils/models/Tank';
-import WindMills from './utils/models/WIndMill';
-import Tree from './utils/models/Tree';
 
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import Car from './utils/models/Car';
@@ -21,150 +15,6 @@ import { useInView } from 'react-intersection-observer';
 import { Joystick } from 'react-joystick-component';
 import useResponsiveFov from './utils/useResponsiveFov';
 import CameraEntrance from './utils/CameraEntrance';
-
-// City colors for different tech domains
-const cityColors = {
-  languages: '#ff6b35',
-  web: '#00ffff',
-  mobile: '#ff00ff',
-  arvr: '#00ff00',
-  uiux: '#ffff00',
-  backend: '#ff4444',
-  database: '#8a2be2',
-  tools: '#ffa500',
-  aiml: '#00bfff',
-};
-
-// Wrap individual models in Suspense
-function ModelWithSuspense({ component: Component, ...props }) {
-  return (
-    <Suspense fallback={null}>
-      <Component {...props} />
-    </Suspense>
-  );
-}
-
-// Add a loading fallback component for individual models
-function LoadingFallback() {
-  return (
-    <Billboard>
-      <Text fontSize={0.2} color="#000000">
-        Loading...
-      </Text>
-    </Billboard>
-  );
-}
-
-const InstancedContext = React.createContext(null);
-
-function Instances({ children }) {
-  const { nodes: houseNodes, materials: houseMaterials } = useGLTF('/models/house.glb');
-  const { nodes: tankNodes, materials: tankMaterials } = useGLTF('/models/water tank.glb');
-
-  // Apply Toon Material to loaded nodes
-  React.useMemo(() => {
-    [houseNodes, tankNodes].forEach(nodes => {
-      Object.values(nodes).forEach(node => {
-        if (node.isMesh) {
-          node.material = new THREE.MeshToonMaterial({
-            color: node.material.color,
-            map: node.material.map,
-            gradientMap: null
-          });
-        }
-      });
-    });
-  }, [houseNodes, tankNodes]);
-
-  const instances = React.useMemo(() => ({
-    HouseCube: houseNodes.Cube,
-    HouseCube1: houseNodes.Cube_1,
-    HouseCube2: houseNodes.Cube_2,
-    HouseCube3: houseNodes.Cube_3,
-    TankCyl1: tankNodes.Cylinder_1,
-    TankCyl2: tankNodes.Cylinder_2,
-    TankCyl3: tankNodes.Cylinder_3,
-    TankPath1: tankNodes.NurbsPath,
-    TankPath2: tankNodes.NurbsPath001,
-  }), [houseNodes, tankNodes]);
-
-  return (
-    <Merged meshes={instances}>
-      {(models) => <InstancedContext.Provider value={models}>{children}</InstancedContext.Provider>}
-    </Merged>
-  );
-}
-
-function City({ id, name, position, onClick, isSelected, color }) {
-  const instances = React.useContext(InstancedContext);
-  return (
-    <group position={position} onClick={() => onClick(id)}>
-      <Suspense fallback={<LoadingFallback />}>
-        {instances ? (
-          <group position={[0, 0, 0]}>
-            <group position={[0, 0, 2.412]} scale={[0.53, 0.284, 0.284]}>
-              <instances.HouseCube />
-              <instances.HouseCube1 />
-              <instances.HouseCube2 />
-              <instances.HouseCube3 />
-            </group>
-          </group>
-        ) : <House scale={1} />}
-      </Suspense>
-      <Suspense fallback={<LoadingFallback />}>
-        {instances ? (
-          <group position={[1, -0.5, -1]}>
-            {/* Instanced WaterTank partial implementation */}
-            <group position={[-0.001, 0.904, 3.351]} scale={[0.165, 0.712, 0.165]}>
-              <instances.TankCyl1 />
-              <instances.TankCyl2 />
-              <instances.TankCyl3 />
-            </group>
-            {/* Simplified WaterTank extra pipes to save calls if needed, or implement all paths */}
-          </group>
-        ) : <WaterTank position={[1, -0.5, -1]} />}
-      </Suspense>
-
-      {/* City label billboard */}
-      <Billboard position={[0, 1.4, 2.5]}>
-        {/* Sign post */}
-        <mesh position={[0, -0.5, -0.02]}>
-          <boxGeometry args={[0.06, 0.8, 0.04]} />
-          <meshToonMaterial color="#5a3e1a" />
-        </mesh>
-
-        {/* Sign board background */}
-        <mesh position={[0, 0, -0.01]}>
-          <planeGeometry args={[isSelected ? 2.2 : 1.8, isSelected ? 0.7 : 0.55]} />
-          <meshToonMaterial color={isSelected ? color : '#1a1a1a'} />
-        </mesh>
-
-        {/* Inner panel */}
-        <mesh position={[0, 0, 0]}>
-          <planeGeometry args={[isSelected ? 2.0 : 1.6, isSelected ? 0.55 : 0.4]} />
-          <meshToonMaterial color={isSelected ? '#1a1a1a' : '#2a2a2a'} />
-        </mesh>
-
-        {/* Text */}
-        <Text
-          fontSize={isSelected ? 0.3 : 0.22}
-          position={[0, 0, 0.01]}
-          color={isSelected ? color : '#ffffff'}
-          anchorX="center"
-          anchorY="middle"
-          font={undefined}
-        >
-          {name}
-        </Text>
-
-        {/* Glow indicator for selected */}
-        {isSelected && (
-          <pointLight position={[0, 0, 0.5]} intensity={0.8} color={color} distance={3} />
-        )}
-      </Billboard>
-    </group>
-  );
-}
 
 function Scroll({ open, skills }) {
   return (
@@ -213,12 +63,12 @@ function TownCamera() {
   useEffect(() => {
     const cam = ref.current;
     if (!cam) return undefined;
-    if (width > 900) cam.setViewOffset(width, height, -width * 0.13, 0, width, height);
+    if (width > 900) cam.setViewOffset(width, height, -width * 0.12, 0, width, height);
     else cam.clearViewOffset();
     cam.updateProjectionMatrix();
     return () => cam.clearViewOffset();
   }, [width, height, fov]);
-  return <PerspectiveCamera ref={ref} makeDefault position={[0, 15, 22.5]} fov={fov} />;
+  return <PerspectiveCamera ref={ref} makeDefault position={[1.2, 14, 20.5]} fov={fov} />;
 }
 
 export default function SciFiSkillCities({ lowPowerMode = false, header = null, touch = false }) {
@@ -276,18 +126,6 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
     setPath(pathToTarget);
   };
 
-  const cityPositions = DISTRICT_POSITIONS;
-
-  // Island props. The windmill and tank models sit offset from their own origins
-  // (about (0.2, 5.15) and (1.43, 3.64)), so those offsets are subtracted here.
-  const WINDMILL_SCALE = 1.8;   // the origin offset scales with the model
-  const windmillPositions = Object.fromEntries(PARK_WINDMILLS.map(([x, z], i) => [`w${i}`, [x - 0.2 * WINDMILL_SCALE, 1.55 - 0.14 * WINDMILL_SCALE, z - 5.15 * WINDMILL_SCALE]]));
-  const treePositions = Object.fromEntries(PARK_TREES.map(([x, z], i) => [`t${i}`, [x, 1.3, z]]));
-  const tankPositions = Object.fromEntries(PARK_TANKS.map(([x, z], i) => [`k${i}`, [x - 1.43, 1.1, z - 3.64]]));
-
-  const visibleWindmills = Object.entries(windmillPositions).slice(0, lowPowerMode ? 2 : undefined);
-  const visibleTrees = Object.entries(treePositions).slice(0, lowPowerMode ? 12 : undefined);
-  const visibleTanks = Object.entries(tankPositions);
 
   // Updated skills by city based on the new skill list
   const skillsByCity = {
@@ -425,8 +263,8 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
               />
             )}
 
-            {/* The island: terraces, ring road, sea, waterfall, dock, boat, rocks, clouds */}
-            <SkillIsland lowPowerMode={lowPowerMode} />
+            {/* Two islands, bridge, winding road, districts, props, sea, waterfalls */}
+            <SkillIsland lowPowerMode={lowPowerMode} selected={selectedCity} onSelect={handleCityClick} />
             <SelectionRing districtId={selectedCity} />
 
             {/* Car with camera */}
@@ -437,50 +275,13 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
                 path={driveMode ? null : path}
                 driveMode={driveMode}
                 keysRef={driveKeysRef}
-                cityPositions={DISTRICT_CENTERS}
+                cityPositions={DRIVE_OBSTACLES}
                 isOverGround={isOnIsland}
                 spawn={SPAWN_POINT}
+                groundY={GROUND_Y}
                 onReachEnd={() => setCurrentCity(selectedCity)}
               />
             </Suspense>
-
-            {/* Decorative elements */}
-            <group>
-              {/* Windmills */}
-              {visibleWindmills.map(([id, pos]) => (
-                <Suspense key={id} fallback={<LoadingFallback />}>
-                  <WindMills position={pos} scale={WINDMILL_SCALE} />
-                </Suspense>
-              ))}
-
-              {/* Trees */}
-              {visibleTrees.map(([id, pos]) => (
-                <Suspense key={id} fallback={<LoadingFallback />}>
-                  <Tree position={pos} scale={1.35} />
-                </Suspense>
-              ))}
-
-              {/* Tanks */}
-              {visibleTanks.map(([id, pos]) => (
-                <Suspense key={id} fallback={<LoadingFallback />}>
-                  <Tank position={pos} />
-                </Suspense>
-              ))}
-
-              {/* Cities */}
-              {Object.entries(cityPositions).map(([id, pos]) => (
-                <City
-                  key={id}
-                  id={id}
-                  name={id.toUpperCase()}
-                  position={pos}
-                  onClick={handleCityClick}
-                  isSelected={selectedCity === id}
-                  color={cityColors[id]}
-                />
-              ))}
-            </group>
-
 
           </Suspense>
         </Canvas>
@@ -491,7 +292,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
           onClick={() => setDriveMode(!driveMode)}
           style={{
             position: 'absolute',
-            top: '96px',
+            bottom: '110px',
             right: '56px',
             padding: '9px 16px',
             background: driveMode ? 'var(--paper)' : 'var(--ink)',

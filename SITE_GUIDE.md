@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (one continuous scrolling page with torn-paper seams; Skills, Awards and Contact closer to the reference image)._
+_Last updated: 2026-10-30 (Skill Town rebuilt: two islands, bridge, winding road, grounded models)._
 
 ---
 
@@ -198,34 +198,42 @@ tank, tree, windmill, car) · **WebGL**.
   the title (wide screens only).
 - On wide screens the camera view is shifted, so the island sits on the right,
   clear of the column.
-- **"Drive the car"** (ink pill) is at the top right.
+- **"Drive the car"** (ink pill) is at the lower right of the scene.
 
-### The island (`SkillIsland.jsx`)
+### The world (`SkillIsland.jsx`)
 Built from cheap procedural geometry plus the existing models:
-- **Two terraces:** a grassy top with terracotta cliffs, and a wider sandy
-  terrace with darker cliffs below it, so the coast steps down like the
-  reference. The coastline is an ellipse with a gentle wobble.
-- **Ring road:** a sandy oval road around the island.
-- **Nine districts** (Languages, Web, Mobile, Backend, Database, AR/VR, UI/UX,
-  Tools, AI/ML) evenly spaced along the road's outer edge. Each has a house, a
-  water tank and a dark sign board facing the camera.
-- **Central park:** trees and two water tanks inside the ring, a few rocks, and
-  a ring of trees around the outer edge.
-- **Two windmills** on the back edge.
-- **Sea:** turquoise in the shallows, blue further out. A white foam line
-  breathes at the shore, and small glints drift near the island. The far edge
-  fades into the sky.
-- **Waterfall:** pours over the front-left cliff, with a splash at its foot.
-- **Wooden dock and boat:** a dock at the front right, and a small sailboat that
-  bobs and rocks beside it.
-- **Clouds:** a few low-poly clouds drifting slowly behind the island (skipped
-  in low-power mode).
-- A flat **amber ring** pulses under the selected district.
+- **Two islands joined by a stone arch bridge:** a large main island and a
+  smaller one to its right.
+- **Cliffs:** each island has a grass top, cliffs in three layered terracotta
+  bands, and a sandy ledge at the waterline. Coastlines are irregular.
+- **Grassy hills** on the main island's back half (and a small one on the second
+  island), covered in trees, with a windmill on each big hill and a small
+  waterfall tumbling off the larger one.
+- **A winding grey stone road** with pale edge lines threads all nine districts
+  and crosses the bridge.
+- **Nine districts** beside the road, in this order: Languages, Web, Mobile,
+  Backend and Database along the main island, AR/VR near the bridge, then UI/UX,
+  Tools and AI/ML on the small island. Each district has:
+  - a cream house with its own roof colour, facing the road
+  - a water tank
+  - a round base pad with a coloured rim
+  - a dark sign on a post, which turns amber when that district is selected
+- **Trees** scattered across the green areas, never on the road or a district.
+- **Waterfalls:** three pour off the front cliffs into the sea.
+- **A wooden dock with a bobbing sailboat** off the small island, plus rocks in
+  the water and low-poly clouds drifting behind (clouds skipped in low-power
+  mode).
+- **Sea:** turquoise shallows around both islands, a breathing foam line and
+  deeper blue further out.
+- **Everything stands on the ground:** each model is wrapped in `Grounded`,
+  which measures its real bounding box once it loads and places its lowest
+  point exactly on the terrain beneath it (hills included). The car measures how
+  far its wheels hang below its origin and adds that to every height.
 
 ### Interaction
-- **Click a house:** that district becomes selected, its sign highlights, the
-  amber ring moves under it, and the car drives there along the ring road, the
-  shorter way round.
+- **Click a house:** that district becomes selected, its sign turns amber, the
+  amber ring moves under it, and the car drives there along the road (over the
+  bridge if needed).
 - **Camera:** drag to rotate or pan it on desktop. There's no wheel zoom (the
   wheel scrolls the page) and no drag-orbit on touch screens (a swipe scrolls
   the page; taps still select houses). On arrival the camera swoops down from high above
@@ -253,9 +261,9 @@ a one-line description. It hides while you're driving.
 ### Drive mode
 - **"Drive the car"** hands you the car. Drive with WASD or the arrow keys on
   desktop, or the joystick on phones.
-- Solid ground follows the island's real coastline: drive off the edge and you
-  fall, then respawn at the Languages district.
-- The car bumps off the houses.
+- Solid ground is both islands and the bridge: drive off the edge and you fall,
+  then respawn at the Languages district.
+- The car bumps off the houses and the hills.
 - Press **"Exit drive mode"** to return to the overview camera.
 
 ---

@@ -1053,7 +1053,7 @@ html, body {
   }
   .skills-overlay .sheet-lede { display: none; }
   .skills-overlay { bottom: 84px; }   /* clear of the tour button */
-  .drive-toggle { top: 150px !important; right: 14px !important; }
+  .drive-toggle { top: 150px !important; bottom: auto !important; right: 14px !important; }
   .skills-overlay .section-title { font-size: clamp(32px, 9vw, 44px); }
   .skills-panel { padding: 12px 13px !important; }
 }
