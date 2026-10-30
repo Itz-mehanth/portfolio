@@ -198,10 +198,10 @@
 .contact-list { flex-direction: row; flex-wrap: wrap; gap: 6px 28px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .contact-section > .desk3d { z-index: 0; pointer-events: none; inset: auto; }
-/* The plant stays in the left margin, clear of the contact details; the mug and
-   books sit in front of the form's lower-right corner, as on a desk. */
-.contact-section > .desk-left { left: -36px; bottom: 0; width: 240px; height: 320px; }
-.contact-section > .desk-right { right: -24px; bottom: -6px; width: 320px; height: 280px; z-index: 2; }
+/* The room corner at the lower right: a sunlit window behind the form's edge and
+   a desk with the books and mug below it. It sits behind the form.
+   (The plant and rocks at the left belong to the greenery strip in Seams.jsx.) */
+.contact-section > .desk-right { right: 0; bottom: 0; width: clamp(380px, 32vw, 480px); height: 640px; }
 .contact-container { position: relative; z-index: 1; }
 @media (max-width: 1100px) { .contact-section > .desk3d { display: none; } }
 @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }

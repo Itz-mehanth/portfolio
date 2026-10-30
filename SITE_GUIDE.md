@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (detailed Skill Town buildings, new drive controls, layered torn paper, 3D desk props in Awards and Contact)._
+_Last updated: 2026-10-30 (Awards and Contact as one sunlit room: 3D greenery strip, window corner, light on the paper)._
 
 ---
 
@@ -84,7 +84,7 @@ one and the start of the next.
 | Home → Skills | Home's paper **tears open** onto Skill Town's sky; a second, darker sheet peeks out under the tear; rocks, clouds and paper scraps cross it |
 | Skills → Work | A **strip of paper torn on both edges** lies across the boundary; clouds, rocks and a scrap hang off it |
 | Work → Awards | Awards' paper **rises over** the flight world with a torn, stacked top edge; rocks, a paper airplane, a gold coin and a scrap cross it |
-| Awards → Contact | Same paper, no edge at all; the 3D desk props in each section carry the eye across |
+| Awards → Contact | Same paper, no edge at all. A **3D greenery strip** grows in from the left edge across both: sprays of glossy, split monstera leaves on stems, their shadows falling on the paper, ending in a potted plant and a rock pile at the bottom of Contact (wide screens) |
 
 Each prop has its own scroll speed, so as you scroll they drift at different
 rates against the page: that parallax is what makes the seams feel like depth.
@@ -495,6 +495,14 @@ Cards rise in one after another and lift on hover.
   paper. The group turns a few degrees toward the mouse.
 - Files: `src/DeskProps.jsx` (loader), `src/Desk3D.jsx` (the scenes).
 
+**Light and greenery:**
+- Warm sun glows behind the certificate at the top right, with soft shafts
+  slanting in from the top left and gently darker side walls. This is CSS,
+  behind the content.
+- Down the left edge, the 3D greenery strip (glossy split leaves casting
+  shadows on the paper) grows on into Contact, so the two sections read as one
+  sunlit room.
+
 ---
 
 ## 9. 05 · Contact
@@ -522,13 +530,25 @@ Two columns on desktop, stacked on phones.
   the message; "Sending…" while it works; a green "Message sent!" banner for 5
   seconds and a cleared form on success; a red banner if sending fails.
 
-**Desk props** (wide screens only, decorative, **real 3D**):
-- **Bottom left:** a terracotta pot of long folded leaves that sway slightly,
-  with three rocks beside it.
-- **Bottom right:** a stack of three cloth-bound books (with page edges and
-  gold spine bands) carrying a glazed black mug. The mug has an amber-dot
-  "Mehanth." label, coffee inside and steam curling up.
-- Both turn a few degrees toward the mouse and cast soft shadows on the paper.
+**The room** (wide screens only, decorative, **real 3D**):
+- **Bottom right, a sunlit window corner** (behind the form):
+  - a painted wooden window with a mullion cross and a sheer pleated curtain
+  - glowing warm sky and garden greens through the glass
+  - a windowsill carrying a small potted plant, and a stack of three
+    cloth-bound books (page edges, gold spine bands)
+  - on the books, a glazed black mug with an amber-dot "Mehanth." label,
+    coffee inside and steam curling up
+  - the sun shines in through the window: the mug and books cast shadows
+    forward along the sill, shafts of light fall from the window, and dust
+    motes drift in them
+- **Bottom left:** the end of the greenery strip that runs down from Awards
+  (see Seams): a terracotta pot of glossy split leaves beside a pile of rocks.
+- **Light on the paper** (CSS, behind the content):
+  - a warm glow from the window at the bottom right
+  - a softer glow at the top left, soft shafts slanting in
+  - a blurred, window-shaped patch of sunlight between the details and the
+    form
+  - gently darker side walls
 
 ---
 
@@ -568,7 +588,7 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 
 - **First load is HTML-light:** about 126 KB of compressed JavaScript (React,
   the animation library and the app). No 3D library loads for Home.
-- **Awards and Contact 3D props** download (about 4 KB, plus the shared 3D
+- **Awards and Contact 3D scenes** (desk props, greenery strip, window corner) download (a few KB, plus the shared 3D
   library) only on screens 1000px or wider, once the section is within about
   800px. They render only while on screen; with reduced motion they render once
   and stay still. Phones never load them.
@@ -613,8 +633,9 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
   - Taps select districts; swipes always scroll the page.
   - In drive mode an analog stick, with Brake and Reset buttons, sits at the
     lower right.
-- **Awards and Contact:** the 3D desk props are skipped below 1000px wide
-  (they never download on phones).
+- **Awards and Contact:** the 3D desk props, the greenery strip and the window
+  corner are skipped below 1000px wide (they never download on phones); the
+  warm light on the paper stays.
 - **Work:**
   - The header shrinks to the title and the two buttons.
   - The chase camera pulls back on portrait screens, so the plane's wings and

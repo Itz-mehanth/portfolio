@@ -4,6 +4,7 @@
 // next. Props parallax with scroll: App.jsx writes --seam (px from the viewport
 // middle) on every .seam, and each prop moves by --seam × its --speed.
 import './Seams.css'
+import DeskProps from './DeskProps'
 
 // ---------- torn paper ----------
 // Seeded random numbers, so every tear looks the same on every visit.
@@ -289,8 +290,12 @@ export function SeamWorkAwards() {
   )
 }
 
-// Awards and Contact share one paper: no edge and no props (the 3D desk props
-// in each section carry the transition).
+// Awards and Contact share one paper: no edge. A strip of 3D greenery grows in from
+// the left edge across both, so they read as one desk (wide screens only).
 export function SeamAwardsContact() {
-  return <div className="seam" aria-hidden="true" />
+  return (
+    <div className="seam" aria-hidden="true">
+      <DeskProps scene="foliage" className="seam-foliage" />
+    </div>
+  )
 }

@@ -1149,6 +1149,47 @@ html, body {
 }
 @media (prefers-reduced-motion: reduce) { .skill-chip { transition: none; } }
 
+/* Awards and Contact are one sunlit room, lit behind their content: warm sun at
+   the top right (behind the certificate) and the bottom right (the window), a
+   softer glow at the left, slanting shafts from the top left, and gently darker
+   side walls. The light continues across the shared edge (no top/bottom fade). */
+#certificate.paper-sheet {
+  background-image:
+    radial-gradient(40vw 48vh at 88% 10%, rgba(255, 196, 112, 0.34), transparent 70%),
+    linear-gradient(116deg, transparent 6%, rgba(255, 224, 166, 0.26) 11%, transparent 17%, transparent 20%, rgba(255, 224, 166, 0.18) 24%, transparent 30%),
+    radial-gradient(36vw 60vh at 0% 100%, rgba(255, 198, 124, 0.18), transparent 70%),
+    linear-gradient(90deg, rgba(120, 88, 48, 0.09), transparent 16%, transparent 84%, rgba(120, 88, 48, 0.09)),
+    var(--paper-grain);
+}
+#contact.paper-sheet {
+  background-image:
+    radial-gradient(38vw 46vh at 94% 86%, rgba(255, 186, 96, 0.44), transparent 70%),
+    linear-gradient(116deg, transparent 0%, rgba(255, 224, 166, 0.2) 5%, transparent 12%, transparent 15%, rgba(255, 224, 166, 0.14) 19%, transparent 25%),
+    radial-gradient(36vw 50vh at 0% 0%, rgba(255, 198, 124, 0.18), transparent 70%),
+    linear-gradient(90deg, rgba(120, 88, 48, 0.09), transparent 16%, transparent 84%, rgba(120, 88, 48, 0.09)),
+    var(--paper-grain);
+}
+/* Sunlight through the window lands on the wall as four warm panes. */
+.contact-section::before {
+  content: '';
+  position: absolute;
+  left: 34%;
+  bottom: 6%;
+  width: 30vw;
+  height: 24vh;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 226, 168, 0.55), rgba(255, 226, 168, 0.05));
+  -webkit-mask-image: linear-gradient(90deg, #000 47%, transparent 47%, transparent 53%, #000 53%), linear-gradient(180deg, #000 45%, transparent 45%, transparent 53%, #000 53%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, #000 47%, transparent 47%, transparent 53%, #000 53%), linear-gradient(180deg, #000 45%, transparent 45%, transparent 53%, #000 53%);
+  mask-composite: intersect;
+  transform: perspective(900px) rotateX(40deg) skewX(-30deg);
+  filter: blur(14px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+@media (max-width: 999px) { .contact-section::before { display: none; } }
+
 /* 3D desk props (DeskProps.jsx): decorative canvases on the paper sections */
 .desk3d { position: absolute; inset: 0; pointer-events: none; }
 

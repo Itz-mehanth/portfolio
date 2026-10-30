@@ -1147,8 +1147,7 @@ function ContactSection({ onSent }) {
   return (
     <>
       <section className="contact-section">
-        <DeskProps scene="plant" className="desk-left" />
-        <DeskProps scene="mug" className="desk-right" />
+        <DeskProps scene="room" className="desk-right" />
         <div className="contact-container">
           <div className="contact-intro layer" style={{ '--d': 1 }}>
             <header className="contact-heading">

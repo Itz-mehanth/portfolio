@@ -40,6 +40,16 @@
   filter: drop-shadow(0 8px 10px rgba(17, 17, 20, 0.22));
 }
 
+/* The 3D greenery between Awards and Contact: a tall strip on the left edge,
+   70vh into Awards and 100vh into Contact (Desk3D.jsx's SEAM_AT matches). */
+.seam > .seam-foliage {
+  inset: auto;
+  left: 0;
+  top: -70vh;
+  width: clamp(220px, 20vw, 320px);
+  height: 170vh;
+}
+
 .seam-slot {
   position: absolute;
   display: block;
