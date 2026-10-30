@@ -503,12 +503,12 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 ## 12. Accessibility and reduced motion
 
 - With **"reduce motion"** turned on:
-  - sections cross-fade instead of tilting
-  - layers don't move, and there's no mouse parallax
+  - navigation jumps instead of gliding, and seam props don't parallax
+  - layers just fade in, and there's no mouse parallax
   - the 3D name stays still
   - camera swoops are skipped
-- Every interaction works from the keyboard (Page Up / Page Down between
-  sections; Escape closes the project overlays). Overlays are proper dialogs
+- Every interaction works from the keyboard: the page scrolls with the normal
+  keys, and Escape closes the project overlays. Overlays are proper dialogs
   that take focus and hand it back when they close.
 - Body text meets AA contrast. Social and navigation controls have accessible
   labels.
