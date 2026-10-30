@@ -134,18 +134,20 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
       characterRef.current.rotation.y = rotationRef.current
 
       // Camera: tight behind the car
+      // Chase camera: far enough back and up to see the street ahead.
       const camBehind = new THREE.Vector3(
-        Math.cos(rotationRef.current) * 1.5,
-        1.0,
-        -Math.sin(rotationRef.current) * 1.5
+        Math.cos(rotationRef.current) * 3.6,
+        2.3,
+        -Math.sin(rotationRef.current) * 3.6
       )
       const targetCamPos = characterRef.current.position.clone().add(camBehind)
       camera.position.lerp(targetCamPos, 0.12)
-      camera.lookAt(characterRef.current.position)
+      camera.lookAt(characterRef.current.position.x, characterRef.current.position.y + 0.5, characterRef.current.position.z)
 
     } else if (path && tRef.current < 1) {
-      // Path-following mode (original behavior)
-      let nextT = tRef.current + directionRef.current * speed
+      // Path-following mode: constant cruising speed along the path, eased at both ends.
+      const length = path.getLength() || 1
+      let nextT = tRef.current + directionRef.current * (delta * 5.5) / length
 
       if (nextT >= 1) {
         nextT = 1
@@ -156,10 +158,11 @@ export default function Car({ path, onReachEnd, driveMode = false, keysRef, city
         directionRef.current = 1
       }
 
-      const point = path.getPointAt(nextT)
+      const eased = nextT < 0.5 ? 2 * nextT * nextT : 1 - Math.pow(-2 * nextT + 2, 2) / 2
+      const point = path.getPointAt(eased)
       characterRef.current.position.set(point.x, point.y + lift, point.z)
 
-      const tangent = path.getTangentAt(Math.min(nextT, 1)).normalize()
+      const tangent = path.getTangentAt(Math.min(Math.max(eased, 0.001), 0.999)).normalize()
       tangent.y = 0
       tangent.normalize()
 

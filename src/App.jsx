@@ -356,7 +356,7 @@ function SkillsHeader() {
       <Scribble style={{ left: '-104px', top: '64px' }}>{'Different skills,\nsame destination'}</Scribble>
       <span className="section-eyebrow">02 · Skills</span>
       <h2 className="section-title">Skill Town</h2>
-      <p className="sheet-lede">Explore the different areas I work with. Click any house to see the skills in that district, then drive the car around town.</p>
+      <p className="sheet-lede">Explore the different areas I work with. Click any house or sign to see the skills in that district.</p>
     </header>
   );
 }

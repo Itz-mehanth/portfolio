@@ -8,12 +8,6 @@ const MODEL_ASSETS = [
   '/models/paper_airplane.glb',
   '/models/balloon.glb',
   '/models/car.glb',
-  '/models/ground.glb',
-  '/models/house.glb',
-  '/models/tank.glb',
-  '/models/tree.glb',
-  '/models/water tank.glb',
-  '/models/wind mill.glb',
 ];
 
 const AUDIO_ASSETS = ['/audio/coin.mp3'];
@@ -24,15 +18,8 @@ const NON_CRITICAL_ASSET_URLS = [...MODEL_ASSETS, ...AUDIO_ASSETS];
 const ALL_ASSET_URLS = [...CRITICAL_ASSET_URLS, ...NON_CRITICAL_ASSET_URLS];
 const ROUTE_ASSET_URLS = {
   lander: ['/mehanth-developer.jpg'],
-  skills: [
-    '/models/car.glb',
-    '/models/ground.glb',
-    '/models/house.glb',
-    '/models/tank.glb',
-    '/models/tree.glb',
-    '/models/water tank.glb',
-    '/models/wind mill.glb',
-  ],
+  // Skill Town is procedural now; only the car is a model.
+  skills: ['/models/car.glb'],
   projects: [
     '/models/paper_airplane.glb',
     '/models/balloon.glb',

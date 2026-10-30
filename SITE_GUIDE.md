@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (Skill Town rebuilt: two islands, bridge, winding road, grounded models)._
+_Last updated: 2026-10-30 (Skill Town rebuilt as a procedural miniature island town matching the reference)._
 
 ---
 
@@ -184,63 +184,81 @@ There is no profile photo on Home; the current design doesn't use one.
 
 ## 5. 02 · Skills — Skill Town
 
-Files: `src/Skills.jsx` (scene, districts, camera, drive mode, skills card),
-`src/SkillIsland.jsx` (island, sea, layout), `src/utils/models/*` (house, water
-tank, tree, windmill, car) · **WebGL**.
+Files: `src/Skills.jsx` (selection state, skills data, left panel, car, drive
+mode) and the world in `src/skilltown/`:
+- `layout.js`: every position in the world (island outline, mounds, roads,
+  districts, buildings, trees, turbines, signs, waterfalls, docks), as data
+- `Terrain.jsx`: island cliffs, grass top, mounds, sky, ocean, waterfalls,
+  docks, boat, sea rocks, clouds
+- `Town.jsx`: roads and plaza, buildings, trees, bushes, flowers, wind
+  turbines, teal tanks, district signs, selection halo
+- `index.jsx`: camera rig, lighting, assembly
+
+**WebGL**, all procedural; the only model is the car (`public/models/car.glb`).
 
 ### Layout
-- The 3D island fills the whole section.
-- A soft sky haze on the left carries an editorial column:
-  - **"02 · Skills"**, the title **"Skill Town"**, and "Explore the different
-    areas I work with. Click any house to see the skills in that district."
-  - Below it, the **skills card** for the selected district.
-- A handwritten margin note, "Different skills, same destination", sits beside
-  the title (wide screens only).
-- On wide screens the camera view is shifted, so the island sits on the right,
-  clear of the column.
-- **"Drive the car"** (ink pill) is at the lower right of the scene.
+- A bright, miniature floating-island town fills the section, seen from an
+  elevated three-quarter angle. On wide screens the view is shifted so the
+  island sits right of the text.
+- Left column, on a soft sky haze: **"02 · Skills"**, **"Skill Town"** on one
+  line, "Explore the different areas I work with. Click any house or sign to
+  see the skills in that district.", then the selected district as a dark pill
+  with an amber dot, and its skills as white chips.
+- A handwritten note, "Different skills, same destination", sits in the margin
+  (wide screens only).
+- **"Drive the car"** (ink pill) sits at the lower right.
 
-### The world (`SkillIsland.jsx`)
-Built from cheap procedural geometry plus the existing models:
-- **Two islands joined by a stone arch bridge:** a large main island and a
-  smaller one to its right.
-- **Cliffs:** each island has a grass top, cliffs in three layered terracotta
-  bands, and a sandy ledge at the waterline. Coastlines are irregular.
-- **Grassy hills** on the main island's back half (and a small one on the second
-  island), covered in trees, with a windmill on each big hill and a small
-  waterfall tumbling off the larger one.
-- **A winding grey stone road** with pale edge lines threads all nine districts
-  and crosses the bridge.
-- **Nine districts** beside the road, in this order: Languages, Web, Mobile,
-  Backend and Database along the main island, AR/VR near the bridge, then UI/UX,
-  Tools and AI/ML on the small island. Each district has:
-  - a cream house with its own roof colour, facing the road
-  - a water tank
-  - a round base pad with a coloured rim
-  - a dark sign on a post, which turns amber when that district is selected
-- **Trees** scattered across the green areas, never on the road or a district.
-- **Waterfalls:** three pour off the front cliffs into the sea.
-- **A wooden dock with a bobbing sailboat** off the small island, plus rocks in
-  the water and low-poly clouds drifting behind (clouds skipped in low-power
-  mode).
-- **Sea:** turquoise shallows around both islands, a breathing foam line and
-  deeper blue further out.
-- **Everything stands on the ground:** each model is wrapped in `Grounded`,
-  which measures its real bounding box once it loads and places its lowest
-  point exactly on the terrain beneath it (hills included). The car measures how
-  far its wheels hang below its origin and adds that to every height.
+### The world
+- **Island:** one broad island with an irregular, lobed outline. A grass top
+  sits above faceted cliffs in visible layers (grassy lip, sandy ochre band,
+  then terracotta and red-brown rock) that step in and out, so the island reads
+  as a raised diorama above the sea. Gentle grassy mounds roll up toward the
+  back.
+- **Roads:** a pale stone road loops through the town, a central avenue crosses
+  it through a **plaza with a fountain**, and two spurs lead to the east dock
+  and a west lookout. Every road has a sandy shoulder.
+- **Nine districts:** Languages, Web, Mobile, Backend, Database, AR/VR, UI/UX,
+  Tools and AI/ML. Each is a cluster of 2–4 buildings beside its stop on the
+  loop, led by a landmark (domed hall, tower or large hip-roofed house).
+  - About 24 more houses line the streets for density. Each belongs to its
+    nearest district, so clicking it selects that district.
+- **Buildings** (procedural, 37 in total): cream walls with gable, hip, dome,
+  tower or flat roofs in terracotta, coral, orange, teal, turquoise or lavender.
+  They have doors with little awnings, windows, eave trim, stone footings and
+  some chimneys. Every building faces its street.
+- **Greenery:** about 130 rounded multi-lobe trees, about 70 bushes and flower
+  patches, never on roads or buildings.
+- **Wind turbines:** six slender white turbines on the rear mounds, turning
+  slowly.
+- **Teal tanks:** small accents beside some landmarks.
+- **Water:**
+  - a turquoise-to-deep-blue ocean with slow, broad light swells and breathing
+    foam around the cliffs
+  - four waterfalls, each fed by a creek across the grass, with foam at the foot
+  - two wooden docks, a bobbing sailboat and rocks in the sea
+- **Sky:** a gradient sky dome, with soft clouds framing the island at the
+  sides and back.
+- **Light:** warm sun from the upper left with soft shadows, plus a sky/ground
+  fill light. Everything is matte: no bloom, no outlines.
+
+### District signs
+Dark charcoal rounded rectangles with white uppercase labels and a soft drop
+shadow. They float above each district and always face the camera, and they're
+nudged apart so they never overlap. The selected one grows, bobs gently and
+gets an amber border and amber text, and an amber halo rings its buildings on
+the ground. On portrait screens the signs scale up to stay readable.
 
 ### Interaction
-- **Click a house:** that district becomes selected, its sign turns amber, the
-  amber ring moves under it, and the car drives there along the road (over the
-  bridge if needed).
-- **Camera:** drag to rotate or pan it on desktop. There's no wheel zoom (the
-  wheel scrolls the page) and no drag-orbit on touch screens (a swipe scrolls
-  the page; taps still select houses). On arrival the camera swoops down from high above
-  (`src/utils/CameraEntrance.jsx`). On portrait screens the view widens
-  (`src/utils/useResponsiveFov.js`). The scene only renders while it's on screen.
-- **Phones:** the column becomes a compact title at the top and the skills card
-  along the bottom, with the island between them.
+- **Click a sign or any house:** that district is selected, the left panel
+  updates at once, and the car drives there along the road (the shorter way
+  round the loop, easing in and out).
+- **Camera:** a fixed composition, not a free orbit. It eases in on arrival and
+  drifts a few degrees with the pointer. The wheel scrolls the page; touch
+  swipes scroll the page; taps still select.
+- **Narrow screens:** the camera backs off until the whole island fits the
+  width.
+- **Reduced motion:** no camera ease or parallax, no turbine, ocean, waterfall,
+  cloud, boat or sign animation.
 
 ### Skills chips (in the left column)
 The selected district's name, then its skills as white pills straight on the sky. Hover a chip to see
@@ -261,9 +279,10 @@ a one-line description. It hides while you're driving.
 ### Drive mode
 - **"Drive the car"** hands you the car. Drive with WASD or the arrow keys on
   desktop, or the joystick on phones.
-- Solid ground is both islands and the bridge: drive off the edge and you fall,
-  then respawn at the Languages district.
-- The car bumps off the houses and the hills.
+- Solid ground is the island: drive off the edge and you fall, then respawn at
+  the Languages district.
+- The car bumps off buildings, mounds and turbines. The chase camera sits behind
+  and above it.
 - Press **"Exit drive mode"** to return to the overview camera.
 
 ---
@@ -530,9 +549,12 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 - **Home:** the space cutaway moves to the top-right corner and the hero copy
   sits below it. The name shrinks to fit the width. Extra bottom padding keeps
   the social icons clear of the tour button, and the scroll cue hides.
-- **Skill Town:** a compact title at the top with "Drive the car" below it, the
-  island in the middle, and the skills card along the bottom (above the tour
-  button). Orbiting and driving never swipe you to another section.
+- **Skill Town:**
+  - A compact title sits at the top with "Drive the car" below it, and the
+    district pill and skill chips along the bottom (above the tour button).
+  - The camera rises higher and backs off so the whole island fits the width.
+    District signs scale up so they stay readable.
+  - Taps select districts; swipes always scroll the page.
 - **Work:**
   - The header shrinks to the title and the two buttons.
   - The chase camera pulls back on portrait screens, so the plane's wings and
@@ -552,14 +574,14 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 | App shell, navigation, Home section, Contact | `src/App.jsx`, `src/App.css`, `src/Navbar.css`, `src/index.css` |
 | Motion system | `src/Motion.css` (+ `getScreenStyle` / `screenClass` in `App.jsx`) |
 | Home | `src/HomeHero.jsx`, `src/Home.css` |
-| Skills | `src/Skills.jsx`, `src/utils/models/*`, `src/utils/CameraEntrance.jsx`, `src/utils/useResponsiveFov.js` |
+| Skills | `src/Skills.jsx`, `src/skilltown/` (`layout.js`, `Terrain.jsx`, `Town.jsx`, `index.jsx`), `src/utils/models/Car.jsx` |
 | Work | `src/ProjectsStage.jsx`, `src/Projects.jsx`, `src/Airplane.jsx`, `src/Astroid.jsx` (balloons), `src/Blaster.jsx`, `src/CoinField.jsx`, `src/Coin.jsx`, `src/CockpitControls.jsx`, `src/utils/useKeyboard.jsx` |
 | Project pages | `src/ProjectPages.jsx`, `src/ProjectPages.css`, `src/data/projects.js` |
 | Awards | `src/Certificates.jsx`, `src/Awards.css` |
 | Contact | `ContactSection` in `src/App.jsx`, `src/Contact.css` |
 | Shared overlays | `src/TourGuide.jsx`, `src/DevicePreview.jsx` |
 | Loading | `src/preloadAssets.js`, `vite.config.js` (chunking) |
-| Models | `public/models/*.glb` |
+| Models | `public/models/*.glb` (Skills now uses only `car.glb`) |
 
 ---
 

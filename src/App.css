@@ -1052,8 +1052,9 @@ html, body {
     justify-content: space-between;
   }
   .skills-overlay .sheet-lede { display: none; }
-  .skills-overlay { bottom: 84px; }   /* clear of the tour button */
-  .drive-toggle { top: 150px !important; bottom: auto !important; right: 14px !important; }
+  .skills-overlay { bottom: 84px; top: 116px !important; }   /* clear of the navbar, the seam cloud and the tour button */
+  .skills-district-hint { display: none; }
+  .drive-toggle { top: 196px !important; bottom: auto !important; right: 14px !important; }
   .skills-overlay .section-title { font-size: clamp(32px, 9vw, 44px); }
   .skills-panel { padding: 12px 13px !important; }
 }
@@ -1109,3 +1110,41 @@ html, body {
     background: linear-gradient(180deg, rgba(236, 246, 251, 0.95) 0%, rgba(236, 246, 251, 0.75) 24%, rgba(236, 246, 251, 0) 40%, rgba(236, 246, 251, 0) 72%, rgba(236, 246, 251, 0.9) 100%);
   }
 }
+
+/* ==== Skill Town left panel (reference proportions) ==== */
+.skills-overlay { width: min(520px, 40vw); gap: 28px; }
+.skills-overlay .section-title { font-size: clamp(40px, 4.3vw, 72px); white-space: nowrap; }
+.skills-overlay .sheet-lede { font-size: 16px; max-width: 420px; }
+.skills-district { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.skills-district-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px 6px 11px;
+  border-radius: 999px;
+  background: #1b1b20;
+  color: #fff;
+  font: 700 12px var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.skills-district-pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(255, 181, 27, 0.25); }
+.skills-district-hint { font-size: 12.5px; color: var(--muted); }
+.skill-chip {
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 20, 0.06);
+  box-shadow: 0 6px 14px -10px rgba(17, 17, 20, 0.5);
+  font: 500 14px var(--font-body);
+  color: var(--ink);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.skill-chip:hover { transform: translateY(-2px); box-shadow: 0 10px 18px -10px rgba(17, 17, 20, 0.55); }
+.skills-panel ul { gap: 8px !important; }
+@media (max-width: 900px) {
+  .skills-overlay { width: auto; }
+  .skills-overlay .section-title { font-size: clamp(32px, 9vw, 44px); }
+  .skill-chip { padding: 6px 12px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .skill-chip { transition: none; } }
