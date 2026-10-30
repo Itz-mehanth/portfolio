@@ -1,46 +1,43 @@
 /* ==========================================================================
-   Depth deck — the site's motion system.
-   Each screen is a sheet in one 3D space (.screens has the perspective).
-   The active sheet sits flat; the one you leave tilts back and falls away into
-   depth, the next rises from below already in perspective and settles. Inside a
-   sheet, blocks marked .layer (with --d = depth, 0..5) arrive staggered: deeper
+   Journey — the site's motion system.
+   All five sections are stacked in one scrolling page (.journey). Between
+   them sit seams (Seams.jsx): torn paper and props that overlap both sides and
+   parallax with scroll. Inside a section, blocks marked .layer (with --d =
+   depth, 0..5) reveal the first time the section comes into view: deeper
    layers travel further and land later. The same --d drives a subtle cursor
-   parallax via --mx / --my (-1..1, smoothed in JS on the app root). Screen
-   transforms live in getScreenStyle (App.jsx); layer motion lives here.
+   parallax via --mx / --my (-1..1, smoothed in JS on the app root).
    ========================================================================== */
 
-.screens {
-  position: relative;
+.journey {
+  position: relative;            /* sections' offsetTop is measured from here */
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  perspective: 1600px;
-  perspective-origin: 50% 45%;
-  background: #e8e6e0;   /* the "table" the sheets lie on, seen between them mid-transition */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  background: var(--paper);
 }
+.journey::-webkit-scrollbar { display: none; }
 
-.portfolio-screen {
-  backface-visibility: hidden;
-  /* Invisible at rest (the sheet fills the view); during a move it gives the sheets weight. */
-  box-shadow: 0 50px 90px -40px rgba(13, 13, 15, 0.45);
+.journey > .portfolio-screen {
+  position: relative;
+  width: 100%;
+  min-height: 0;
 }
 
 .layer {
   --d: 0;
   translate: calc(var(--mx, 0) * var(--d) * -7px) calc(var(--my, 0) * var(--d) * 5px);
   transition:
-    transform 1.15s cubic-bezier(0.16, 1, 0.3, 1) calc(140ms + var(--d) * 75ms),
-    opacity 0.8s ease calc(140ms + var(--d) * 75ms);
+    transform 1.15s cubic-bezier(0.16, 1, 0.3, 1) calc(120ms + var(--d) * 80ms),
+    opacity 0.8s ease calc(120ms + var(--d) * 80ms);
 }
-.portfolio-screen:not(.is-active) .layer {
+.portfolio-screen.is-future .layer {
   opacity: 0;
-  transition-duration: 0.55s, 0.35s;
-  transition-delay: 0s;
+  transform: translate3d(0, calc(40px + var(--d) * 26px), 0);
 }
-.portfolio-screen.is-future .layer { transform: translate3d(0, calc(48px + var(--d) * 34px), 0); }
-.portfolio-screen.is-past .layer { transform: translate3d(0, calc(-36px - var(--d) * 28px), 0); }
 
 @media (prefers-reduced-motion: reduce) {
   .layer { translate: none; transition: opacity 0.3s ease; transform: none !important; }
-  .portfolio-screen { box-shadow: none; }
 }

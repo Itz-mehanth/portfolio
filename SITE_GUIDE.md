@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (reference-brief redesign: warm editorial system, Home cutaway, Skill Town island, full-bleed flight world, Awards cards, phone pass)._
+_Last updated: 2026-10-30 (one continuous scrolling page with torn-paper seams; Skills, Awards and Contact closer to the reference image)._
 
 ---
 
@@ -31,8 +31,9 @@ _Last updated: 2026-10-30 (reference-brief redesign: warm editorial system, Home
 
 ## 1. How the site is put together
 
-The site is a single page made of **five full-screen sections**. Only one is on
-screen at a time, and the address bar follows along:
+The site is **one continuous scrolling page** made of five sections, joined by
+seams instead of hard borders. The address bar follows whichever section is in
+the middle of the screen:
 
 | # | Section | URL | Nav label | 3D scene? |
 |---|---|---|---|---|
@@ -46,56 +47,57 @@ Each project also has its own address: `/projects/<slug>` (for example
 `/projects/arise`). Opening one directly lands you on Work with that project's
 page open. Browser back and forward work everywhere.
 
-Only the section you are on, plus the one you are moving to, are mounted. When
-a move finishes, the section you left is unmounted, so no more than one heavy 3D
-scene is ever alive at a time.
+The two WebGL sections (Skills, Work) mount when they come within a screen of
+the viewport and unmount when you scroll far away. Home, Awards and Contact are
+light and always mounted.
 
-Defined in `src/App.jsx` (`SCREEN_DEFINITIONS`, `navigateToScreenIndex`).
+Defined in `src/App.jsx` (`SCREEN_DEFINITIONS`, `navigateToScreen`,
+`scrollToScreen`, the scroll and intersection effects).
 
 ---
 
 ## 2. Moving between sections
 
-### Ways to move
-- **Navbar** (top right): Home · Skills · Work · Awards · Contact.
-- **Section rail** (right edge, desktop): five dots; hover shows `01 · Home` and
-  so on; the active one is a tall ink bar.
-- **Mouse wheel / trackpad:** one gesture moves exactly one section. Trackpad
-  inertia can't skip sections, and a small reversal mid-gesture doesn't count.
-- **Swipe** (phones): one swipe moves one section.
-- **Keyboard:** Page Up / Page Down everywhere. The arrow keys also work, except
-  on Skills and Work, where they steer the car and the plane.
-- **Buttons:** "View work" on Home jumps straight to Work.
+### Scrolling
+- The page scrolls natively: wheel, trackpad, touch swipes, keyboard (Page
+  Up/Down, Space, arrows outside Work) and the scrollbar all work as on any
+  page. Nothing jumps or locks.
+- **Navbar, section rail, tour guide and "View work"** glide smoothly to their
+  section, and add a browser history entry.
+- While you scroll, the section holding the middle of the screen becomes the
+  active one: the navbar pill, the rail and the URL follow it (the URL is
+  replaced, not pushed, so scrolling doesn't flood your history).
+- **Back / forward** glide to the section in the URL. **Deep links**
+  (`/skills`, `/certificates`, `/projects/arise`…) open at that section.
+- The 3D scenes never trap the scroll: Skill Town's camera doesn't zoom on the
+  wheel and has no drag-orbit on touch screens; the flight world has no hidden
+  scroll layer; flight keys only respond while Work is on screen and never
+  while you type.
 
-Scrollable content is scrolled first. On Awards, Contact and the taller phone
-layouts, the wheel or swipe scrolls the content until it reaches the end, and
-only then changes section. Drags that start on a 3D scene (orbiting, the
-joystick, driving) never change section.
+### Seams: no straight borders between sections
+Between every pair of sections sits a seam (`src/Seams.jsx`, `src/Seams.css`):
+a zero-height strip drawn above both sections, so its pieces overlap the end of
+one and the start of the next.
 
-### The "depth deck" transition (the site's signature motion)
-Every section is a **sheet lying in one shared 3D space**:
+| Between | What's there |
+|---|---|
+| Home → Skills | Home's paper **tears open** onto Skill Town's sky (white fibrous rim, soft shadow); low-poly rocks and clouds cross the tear |
+| Skills → Work | A **torn strip of paper** lies across the boundary; clouds and rocks hang off it |
+| Work → Awards | Awards' paper **rises over** the flight world with a torn top edge; rocks, a paper airplane and a gold coin cross it |
+| Awards → Contact | Same paper, no edge at all: plant leaves reach across from the sides |
 
-1. **Leaving:** the current sheet tilts back about 14°, shrinks and falls away
-   into depth (accelerating, about 0.95 s).
-2. **Arriving:** the next sheet starts below, tilted the other way and set back
-   in depth, then rises and settles flat (decelerating, about 1.2 s). Moving
-   backwards plays this in reverse: the earlier section comes down from above.
-3. **Between the sheets** you briefly see the "table" they lie on (a slightly
-   darker paper) and the sheets' soft shadows.
-4. **Layered arrival:** inside each sheet, blocks sit on depth layers (`--d`
-   from 0 to 5). Deeper layers start further away and land later, so the small
-   label arrives first, then the title, then the body, then the details.
-5. **Cursor parallax:** while you are on a section, moving the mouse makes
-   those layers drift against each other, with deeper layers moving more.
+Each prop has its own scroll speed, so as you scroll they drift at different
+rates against the page: that parallax is what makes the seams feel like depth.
+The torn sheets fade out on their flat side, so only the tear reads.
 
-Navigation is locked for about 0.76 s while sheets are moving, so fast scrolling
-can't stack moves. While a section's code or 3D models are still downloading,
-the move waits at most 0.22 s and then goes anyway.
-
-Built in: `src/Motion.css` (layers, parallax, stage) and `getScreenStyle` /
-`screenClass` in `src/App.jsx` (sheet poses and timing). Mouse position is eased
-in JavaScript and written to the CSS variables `--mx` and `--my` on the app
-root, so mouse movement never re-renders React.
+### Reveals and parallax inside sections
+- Blocks marked `.layer` (with a depth `--d`, 0–5) are hidden until their
+  section first scrolls into view, then rise in: deeper layers travel further
+  and land later.
+- While you're on a section, the mouse makes those layers drift slightly
+  against each other (deeper layers move more).
+- Built in `src/Motion.css`; mouse position is eased in JavaScript and written
+  to the CSS variables `--mx` / `--my`, so mouse movement never re-renders React.
 
 ---
 
@@ -187,8 +189,8 @@ Files: `src/Skills.jsx` (scene, districts, camera, drive mode, skills card),
 tank, tree, windmill, car) · **WebGL**.
 
 ### Layout
-- The 3D island fills the whole sheet.
-- A warm paper fade on the left carries an editorial column:
+- The 3D island fills the whole section.
+- A soft sky haze on the left carries an editorial column:
   - **"02 · Skills"**, the title **"Skill Town"**, and "Explore the different
     areas I work with. Click any house to see the skills in that district."
   - Below it, the **skills card** for the selected district.
@@ -224,15 +226,16 @@ Built from cheap procedural geometry plus the existing models:
 - **Click a house:** that district becomes selected, its sign highlights, the
   amber ring moves under it, and the car drives there along the ring road, the
   shorter way round.
-- **Camera:** rotate, pan and zoom it (zoom 8–34 units; you can't look from
-  below the ground). On arrival the camera swoops down from high above
+- **Camera:** drag to rotate or pan it on desktop. There's no wheel zoom (the
+  wheel scrolls the page) and no drag-orbit on touch screens (a swipe scrolls
+  the page; taps still select houses). On arrival the camera swoops down from high above
   (`src/utils/CameraEntrance.jsx`). On portrait screens the view widens
   (`src/utils/useResponsiveFov.js`). The scene only renders while it's on screen.
 - **Phones:** the column becomes a compact title at the top and the skills card
   along the bottom, with the island between them.
 
-### Skills card (translucent cream, in the left column)
-Shows the selected district's name and its skills as chips. Hover a chip to see
+### Skills chips (in the left column)
+The selected district's name, then its skills as white pills straight on the sky. Hover a chip to see
 a one-line description. It hides while you're driving.
 
 | District | Skills |
@@ -410,15 +413,18 @@ A warm paper sheet, left-aligned like the other sections.
   - Top 5% Competitive Programming (NPTEL): **85%**
   - UI/UX Design Figma (Cybernaut): **Certified**
 
-Cards rise in one after another and lift on hover. The section scrolls on its
-own when it is taller than the screen, and only changes section once you reach
-the end.
+Cards rise in one after another and lift on hover.
+
+**Desk props** (wide screens only): a tilted framed certificate with a gold
+medal on red and blue ribbons, and a gold coin, at the top right
+(`src/DeskProps.jsx`).
 
 ---
 
 ## 9. 05 · Contact
 
-Component: `ContactSection` in `src/App.jsx` · styles: `src/Contact.css` · no WebGL.
+Component: `ContactSection` in `src/App.jsx` · styles: `src/Contact.css` ·
+props: `src/DeskProps.jsx` · no WebGL.
 
 Two columns on desktop, stacked on phones.
 
@@ -428,17 +434,21 @@ Two columns on desktop, stacked on phones.
 - "Got a project, a hackathon squad, or just want to say hi? I usually reply
   within a day."
 - A green pulsing dot: "Available for opportunities".
-- Email: **mehanth362@gmail.com** (opens your mail app).
-- Based in: **Bangalore, India · SWE Intern @ VISA**.
+- Email **mehanth362@gmail.com** (opens your mail app) and **Bangalore, India ·
+  SWE Intern @ VISA**, side by side when there's room.
 - Pill links: LinkedIn, GitHub, Instagram.
 
 **Right (layer 2): message form**
-- Fields: Your Name (2+ characters), Email Address (checked for a valid
-  format), Project Details (10+ characters). Errors appear under each field.
+- **Your Name** and **Email Address** side by side (stacked on phones), then
+  **Project Details**. Rules: name 2+ characters, a valid email, details 10+
+  characters; errors appear under each field.
 - **Send Message** (ink button) submits to a Google Apps Script, which records
-  the message. The button shows "Sending…" while it works.
-- On success, a green "Message sent!" banner shows for 5 seconds and the form
-  clears. A red banner shows if sending fails.
+  the message; "Sending…" while it works; a green "Message sent!" banner for 5
+  seconds and a cleared form on success; a red banner if sending fails.
+
+**Desk props** (wide screens only, decorative): a potted plant at the bottom
+left, and a black "Mehanth." mug with steam on a stack of books at the bottom
+right.
 
 ---
 

@@ -1,0 +1,60 @@
+/* Seams between sections (see Seams.jsx). A seam is a zero-height strip that sits
+   above both neighbouring sections; its contents hang across the line. */
+.seam {
+  position: relative;
+  z-index: 30;
+  height: 0;
+  pointer-events: none;
+  --seam: 0px;
+}
+
+/* Torn paper: stretched across the full width, overlapping both sections. */
+.torn-edge {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 6px 8px rgba(17, 17, 20, 0.16));
+}
+.torn-edge.edge-up { bottom: -46px; }          /* hangs down from the section above */
+.torn-edge.edge-down { top: -46px; }           /* rises from the section below */
+.torn-edge.edge-down { filter: drop-shadow(0 -6px 8px rgba(17, 17, 20, 0.14)); }
+/* The sheet's flat side fades out, so only the torn edge reads, never a rectangle. */
+.torn-edge.edge-up {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 50%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 50%);
+}
+.torn-edge.edge-down {
+  -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 50%);
+  mask-image: linear-gradient(0deg, transparent 0%, #000 50%);
+}
+.torn-strip {
+  position: absolute;
+  left: 0;
+  top: -37px;
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 8px 10px rgba(17, 17, 20, 0.22));
+}
+
+.seam-slot {
+  position: absolute;
+  display: block;
+  translate: -50% 0;
+  transform: translate3d(0, calc(var(--seam) * var(--speed) * -1), 0) rotate(var(--rot));
+  will-change: transform;
+}
+.seam-prop {
+  display: block;
+  height: auto;
+  filter: drop-shadow(0 10px 10px rgba(17, 17, 20, 0.18));
+}
+
+@media (max-width: 768px) {
+  .seam-slot:nth-of-type(n + 5) { display: none; }
+  .seam-prop { scale: 0.7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seam-slot { transform: rotate(var(--rot)); }
+}

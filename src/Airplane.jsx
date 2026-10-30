@@ -2459,7 +2459,10 @@ const VIEWS = {
     front: new THREE.Vector3(0, 1.8, 8.5),
 }
 
-const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, setSpeed, planeViewRef, planeColor = '#eef2f7', lowPowerMode = false, ...props }, ref) => {
+const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, setSpeed, planeViewRef, planeColor = '#eef2f7', lowPowerMode = false, controlsActive = true, ...props }, ref) => {
+    // Flight keys only while Work is on screen, so the rest of the page scrolls and types normally.
+    const controlsActiveRef = useRef(controlsActive)
+    controlsActiveRef.current = controlsActive
     // Honour reduced-motion: kill the vestibular-trigger cockpit shake
     const reducedMotion = typeof window !== 'undefined' && window.matchMedia
         ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
@@ -2467,7 +2470,7 @@ const Airplane = forwardRef(({ joystickDataRef, verticalControlRef, isMobile, se
     const group = useRef()
     const jetWrapRef = useRef()
     const cockpitRef = useRef()
-    const keysRef = useKeyboard()
+    const keysRef = useKeyboard(controlsActiveRef)
     const { camera } = useThree()
     const desiredOffset = useRef(new THREE.Vector3())
 

@@ -12,6 +12,8 @@ import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
 import HomeHero from './HomeHero'
+import { MugAndBooks, PottedPlant } from './DeskProps'
+import { SeamHomeSkills, SeamSkillsWork, SeamWorkAwards, SeamAwardsContact } from './Seams'
 import Scribble from './Scribble'
 import './Motion.css'
 import { getProjectBySlug } from './data/projects'
@@ -354,7 +356,7 @@ function SkillsHeader() {
       <Scribble style={{ left: '-104px', top: '64px' }}>{'Different skills,\nsame destination'}</Scribble>
       <span className="section-eyebrow">02 · Skills</span>
       <h2 className="section-title">Skill Town</h2>
-      <p className="sheet-lede">Explore the different areas I work with. Click any house to see the skills in that district.</p>
+      <p className="sheet-lede">Explore the different areas I work with. Click any house to see the skills in that district, then drive the car around town.</p>
     </header>
   );
 }
@@ -382,15 +384,7 @@ export default function App() {
   const rootRef = useRef(null)
   const initialScreenIndex = findScreenIndexByPath(window.location.pathname)
   const activeScreenIndexRef = useRef(initialScreenIndex)
-  const wheelAccumulatorRef = useRef(0)
-  const wheelResetTimeoutRef = useRef(null)
-  const wheelGestureLockedRef = useRef(false)
-  const touchGestureLockedRef = useRef(false)
-  const touchInGestureZoneRef = useRef(false)
-  const transitionResetTimeoutRef = useRef(null)
-  const touchStartYRef = useRef(null)
-  const isNavigatingRef = useRef(false)
-  const pendingNavigationRef = useRef(null)
+  const journeyRef = useRef(null)   // the page's one scroll container
 
   const avatarRef = useRef()
   const [contactPage, setContactPage] = useState(false)
@@ -404,7 +398,11 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [activeScreenIndex, setActiveScreenIndex] = useState(initialScreenIndex);
-  const [mountedScreens, setMountedScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
+  // The 3D sections mount while within a screen of the viewport and unmount when far.
+  const [nearScreens, setNearScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
+  // Sections reveal their content the first time they come into view.
+  const [seenScreens, setSeenScreens] = useState(() => new Set([SCREEN_DEFINITIONS[initialScreenIndex].id]));
+  const [workVisible, setWorkVisible] = useState(initialScreenIndex === PROJECTS_SCREEN_INDEX);
   const joystickDataRef = useRef({ x: 0, y: 0 });
   const verticalControlRef = useRef(0); // Add this ref
   const fireRef = useRef(false); // mobile/desktop fire signal for the blaster
@@ -540,27 +538,10 @@ export default function App() {
     setIframeUrl(null);
   };
 
-  const mountScreen = (screenIndex) => {
-    const screen = SCREEN_DEFINITIONS[screenIndex];
-    if (!screen) return;
-
-    setMountedScreens((prev) => {
-      if (prev.has(screen.id)) {
-        return prev;
-      }
-
-      const next = new Set(prev);
-      next.add(screen.id);
-      return next;
-    });
-  };
-
   const preloadScreen = (screenIndex) => {
     const screen = SCREEN_DEFINITIONS[screenIndex];
     if (!screen) return Promise.resolve();
-
     const tasks = [];
-
     if (screen.preload) {
       tasks.push(
         screen.preload().catch((error) => {
@@ -568,80 +549,19 @@ export default function App() {
         })
       );
     }
-    // Warm the next screen's models while the visitor is still on this one.
+    // Warm the screen's models in idle time.
     scheduleIdle(() => preloadRouteAssets(screen.id));
-
     return Promise.allSettled(tasks);
   };
 
-  const resetTransition = () => {
-    if (transitionResetTimeoutRef.current) {
-      clearTimeout(transitionResetTimeoutRef.current);
-      transitionResetTimeoutRef.current = null;
-    }
-
-    isNavigatingRef.current = false;
-    pendingNavigationRef.current = null;
-  };
-
-  const navigateToScreenIndex = async (targetIndex, historyMode = 'push') => {
-    const targetScreen = SCREEN_DEFINITIONS[targetIndex];
-    if (!targetScreen) return;
-    if (targetIndex === activeScreenIndexRef.current && historyMode !== 'replace') return;
-    if (isNavigatingRef.current) return;
-
-    isNavigatingRef.current = true;
-    setProjectIndexOpen(false);
-    setCaseStudySlug(null);
-    const importTask = targetScreen.preload
-      ? targetScreen.preload().catch((error) => {
-          console.warn(`Failed to preload screen "${targetScreen.id}"`, error);
-        })
-      : Promise.resolve();
-
-    const assetTask = preloadRouteAssets(targetScreen.id);
-
-    mountScreen(targetIndex);
-
-    await Promise.race([
-      Promise.allSettled([importTask, assetTask]),
-      new Promise((resolve) => setTimeout(resolve, NAVIGATION_PRELOAD_BUDGET_MS)),
-    ]);
-    preloadScreen(targetIndex + 1);
-
-    activeScreenIndexRef.current = targetIndex;
-    setActiveScreenIndex(targetIndex);
-
-    if (historyMode === 'push') {
-      window.history.pushState({}, '', targetScreen.path);
-    } else if (historyMode === 'replace') {
-      window.history.replaceState({}, '', targetScreen.path);
-    }
-
-    if (!reducedMotionRef.current) {
-      await new Promise((resolve) => setTimeout(resolve, DECK_SETTLE_MS));
-    }
-    resetTransition();
-  };
-
-  // Returns true when the accumulated scroll triggered a screen change.
-  const updateScrollDrivenTransition = (delta, historyMode = 'push') => {
-    if (showIframe || projectOverlayOpen || isNavigatingRef.current || delta === 0) return false;
-
-    // Accumulate in one direction only, so a small reversal doesn't add up.
-    const accumulated = wheelAccumulatorRef.current;
-    wheelAccumulatorRef.current = Math.sign(accumulated) === Math.sign(delta) ? accumulated + delta : delta;
-
-    if (Math.abs(wheelAccumulatorRef.current) < PAGE_NAVIGATION_SCROLL_THRESHOLD) return false;
-
-    const direction = wheelAccumulatorRef.current > 0 ? 1 : -1;
-    wheelAccumulatorRef.current = 0;
-    const targetIndex = activeScreenIndexRef.current + direction;
-    if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) return false;
-
-    navigateToScreenIndex(targetIndex, historyMode);
-    return true;
-  };
+  const scrollToScreen = useCallback((screenIndex, behavior) => {
+    const el = document.getElementById(SCREEN_DEFINITIONS[screenIndex]?.id);
+    if (!el || !journeyRef.current) return;
+    journeyRef.current.scrollTo({
+      top: el.offsetTop,
+      behavior: behavior || (reducedMotionRef.current ? 'auto' : 'smooth'),
+    });
+  }, []);
 
   const openProjectIndex = useCallback(() => {
     setCaseStudySlug(null);
@@ -669,210 +589,136 @@ export default function App() {
   }, []);
 
   const caseStudyProject = caseStudySlug ? getProjectBySlug(caseStudySlug) : null;
+  const caseStudyOpenRef = useRef(false);
+  caseStudyOpenRef.current = caseStudySlug !== null;
 
   useEffect(() => {
     document.title = caseStudyProject ? `${caseStudyProject.title} | Mehanth` : BASE_DOCUMENT_TITLE;
   }, [caseStudyProject]);
 
+  // Navbar, rail, tour and buttons: glide to the section and record it in history.
   const navigateToScreen = useCallback((screenId) => {
     const targetIndex = SCREEN_DEFINITIONS.findIndex((screen) => screen.id === screenId);
     if (targetIndex === -1) return;
-    navigateToScreenIndex(targetIndex, 'push');
-  }, []);
+    setProjectIndexOpen(false);
+    setCaseStudySlug(null);
+    preloadScreen(targetIndex);
+    const { path } = SCREEN_DEFINITIONS[targetIndex];
+    if (window.location.pathname !== path) window.history.pushState({}, '', path);
+    scrollToScreen(targetIndex);
+  }, [scrollToScreen]);
 
   useEffect(() => {
-    activeScreenIndexRef.current = activeScreenIndex;
     const currentScreen = SCREEN_DEFINITIONS[activeScreenIndex];
     setFontBlack(currentScreen?.theme !== 'dark');
-    mountScreen(activeScreenIndex);
     preloadScreen(activeScreenIndex + 1);
   }, [activeScreenIndex]);
 
-  // Each screen owns a WebGL canvas; keeping every visited screen mounted piles up
-  // live GL contexts until the browser drops one (sections blank out). After the
-  // transition settles, unmount everything except the active screen so at most one
-  // heavy 3D context is alive at a time.
+  // Mounting and first reveal, from intersection with the scroll container.
   useEffect(() => {
-    if (loading) return;
-    const activeId = SCREEN_DEFINITIONS[activeScreenIndex]?.id;
-    if (!activeId) return;
-    const timer = setTimeout(() => {
-      setMountedScreens((prev) => (prev.size <= 1 && prev.has(activeId) ? prev : new Set([activeId])));
-    }, 650);
-    return () => clearTimeout(timer);
-  }, [activeScreenIndex, loading]);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const initialSlug = getCaseStudySlugFromPath(window.location.pathname);
-    window.history.replaceState({}, '', initialSlug ? `/projects/${initialSlug}` : SCREEN_DEFINITIONS[activeScreenIndexRef.current].path);
-    preloadScreen(activeScreenIndexRef.current + 1);
-
-    const handlePopState = () => {
-      const { pathname } = window.location;
-      const nextIndex = findScreenIndexByPath(pathname);
-      if (nextIndex !== activeScreenIndexRef.current) {
-        // The URL is already correct, so don't touch history.
-        navigateToScreenIndex(nextIndex, 'none');
+    const root = journeyRef.current;
+    if (!root) return undefined;
+    const sections = SCREEN_DEFINITIONS.map((screen) => document.getElementById(screen.id)).filter(Boolean);
+    const near = new IntersectionObserver((entries) => {
+      setNearScreens((prev) => {
+        const next = new Set(prev);
+        for (const entry of entries) {
+          if (entry.isIntersecting) next.add(entry.target.id);
+          else next.delete(entry.target.id);
+        }
+        return next.size === prev.size && [...next].every((id) => prev.has(id)) ? prev : next;
+      });
+    }, { root, rootMargin: '100% 0px' });
+    const seen = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target.id === 'projects') setWorkVisible(entry.isIntersecting);
       }
-      setProjectIndexOpen(false);
-      setCaseStudySlug(getCaseStudySlugFromPath(pathname));
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
+      const newlySeen = entries.filter((entry) => entry.intersectionRatio >= 0.15).map((entry) => entry.target.id);
+      if (newlySeen.length) {
+        setSeenScreens((prev) => (newlySeen.every((id) => prev.has(id)) ? prev : new Set([...prev, ...newlySeen])));
+      }
+    }, { root, threshold: [0, 0.15] });
+    sections.forEach((section) => {
+      near.observe(section);
+      seen.observe(section);
+    });
     return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [loading]);
-
-  useEffect(() => {
-    return () => {
-      if (transitionResetTimeoutRef.current) {
-        clearTimeout(transitionResetTimeoutRef.current);
-      }
-      if (wheelResetTimeoutRef.current) {
-        clearTimeout(wheelResetTimeoutRef.current);
-      }
+      near.disconnect();
+      seen.disconnect();
     };
   }, []);
 
+  // On scroll: which section holds the middle of the viewport (navbar, rail, URL),
+  // and how far each seam is from the middle (its props parallax by that).
+  useEffect(() => {
+    const root = journeyRef.current;
+    if (!root) return undefined;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const mid = root.clientHeight / 2;
+      let index = activeScreenIndexRef.current;
+      SCREEN_DEFINITIONS.forEach((screen, i) => {
+        const rect = document.getElementById(screen.id)?.getBoundingClientRect();
+        if (rect && rect.top <= mid && rect.bottom > mid) index = i;
+      });
+      if (index !== activeScreenIndexRef.current) {
+        activeScreenIndexRef.current = index;
+        setActiveScreenIndex(index);
+        const { path } = SCREEN_DEFINITIONS[index];
+        if (!caseStudyOpenRef.current && window.location.pathname !== path) {
+          window.history.replaceState({}, '', path);
+        }
+      }
+      if (!reducedMotionRef.current) {
+        root.querySelectorAll('.seam').forEach((seam) => {
+          seam.style.setProperty('--seam', `${(seam.getBoundingClientRect().top - mid).toFixed(1)}px`);
+        });
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    root.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+    return () => {
+      root.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // Deep links land on their section; back/forward glide between sections.
+  useEffect(() => {
+    if (initialScreenIndex > 0) requestAnimationFrame(() => scrollToScreen(initialScreenIndex, 'auto'));
+    const handlePopState = () => {
+      const { pathname } = window.location;
+      setProjectIndexOpen(false);
+      setCaseStudySlug(getCaseStudySlugFromPath(pathname));
+      scrollToScreen(findScreenIndexByPath(pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Open the CV directly — no friction for recruiters/judges.
   const handleDownloadCV = () => {
     window.open('https://drive.google.com/file/d/1YDWTQODu8_bxtFBOBagk-zH6UWAE9Ds4/view?usp=sharing', '_blank', 'noopener,noreferrer');
   }
 
-  const isMounted = (screenId) => mountedScreens.has(screenId);
-  const projectsCanvasActive = activeScreenIndex === 2 && isMounted('projects');
+  // Only the two WebGL sections mount and unmount with distance; the rest are light.
+  const isMounted = (screenId) => !['skills', 'projects'].includes(screenId) || nearScreens.has(screenId);
+  const projectsCanvasActive = workVisible && isMounted('projects');
 
-  // Depth deck (see Motion.css): the screen you leave tilts back and falls away into
-  // depth; the next rises from below in perspective and settles flat. Screens on
-  // either side wait in those poses, so moving backwards plays the move in reverse.
-  const screenState = (screenIndex) =>
-    screenIndex === activeScreenIndex ? 'is-active' : screenIndex < activeScreenIndex ? 'is-past' : 'is-future';
-  const screenClass = (screenIndex, extra = '') => `portfolio-screen ${screenState(screenIndex)} ${extra}`.trim();
-
-  const getScreenStyle = (screenIndex, baseStyle = {}) => {
-    const state = screenState(screenIndex);
-    const still = reducedMotion;
-    const poses = {
-      'is-active': 'none',
-      'is-past': still ? 'none' : 'translate3d(0, -16%, -460px) rotateX(14deg) scale(0.9)',
-      'is-future': still ? 'none' : 'translate3d(0, 62%, -300px) rotateX(-20deg) scale(0.94)',
-    };
-    return {
-      ...baseStyle,
-      position: 'absolute',
-      inset: 0,
-      opacity: state === 'is-active' ? 1 : 0,
-      visibility: state === 'is-active' ? 'visible' : 'hidden',
-      pointerEvents: state === 'is-active' ? 'auto' : 'none',
-      transform: poses[state],
-      transformOrigin: '50% 50%',
-      transition: state === 'is-active'
-        ? 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, opacity 0.55s ease 0.08s, visibility 0s'
-        : 'transform 0.95s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.6s ease 0.25s, visibility 0s linear 0.95s',
-      zIndex: state === 'is-active' ? 2 : 1,
-    };
-  };
-
-  const handleWheel = (event) => {
-    if (showIframe || projectOverlayOpen) return;
-
-    const isInsideProjectCanvas =
-      activeScreenIndexRef.current === PROJECTS_SCREEN_INDEX &&
-      typeof event.target?.closest === 'function' &&
-      event.target.closest('.canvas-wrapper');
-
-    if (isInsideProjectCanvas) return;
-    if (canScrollWithin(event.target, event.deltaY, rootRef.current)) return;
-
-    // Every wheel event (trackpad inertia included) extends the current gesture.
-    if (wheelResetTimeoutRef.current) {
-      clearTimeout(wheelResetTimeoutRef.current);
-    }
-    wheelResetTimeoutRef.current = setTimeout(() => {
-      wheelAccumulatorRef.current = 0;
-      wheelGestureLockedRef.current = false;
-    }, WHEEL_RESET_DELAY_MS);
-
-    if (wheelGestureLockedRef.current || isNavigatingRef.current) return;
-
-    if (updateScrollDrivenTransition(event.deltaY, 'push')) {
-      wheelGestureLockedRef.current = true;
-    }
-  };
-
-  const handleTouchStart = (event) => {
-    touchStartYRef.current = event.touches[0]?.clientY ?? null;
-    touchGestureLockedRef.current = false;
-    wheelAccumulatorRef.current = 0;
-    // Drags that start on a 3D stage (joystick, orbiting, driving) never swipe screens.
-    touchInGestureZoneRef.current = !!event.target?.closest?.('[data-gesture-zone]');
-  };
-
-  const handleTouchMove = (event) => {
-    if (touchStartYRef.current == null || touchInGestureZoneRef.current || touchGestureLockedRef.current || isNavigatingRef.current || showIframe || projectOverlayOpen) return;
-
-    const nextY = event.touches[0]?.clientY;
-    if (typeof nextY !== 'number') return;
-
-    const delta = touchStartYRef.current - nextY;
-    if (Math.abs(delta) >= 4) {
-      touchStartYRef.current = nextY;
-      if (canScrollWithin(event.target, delta, rootRef.current)) {
-        wheelAccumulatorRef.current = 0;
-        return;
-      }
-      if (updateScrollDrivenTransition(delta, 'push')) {
-        touchGestureLockedRef.current = true;
-      }
-    }
-  };
-
-  // Keyboard navigation between screens. PageUp/PageDown work everywhere; the
-  // arrow keys are left to the 3D scenes that use them for movement.
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
-      if (showIframe || projectOverlayOpen || isNavigatingRef.current) return;
-      const target = event.target;
-      if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName)) return;
-
-      const screenId = SCREEN_DEFINITIONS[activeScreenIndexRef.current]?.id;
-      const arrowsFree = !ARROW_KEY_SCREEN_IDS.has(screenId);
-      let direction = 0;
-      if (event.key === 'PageDown' || (arrowsFree && event.key === 'ArrowDown')) direction = 1;
-      else if (event.key === 'PageUp' || (arrowsFree && event.key === 'ArrowUp')) direction = -1;
-      if (!direction) return;
-
-      const targetIndex = activeScreenIndexRef.current + direction;
-      if (targetIndex < 0 || targetIndex >= SCREEN_DEFINITIONS.length) return;
-      event.preventDefault();
-      navigateToScreenIndex(targetIndex, 'push');
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showIframe, projectOverlayOpen]);
-
-  const handleTouchEnd = () => {
-    touchStartYRef.current = null;
-    if (!isNavigatingRef.current) {
-      resetTransition();
-    }
-  };
+  // Sections are stacked in one scrolling page. .is-active = has been seen (its
+  // .layer blocks have revealed); .is-future = not reached yet (see Motion.css).
+  const screenClass = (screenIndex, extra = '') =>
+    `portfolio-screen ${seenScreens.has(SCREEN_DEFINITIONS[screenIndex].id) ? 'is-active' : 'is-future'} ${extra}`.trim();
+  const getScreenStyle = (_screenIndex, baseStyle = {}) => ({ position: 'relative', ...baseStyle });
 
   return (
-    <div
-      className="portfolio-scroll-root"
-      ref={rootRef}
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="portfolio-scroll-root" ref={rootRef}>
       {showIframe && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <DevicePreview show={showIframe} url={iframeUrl} onClose={closeIframe} />
@@ -903,7 +749,7 @@ export default function App() {
         <TourGuide activeScreenIndex={activeScreenIndex} onNavigate={navigateToScreen} />
       )}
       {!loading && (
-        <div className="screens">
+        <div className="journey" ref={journeyRef}>
           <Navbar
             fontBlack={fontBlack}
             activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
@@ -913,7 +759,7 @@ export default function App() {
           {!isMobile && <NavDots activeIndex={activeScreenIndex} fontBlack={fontBlack} onNavigate={navigateToScreen} />}
           <section id='lander'
             className={screenClass(0, 'paper-sheet')}
-            style={getScreenStyle(0, { overflow: 'hidden' })}
+            style={getScreenStyle(0, { overflow: 'hidden', height: '100vh', minHeight: '600px' })}
           >
             <HomeHero
               active={activeScreenIndex === 0}
@@ -922,13 +768,15 @@ export default function App() {
             />
           </section>
 
+          <SeamHomeSkills />
+
           <section id='skills'
             className={screenClass(1)}
-            style={getScreenStyle(1, { overflow: 'hidden', background: '#bfe3f2' })}
+            style={getScreenStyle(1, { overflow: 'hidden', background: '#bfe3f2', height: '100vh', minHeight: '640px' })}
           >
             {isMounted('skills') ? (
               <Suspense fallback={<SectionPlaceholder title="Skill Town" />}>
-                <Skills lowPowerMode={lowPowerMode} header={<SkillsHeader />} />
+                <Skills lowPowerMode={lowPowerMode} touch={isMobile} header={<SkillsHeader />} />
               </Suspense>
             ) : (
               <SectionPlaceholder title="Skill Town" />
@@ -936,13 +784,13 @@ export default function App() {
           </section>
 
 
-          {/* 3D Section */}
-          {/* 3D Section */}
+          <SeamSkillsWork />
+
           <section
 
             id="projects"
             className={screenClass(2, 'canvas-text-section hide-scrollbar')}
-            style={getScreenStyle(2, { overflow: 'hidden', background: 'var(--ink)' })}
+            style={getScreenStyle(2, { overflow: 'hidden', background: 'var(--ink)', height: '100vh', minHeight: '620px' })}
           >
             {/* Flight stage */}
             <div
@@ -1006,7 +854,6 @@ export default function App() {
                 <Suspense fallback={<SectionPlaceholder title="Project Orbit" theme="dark" />}>
                   <ProjectsStage
                     active={projectsCanvasActive && !projectOverlayOpen}
-                    scrollEnabled={activeScreenIndex === 2}
                     lowPowerMode={lowPowerMode}
                     isMobile={isMobile}
                     contactPage={contactPage}
@@ -1154,58 +1001,26 @@ export default function App() {
             </div>
           </section>
 
+          <SeamWorkAwards />
+
           <section
             id='certificate'
             className={screenClass(3, 'paper-sheet')}
-            style={getScreenStyle(3, {
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100vh',
-              padding: '92px clamp(16px, 3vw, 48px) 0 0',
-            })}
+            style={getScreenStyle(3, { padding: '150px clamp(16px, 3vw, 48px) 90px 0' })}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={activeScreenIndex === 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-              style={{ width: '100%', height: '100%' }}
-            >
-              {isMounted('certificate') ? (
-                <Suspense fallback={<SectionPlaceholder title="Achievement Vault" />}>
-                  <Certificates />
-                </Suspense>
-              ) : (
-                <SectionPlaceholder title="Achievement Vault" />
-              )}
-            </motion.div>
+            <Suspense fallback={<SectionPlaceholder title="Achievement Vault" />}>
+              <Certificates />
+            </Suspense>
           </section>
+
+          <SeamAwardsContact />
 
           {/* Contact Section */}
           <section id='contact'
-            className={screenClass(4)}
-            style={getScreenStyle(4, {
-              height: '100vh',
-              width: '100vw',
-              overflowX: 'hidden',
-              scrollBehavior: 'smooth',
-              background: 'var(--paper)',
-              display: 'flex',
-              alignItems: 'center',
-            })}
+            className={screenClass(4, 'paper-sheet')}
+            style={getScreenStyle(4, { minHeight: '100vh', overflowX: 'hidden' })}
           >
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={activeScreenIndex === 4 ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-              style={{
-                height: '100%',
-                width: '100%',
-                backgroundColor: 'transparent',
-              }}
-            >
-              <ContactSection />
-            </motion.div>
+            <ContactSection />
           </section>
 
         </div >
@@ -1331,7 +1146,9 @@ function ContactSection({ onSent }) {
 
   return (
     <>
-      <section className="contact-section" data-scrollable>
+      <section className="contact-section">
+        <PottedPlant width={150} style={{ position: 'absolute', left: 'clamp(-20px, 1vw, 24px)', bottom: '18px' }} />
+        <MugAndBooks width={230} style={{ position: 'absolute', right: 'clamp(8px, 3vw, 56px)', bottom: '10px' }} />
         <div className="contact-container">
           <div className="contact-intro layer" style={{ '--d': 1 }}>
             <header className="contact-heading">
@@ -1375,6 +1192,7 @@ function ContactSection({ onSent }) {
                   <div className="form-banner error" role="alert">Something went wrong. Please try again.</div>
                 )}
 
+                <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="name">Your Name</label>
                   <input
@@ -1421,6 +1239,8 @@ function ContactSection({ onSent }) {
                       {errors.email}
                     </span>
                   )}
+                </div>
+
                 </div>
 
                 <div className="form-group">

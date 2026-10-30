@@ -2,12 +2,9 @@
 
 .contact-section {
   position: relative;
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  padding: 104px clamp(16px, 4vw, 48px) 40px;
+  padding: 120px clamp(16px, 4vw, 48px) 110px;
   display: flex;
   align-items: center;
   font-family: var(--font-body);
@@ -195,3 +192,12 @@
   .status-dot { animation: none; }
   .contact-item, .social-link, .submit-btn { transition: none; }
 }
+
+/* ==== Continuous page: closer to the reference ==== */
+.contact-section { position: relative; overflow: hidden; }
+.contact-list { flex-direction: row; flex-wrap: wrap; gap: 6px 28px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.contact-section > .desk-prop { z-index: 0; pointer-events: none; }
+.contact-container { position: relative; z-index: 1; }
+@media (max-width: 1100px) { .contact-section > .desk-prop { display: none; } }
+@media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }

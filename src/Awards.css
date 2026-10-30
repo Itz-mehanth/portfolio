@@ -3,11 +3,7 @@
 .awards {
   width: 100%;
   max-width: 1160px;
-  height: 100%;
   margin: 0 auto;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
   padding: 8px 4px 32px;
   font-family: var(--font-body);
   color: var(--ink);
@@ -162,8 +158,7 @@
 }
 
 /* ==== Brief phase E: editorial header, gold marks, certification cards ==== */
-/* The list scrolls inside itself, which clips anything outside its box, so the left
-   margin (where the handwritten note lives) is padding inside it. */
+/* The left margin (where the handwritten note lives) is padding inside the column. */
 .awards { max-width: calc(1180px + 8vw); margin: 0; padding-left: clamp(20px, 8vw, 132px); }
 .awards-heading { margin-bottom: clamp(18px, 3.5vh, 36px); max-width: 760px; }
 .awards-heading .section-title { font-size: clamp(38px, 4.7vw, 68px); }
@@ -202,3 +197,15 @@
   }
   .award-card.cert .cert-link { justify-self: start; }
 }
+
+/* ==== Continuous page: props and spacing ==== */
+.awards { position: relative; }
+.awards-props {
+  position: absolute;
+  right: clamp(8px, 4vw, 70px);
+  top: -30px;
+  width: 210px;
+  pointer-events: none;
+}
+.desk-prop { display: block; height: auto; filter: drop-shadow(0 14px 14px rgba(17, 17, 20, 0.2)); }
+@media (max-width: 1000px) { .awards-props { display: none; } }

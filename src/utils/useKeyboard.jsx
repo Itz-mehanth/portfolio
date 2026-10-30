@@ -1,7 +1,8 @@
 
 import { useEffect, useRef } from "react";
 
-export default function useKeyboard() {
+// activeRef (optional): while its .current is false, keys are ignored and not blocked.
+export default function useKeyboard(activeRef) {
     const keysRef = useRef({
         forward: false,
         backward: false,
@@ -37,6 +38,9 @@ export default function useKeyboard() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
+            const t = e.target;
+            const typing = t && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(t.tagName));
+            if ((activeRef && !activeRef.current) || typing) return;
             if (handledCodes.has(e.code)) {
                 e.preventDefault();
             }

@@ -1,6 +1,8 @@
 import { ArrowUpRight, Trophy, Award, Medal, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Scribble from './Scribble';
+import { FramedCertificate, MedalProp } from './DeskProps';
+import { Coin } from './Seams';
 import './Awards.css';
 
 // A small, restrained gold mark per win: first place gets the trophy.
@@ -26,13 +28,20 @@ const reveal = (i) => ({
 
 export default function Certificates() {
   return (
-    <div className="awards" data-scrollable>
+    <div className="awards">
       <header className="sheet-header awards-heading layer" style={{ '--d': 1 }}>
         <Scribble style={{ left: '-104px', top: '58px' }}>{'Recognitions that\npush me forward'}</Scribble>
         <span className="section-eyebrow">04 · Awards</span>
         <h2 className="section-title">Proof of work</h2>
         <p className="sheet-lede">Three hackathon wins in 2026, and the certifications behind the fundamentals.</p>
       </header>
+
+      {/* Desk props at the top right, like trophies on a shelf */}
+      <div className="awards-props layer" style={{ '--d': 4 }} aria-hidden="true">
+        <FramedCertificate width={210} style={{ transform: 'rotate(7deg)' }} />
+        <MedalProp width={84} style={{ position: 'absolute', left: '-46px', top: '60px', transform: 'rotate(-14deg)' }} />
+        <Coin size={42} style={{ position: 'absolute', right: '-14px', top: '146px' }} />
+      </div>
 
       <section className="awards-group layer" style={{ '--d': 2 }} aria-labelledby="awards-hackathons">
         <h3 id="awards-hackathons" className="awards-group-title"><Trophy size={16} /> Hackathons</h3>

@@ -3,7 +3,7 @@
 // when this (or another 3D screen) is actually needed.
 import { Suspense, useCallback, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { ScrollControls, Scroll, PerspectiveCamera, AdaptiveEvents } from '@react-three/drei'
+import { PerspectiveCamera, AdaptiveEvents } from '@react-three/drei'
 import { EffectComposer, Vignette, Bloom } from '@react-three/postprocessing'
 import Airplane from './Airplane'
 import Projects from './Projects'
@@ -12,7 +12,6 @@ const CAMERA_CONFIG = { position: [0, 4, 15], fov: 100 }
 
 export default function ProjectsStage({
   active,
-  scrollEnabled,
   lowPowerMode,
   isMobile,
   contactPage,
@@ -54,17 +53,10 @@ export default function ProjectsStage({
       <ambientLight intensity={5} />
       <PerspectiveCamera makeDefault position={[0, 4, 15]} fov={100} />
       <Suspense fallback={null}>
-        <ScrollControls
-          maxSpeed={0.25}
-          distance={6}
-          pages={1}
-          damping={0.35}
-          enabled={scrollEnabled}
-          infinite={true}
-          horizontal={false}
-        >
-          <Scroll>
+        {/* No ScrollControls: its invisible scroll layer would trap the page's wheel. */}
+        <group>
             <Airplane
+              controlsActive={active}
               contactPage={contactPage}
               setContactPage={setContactPage}
               ref={avatarRef}
@@ -89,8 +81,7 @@ export default function ProjectsStage({
                 lowPowerMode={lowPowerMode}
               />
             )}
-          </Scroll>
-        </ScrollControls>
+        </group>
 
         {/* Kept mounted for the canvas's whole life: mounting and unmounting the
             composer on screen changes swapped render paths and flashed the frame. */}

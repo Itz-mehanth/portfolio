@@ -221,7 +221,7 @@ function TownCamera() {
   return <PerspectiveCamera ref={ref} makeDefault position={[0, 15, 22.5]} fov={fov} />;
 }
 
-export default function SciFiSkillCities({ lowPowerMode = false, header = null }) {
+export default function SciFiSkillCities({ lowPowerMode = false, header = null, touch = false }) {
   const [selectedCity, setSelectedCity] = useState('languages'); // starting city
   const [currentCity, setCurrentCity] = useState('languages');
   const [path, setPath] = useState(null);
@@ -367,7 +367,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null }
           overflow: 'hidden',
           zIndex: 10,
           pointerEvents: 'auto',
-          cursor: 'grab'
+          cursor: touch ? 'default' : 'grab'
         }}
       >
         <Canvas
@@ -410,9 +410,11 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null }
               shadow-bias={-0.0001}
             />
             {!driveMode && <CameraEntrance distanceFactor={2.6} lift={6} duration={1.8} />}
-            {!driveMode && (
+            {/* In the scrolling page the wheel scrolls (no zoom), and touch screens get no
+                orbit drag, so a swipe over the island scrolls the page; taps still pick houses. */}
+            {!driveMode && !touch && (
               <OrbitControls
-                enableZoom={true}
+                enableZoom={false}
                 enablePan={true}
                 enableRotate={true}
                 maxPolarAngle={Math.PI / 2.3}
