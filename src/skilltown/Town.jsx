@@ -1,15 +1,15 @@
-// Skill Town's town: road network and plaza, procedural houses, instanced trees,
-// bushes and flowers, wind turbines, teal tanks and the district signs.
-// Geometries and materials are shared through small caches, so 40 buildings cost
-// a handful of unique geometries.
+// Skill Town's town: road network and plaza, the buildings (see Buildings.jsx),
+// instanced trees, bushes and flowers, wind turbines, teal tanks and the district
+// signs. Materials are shared through a small cache.
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { Billboard, Text } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import {
-  BUILDINGS, BUSHES, DISTRICT_LABELS, DISTRICT_ORDER, DISTRICTS, FLOWERS, GROUND_Y, PLAZA, ROAD_Y, ROADS, SIGNS,
+  BUSHES, DISTRICT_LABELS, DISTRICT_ORDER, DISTRICTS, FLOWERS, GROUND_Y, PLAZA, ROAD_Y, ROADS, SIGNS,
   TANKS, TREES, TURBINES, heightAt,
 } from './layout'
+import Buildings from './Buildings'
 
 // ---------- shared materials ----------
 const materialCache = new Map()
@@ -85,109 +85,6 @@ function Roads() {
           <sphereGeometry args={[0.12, 12, 8]} />
         </mesh>
       </group>
-    </group>
-  )
-}
-
-// ---------- buildings ----------
-const geoCache = new Map()
-function geo(key, make) {
-  if (!geoCache.has(key)) geoCache.set(key, make())
-  return geoCache.get(key)
-}
-const unitBox = () => geo('box', () => new THREE.BoxGeometry(1, 1, 1))
-const gableGeo = () =>
-  geo('gable', () => {
-    // A unit triangular prism (base 1 wide, 1 deep, peak 1 up), centred on x/z.
-    const shape = new THREE.Shape([new THREE.Vector2(-0.5, 0), new THREE.Vector2(0.5, 0), new THREE.Vector2(0, 1)])
-    const g = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false })
-    g.translate(0, 0, -0.5)
-    return g
-  })
-const hipGeo = () => geo('hip', () => {
-  const g = new THREE.ConeGeometry(0.71, 1, 4, 1)
-  g.rotateY(Math.PI / 4)
-  g.translate(0, 0.5, 0)
-  return g
-})
-const domeGeo = () => geo('dome', () => new THREE.SphereGeometry(0.5, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2))
-const cylGeo = () => geo('cyl', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 16))
-const coneGeo = () => geo('cone', () => new THREE.ConeGeometry(0.5, 1, 16))
-
-function Building({ b, selected, onSelect }) {
-  const { w, d, h, roof } = b
-  const wall = mat(b.wall, { roughness: 0.85 })
-  const roofMat = mat(b.roofColor, { roughness: 0.6 })
-  const trim = mat('#d9c7a6')
-  const dark = mat('#5a3b26')
-  const glass = mat('#7fd1e8', { roughness: 0.25 })
-  const y = heightAt(b.x, b.z)
-  const lift = selected ? 0.06 : 0
-  const overhang = 0.12
-  const windows = Math.max(1, Math.round(w / 0.5))
-  return (
-    <group
-      position={[b.x, y + lift, b.z]}
-      rotation={[0, b.rot, 0]}
-      onClick={(e) => {
-        e.stopPropagation()
-        onSelect(b.district)
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation()
-        document.body.style.cursor = 'pointer'
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = ''
-      }}
-    >
-      {/* Stone footing */}
-      <mesh geometry={unitBox()} material={mat('#c9bba3')} position={[0, 0.04, 0]} scale={[w + 0.12, 0.08, d + 0.12]} receiveShadow />
-      {/* Walls */}
-      <mesh geometry={unitBox()} material={wall} position={[0, 0.08 + h / 2, 0]} scale={[w, h, d]} castShadow receiveShadow />
-      {/* Eave trim */}
-      <mesh geometry={unitBox()} material={trim} position={[0, 0.08 + h - 0.03, 0]} scale={[w + 0.04, 0.06, d + 0.04]} />
-      {/* Door and windows on the street side (+z) */}
-      <mesh geometry={unitBox()} material={dark} position={[0, 0.08 + 0.22, d / 2 + 0.006]} scale={[0.22, 0.44, 0.02]} />
-      <mesh geometry={unitBox()} material={mat(b.roofColor, { roughness: 0.6 })} position={[0, 0.08 + 0.48, d / 2 + 0.03]} scale={[0.36, 0.04, 0.08]} />
-      {Array.from({ length: windows }, (_, i) => {
-        const x = (i - (windows - 1) / 2) * (w / windows)
-        if (Math.abs(x) < 0.2) return null
-        return <mesh key={i} geometry={unitBox()} material={glass} position={[x, 0.08 + h * 0.62, d / 2 + 0.006]} scale={[0.16, 0.16, 0.02]} />
-      })}
-      <mesh geometry={unitBox()} material={glass} position={[w / 2 + 0.006, 0.08 + h * 0.62, 0]} scale={[0.02, 0.16, 0.16]} />
-      <mesh geometry={unitBox()} material={glass} position={[-w / 2 - 0.006, 0.08 + h * 0.62, 0]} scale={[0.02, 0.16, 0.16]} />
-
-      {/* Roof */}
-      {roof === 'gable' && (
-        <mesh geometry={gableGeo()} material={roofMat} position={[0, 0.08 + h, 0]} scale={[w + overhang * 2, Math.min(w, d) * 0.62, d + overhang * 2]} castShadow />
-      )}
-      {roof === 'hip' && (
-        <mesh geometry={hipGeo()} material={roofMat} position={[0, 0.08 + h, 0]} scale={[w + overhang * 2, Math.min(w, d) * 0.55, d + overhang * 2]} castShadow />
-      )}
-      {roof === 'flat' && (
-        <group>
-          <mesh geometry={unitBox()} material={roofMat} position={[0, 0.08 + h + 0.05, 0]} scale={[w + 0.08, 0.1, d + 0.08]} castShadow />
-          <mesh geometry={unitBox()} material={mat('#e9dcc1')} position={[w * 0.15, 0.08 + h + 0.2, -d * 0.1]} scale={[w * 0.3, 0.2, d * 0.3]} castShadow />
-        </group>
-      )}
-      {roof === 'dome' && (
-        <group>
-          <mesh geometry={unitBox()} material={trim} position={[0, 0.08 + h + 0.04, 0]} scale={[w + 0.06, 0.08, d + 0.06]} />
-          <mesh geometry={domeGeo()} material={roofMat} position={[0, 0.08 + h + 0.08, 0]} scale={[Math.min(w, d) * 0.9, Math.min(w, d) * 0.85, Math.min(w, d) * 0.9]} castShadow />
-          <mesh geometry={cylGeo()} material={trim} position={[0, 0.08 + h + 0.08 + Math.min(w, d) * 0.45, 0]} scale={[0.06, 0.25, 0.06]} />
-        </group>
-      )}
-      {roof === 'tower' && (
-        <group>
-          <mesh geometry={gableGeo()} material={roofMat} position={[0, 0.08 + h, 0]} scale={[w + overhang * 2, Math.min(w, d) * 0.5, d + overhang * 2]} castShadow />
-          <mesh geometry={cylGeo()} material={wall} position={[w * 0.28, 0.08 + h + 0.45, d * 0.18]} scale={[0.42, 0.9, 0.42]} castShadow />
-          <mesh geometry={coneGeo()} material={roofMat} position={[w * 0.28, 0.08 + h + 1.12, d * 0.18]} scale={[0.56, 0.5, 0.56]} castShadow />
-        </group>
-      )}
-      {b.chimney && (
-        <mesh geometry={unitBox()} material={mat('#b4876a')} position={[w * 0.25, 0.08 + h + Math.min(w, d) * 0.35, -d * 0.18]} scale={[0.14, 0.4, 0.14]} castShadow />
-      )}
     </group>
   )
 }
@@ -431,9 +328,7 @@ export default function Town({ selected, onSelect, animate = true, lowPowerMode 
   return (
     <group>
       <Roads />
-      {BUILDINGS.map((b, i) => (
-        <Building key={i} b={b} selected={b.district === selected} onSelect={onSelect} />
-      ))}
+      <Buildings selected={selected} onSelect={onSelect} />
       <Trees items={trees} lowPowerMode={lowPowerMode} />
       <Bushes items={lowPowerMode ? BUSHES.slice(0, 30) : BUSHES} flowers={FLOWERS} />
       {TURBINES.map((t, i) => <Turbine key={i} t={t} index={i} animate={animate} />)}

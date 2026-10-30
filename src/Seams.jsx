@@ -5,7 +5,8 @@
 // middle) on every .seam, and each prop moves by --seam × its --speed.
 import './Seams.css'
 
-// Deterministic jagged edge: a torn-paper line across a 1440-wide viewBox.
+// ---------- torn paper ----------
+// Seeded random numbers, so every tear looks the same on every visit.
 function seeded(seed) {
   let s = seed
   return () => {
@@ -14,63 +15,165 @@ function seeded(seed) {
   }
 }
 
-function tornPoints(seed, y, amp, step = 26) {
+// Smooth 1D value noise in [-1, 1].
+function noise1D(seed) {
   const rnd = seeded(seed)
-  const pts = []
-  let drift = 0
-  for (let x = 0; x < 1440; x += step * (0.6 + rnd() * 0.9)) {
-    drift = drift * 0.7 + (rnd() - 0.5) * amp * 0.6        // slow wander, like a hand tear
-    const nick = rnd() < 0.1 ? (rnd() - 0.5) * amp * 0.9 : 0
-    pts.push([x, y + drift + (rnd() - 0.5) * amp * 0.35 + nick])
+  const lattice = Array.from({ length: 512 }, () => rnd() * 2 - 1)
+  return (x) => {
+    const i = Math.floor(x)
+    const f = x - i
+    const t = f * f * (3 - 2 * f)
+    const a = lattice[((i % 512) + 512) % 512]
+    const b = lattice[(((i + 1) % 512) + 512) % 512]
+    return a + (b - a) * t
   }
-  pts.push([1440, y + (rnd() - 0.5) * amp])
+}
+
+// The tears are drawn in real pixels across a wide sheet and cropped to the
+// screen (never stretched), so the fibres look the same on a phone and a monitor.
+const SHEET_W = 2400
+
+// A torn line: broad wander, medium lumps, small bites and fine jaggies, with the
+// occasional sharp nick, like paper pulled apart by hand.
+function tearLine(seed, y, amp = 1, step = 4) {
+  const octaves = [[460, 22], [160, 11], [48, 5], [13, 2.2], [5, 0.9]].map(([len, a], k) => [len, a * amp, noise1D(seed + k * 101)])
+  const rnd = seeded(seed + 7)
+  const pts = []
+  for (let x = -8; x <= SHEET_W + 8; x += step) {
+    let dy = 0
+    for (const [len, a, n] of octaves) dy += n(x / len) * a
+    if (rnd() < 0.025) dy += (rnd() - 0.3) * 9 * amp
+    pts.push([x, y + dy])
+  }
   return pts
 }
 
-// Closed shape: the straight edge of the sheet (y = 0 for 'bottom', y = H for 'top'),
-// then the torn edge traced back from right to left.
-function sheetPath(side, H, seed, y, amp, step) {
-  const pts = tornPoints(seed, y, amp, step)
-  const flat = side === 'bottom' ? 0 : H
-  const torn = pts
-    .slice()
-    .reverse()
-    .map(([x, py]) => `L${x.toFixed(1)},${py.toFixed(1)}`)
-    .join(' ')
-  return `M0,${flat} L1440,${flat} ${torn} Z`
+// A second line hugging the first: the white fibrous rim, wider in some places.
+function rimLine(base, seed, dir, width = 7) {
+  const wide = noise1D(seed + 3)
+  const fine = noise1D(seed + 5)
+  return base.map(([x, y]) => [x, y + dir * (width * (0.55 + 0.6 * Math.abs(wide(x / 90))) + fine(x / 3) * 1.4)])
 }
 
-// A sheet of paper whose bottom (or top) edge is torn, with a white fibrous rim.
-function TornEdge({ side = 'bottom', color = '#f4f1ea', rim = '#fffefa', seed = 7, height = 90, className = '' }) {
-  const H = 120
-  const edgeY = side === 'bottom' ? 70 : H - 70
-  const rimY = side === 'bottom' ? edgeY + 6 : edgeY - 6
+const toPoints = (pts) => pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L')
+// Closed sheet: the torn line, then back along the flat side (y = flat).
+const sheetPath = (pts, flat) => `M${toPoints(pts)} L${SHEET_W + 8},${flat} L-8,${flat} Z`
+const linePath = (pts) => `M${toPoints(pts)}`
+
+// SVG filters for one sheet: hair-like fibres for the rim, a finer roughness for
+// the paper face, paper grain, and a soft blur for shadows and edge shading.
+function PaperFilters({ id, seed }) {
+  return (
+    <defs>
+      <filter id={`${id}-fibre`} x="-1%" y="-40%" width="102%" height="180%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.38 0.05" numOctaves="2" seed={seed} result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id={`${id}-rough`} x="-1%" y="-20%" width="102%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9 0.12" numOctaves="1" seed={seed + 1} result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id={`${id}-grain`} x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed={seed + 2} stitchTiles="stitch" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.22  0 0 0 0.9 -0.25" />
+      </filter>
+      <filter id={`${id}-soft`} x="-5%" y="-50%" width="110%" height="200%">
+        <feGaussianBlur stdDeviation="3.2" />
+      </filter>
+    </defs>
+  )
+}
+
+// One torn sheet: its own soft shadow, a white fibrous rim, the paper face with
+// grain, and a little shading just inside the tear where the paper lifts.
+function Sheet({ id, seed, pts, rim, flat, color, rimColor, shade = 'rgba(120, 96, 60, 0.22)', H }) {
+  const face = sheetPath(pts, flat)
+  return (
+    <g>
+      <PaperFilters id={id} seed={seed} />
+      <path d={sheetPath(rim, flat)} fill="rgba(40, 30, 20, 0.22)" filter={`url(#${id}-soft)`} transform="translate(0 5)" />
+      <path d={sheetPath(rim, flat)} fill={rimColor} filter={`url(#${id}-fibre)`} />
+      <clipPath id={`${id}-face`}>
+        <path d={face} />
+      </clipPath>
+      <path d={face} fill={color} filter={`url(#${id}-rough)`} />
+      <g clipPath={`url(#${id}-face)`}>
+        <rect x="0" y="0" width={SHEET_W} height={H} filter={`url(#${id}-grain)`} opacity="0.16" />
+        <path d={linePath(pts)} fill="none" stroke={shade} strokeWidth="12" filter={`url(#${id}-soft)`} />
+      </g>
+    </g>
+  )
+}
+
+// A sheet whose bottom (or top) edge is torn. `under` adds a second, darker sheet
+// peeking out beneath, like stacked paper.
+function TornEdge({ side = 'bottom', color = '#f4f1ea', rim = '#ffffff', seed = 7, height = 170, under = '#e4dccb', className = '' }) {
+  const id = `tear-${side}-${seed}`
+  const H = height
+  const dir = side === 'bottom' ? 1 : -1
+  const flat = side === 'bottom' ? -10 : H + 10
+  // The tear sits 65px from the torn side's end; the rest of the height is flat
+  // sheet that fades out (see Seams.css), well clear of the tear.
+  const edgeY = side === 'bottom' ? H - 65 : 65
+  const top = tearLine(seed, edgeY, 1)
+  const lower = under ? tearLine(seed + 40, edgeY + dir * 18, 0.8) : null
   return (
     <svg
       className={`torn-edge torn-${side} ${className}`}
-      viewBox={`0 0 1440 ${H}`}
-      preserveAspectRatio="none"
+      viewBox={`0 0 ${SHEET_W} ${H}`}
+      preserveAspectRatio={side === 'bottom' ? 'xMidYMax slice' : 'xMidYMin slice'}
       style={{ height }}
       aria-hidden="true"
     >
-      <path d={sheetPath(side, H, seed + 3, rimY, 22, 16)} fill={rim} />
-      <path d={sheetPath(side, H, seed, edgeY, 20, 34)} fill={color} />
+      {lower && (
+        <Sheet id={`${id}-u`} seed={seed + 17} pts={lower} rim={rimLine(lower, seed + 9, dir, 5)} flat={flat} color={under} rimColor="#f7f2e8" H={H} shade="rgba(90, 70, 40, 0.2)" />
+      )}
+      <Sheet id={id} seed={seed} pts={top} rim={rimLine(top, seed, dir, 7)} flat={flat} color={color} rimColor={rim} H={H} />
     </svg>
   )
 }
 
 // A strip of paper torn along both edges, laid across a seam.
-function TornStrip({ seed = 5, height = 70, color = '#fffefa', rim = '#e9e2d4' }) {
-  const H = 100
-  const top = tornPoints(seed, 26, 18, 30)
-  const bottom = tornPoints(seed + 9, 74, 18, 30).reverse()
-  const toPath = (a, b) => `M${a.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L')} L${b.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L')} Z`
-  const rimTop = tornPoints(seed + 4, 22, 22, 16)
-  const rimBottom = tornPoints(seed + 13, 78, 22, 16).reverse()
+function TornStrip({ seed = 5, height = 100, color = '#fbf8f1', rim = '#ffffff' }) {
+  const id = `strip-${seed}`
+  const H = height
+  // Both tears stay clear of the middle, so the strip always covers the seam line.
+  const top = tearLine(seed, H * 0.24, 0.38)
+  const bottom = tearLine(seed + 9, H * 0.76, 0.38)
+  const topRim = rimLine(top, seed, -1, 6)
+  const bottomRim = rimLine(bottom, seed + 4, 1, 6)
+  const band = (a, b) => `M${toPoints(a)} L${toPoints(b.slice().reverse())} Z`
   return (
-    <svg className="torn-strip" viewBox={`0 0 1440 ${H}`} preserveAspectRatio="none" style={{ height }} aria-hidden="true">
-      <path d={toPath(rimTop, rimBottom)} fill={rim} />
-      <path d={toPath(top, bottom)} fill={color} />
+    <svg className="torn-strip" viewBox={`0 0 ${SHEET_W} ${H}`} preserveAspectRatio="xMidYMid slice" style={{ height }} aria-hidden="true">
+      <PaperFilters id={id} seed={seed} />
+      <path d={band(topRim, bottomRim)} fill="rgba(40, 30, 20, 0.25)" filter={`url(#${id}-soft)`} transform="translate(0 6)" />
+      <path d={band(topRim, bottomRim)} fill={rim} filter={`url(#${id}-fibre)`} />
+      <clipPath id={`${id}-face`}>
+        <path d={band(top, bottom)} />
+      </clipPath>
+      <path d={band(top, bottom)} fill={color} filter={`url(#${id}-rough)`} />
+      <g clipPath={`url(#${id}-face)`}>
+        <rect x="0" y="0" width={SHEET_W} height={H} filter={`url(#${id}-grain)`} opacity="0.16" />
+        <path d={linePath(top)} fill="none" stroke="rgba(120, 96, 60, 0.2)" strokeWidth="10" filter={`url(#${id}-soft)`} />
+        <path d={linePath(bottom)} fill="none" stroke="rgba(120, 96, 60, 0.2)" strokeWidth="10" filter={`url(#${id}-soft)`} />
+      </g>
+    </svg>
+  )
+}
+
+// A small torn scrap of paper drifting near a seam.
+export function Scrap({ size = 34, seed = 3, style }) {
+  const rnd = seeded(seed)
+  const pts = Array.from({ length: 11 }, (_, i) => {
+    const a = (i / 11) * Math.PI * 2
+    const r = 15 + rnd() * 7
+    return [24 + Math.cos(a) * r, 18 + Math.sin(a) * r * 0.62]
+  })
+  const d = `M${pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L')} Z`
+  return (
+    <svg className="seam-prop" viewBox="0 0 48 36" style={{ width: size, ...style }} aria-hidden="true">
+      <path d={d} fill="#ffffff" />
+      <path d={d} fill="#f4efe4" transform="translate(24 18) scale(0.86) translate(-24 -18)" />
     </svg>
   )
 }
@@ -131,26 +234,6 @@ export function PaperPlane({ size = 110, style }) {
   )
 }
 
-// A leafy plant spray: a few long leaves fanning from one base.
-export function Leaves({ size = 160, flip = false, style }) {
-  const leaves = [
-    ['M60 140 C40 100 30 60 52 18', '#4f8a4b'],
-    ['M60 140 C70 100 96 70 120 52', '#5f9e57'],
-    ['M60 140 C46 110 14 92 0 86', '#3f7a3f'],
-    ['M60 140 C64 104 70 74 88 30', '#6aa95f'],
-  ]
-  return (
-    <svg className="seam-prop" viewBox="0 0 130 150" style={{ width: size, transform: flip ? 'scaleX(-1)' : undefined, ...style }} aria-hidden="true">
-      {leaves.map(([d, c], i) => (
-        <g key={i}>
-          <path d={d} stroke={c} strokeWidth="14" strokeLinecap="round" fill="none" />
-          <path d={d} stroke="rgba(255,255,255,0.35)" strokeWidth="1.4" fill="none" />
-        </g>
-      ))}
-    </svg>
-  )
-}
-
 // Props are positioned in % of the page width and px from the seam line.
 function Prop({ x, y, speed = 0.08, rot = 0, children }) {
   return (
@@ -164,7 +247,9 @@ function Prop({ x, y, speed = 0.08, rot = 0, children }) {
 export function SeamHomeSkills() {
   return (
     <div className="seam" aria-hidden="true">
-      <TornEdge side="bottom" seed={11} height={110} className="edge-up" />
+      <TornEdge side="bottom" seed={11} className="edge-up" />
+      <Prop x={22} y={18} speed={0.3} rot={-18}><Scrap size={30} seed={4} /></Prop>
+      <Prop x={74} y={-8} speed={0.34} rot={24}><Scrap size={22} seed={9} /></Prop>
       <Prop x={3} y={-10} speed={0.12} rot={-8}><Cloud size={190} /></Prop>
       <Prop x={30} y={-36} speed={0.2} rot={12}><Rock variant={2} size={46} /></Prop>
       <Prop x={58} y={-62} speed={0.06} rot={-4}><Rock variant={0} size={86} /></Prop>
@@ -179,7 +264,8 @@ export function SeamHomeSkills() {
 export function SeamSkillsWork() {
   return (
     <div className="seam" aria-hidden="true">
-      <TornStrip seed={23} height={74} />
+      <TornStrip seed={23} />
+      <Prop x={44} y={-34} speed={0.3} rot={14}><Scrap size={26} seed={12} /></Prop>
       <Prop x={6} y={-30} speed={0.16} rot={-10}><Rock variant={1} size={58} /></Prop>
       <Prop x={18} y={-20} speed={0.08}><Cloud size={200} /></Prop>
       <Prop x={72} y={-40} speed={0.1}><Cloud size={260} /></Prop>
@@ -192,7 +278,8 @@ export function SeamSkillsWork() {
 export function SeamWorkAwards() {
   return (
     <div className="seam" aria-hidden="true">
-      <TornEdge side="top" seed={47} height={110} className="edge-down" />
+      <TornEdge side="top" seed={47} className="edge-down" />
+      <Prop x={56} y={-70} speed={0.32} rot={-22}><Scrap size={28} seed={21} /></Prop>
       <Prop x={2} y={-50} speed={0.16} rot={-12}><Rock variant={0} size={78} /></Prop>
       <Prop x={40} y={-30} speed={0.22} rot={-18}><PaperPlane size={96} /></Prop>
       <Prop x={70} y={-58} speed={0.12} rot={10}><Rock variant={1} size={54} /></Prop>
@@ -202,12 +289,8 @@ export function SeamWorkAwards() {
   )
 }
 
-// Awards and Contact share one paper: no edge, just plants reaching across.
+// Awards and Contact share one paper: no edge and no props (the 3D desk props
+// in each section carry the transition).
 export function SeamAwardsContact() {
-  return (
-    <div className="seam" aria-hidden="true">
-      <Prop x={-2} y={-120} speed={0.06} rot={8}><Leaves size={170} /></Prop>
-      <Prop x={94} y={-40} speed={0.1} rot={-6}><Leaves size={130} flip /></Prop>
-    </div>
-  )
+  return <div className="seam" aria-hidden="true" />
 }

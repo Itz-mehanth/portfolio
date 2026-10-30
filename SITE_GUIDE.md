@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (Skill Town rebuilt as a procedural miniature island town matching the reference)._
+_Last updated: 2026-10-30 (detailed Skill Town buildings, new drive controls, layered torn paper, 3D desk props in Awards and Contact)._
 
 ---
 
@@ -40,8 +40,8 @@ the middle of the screen:
 | 01 | Home | `/` | Home | No. CSS 3D type only |
 | 02 | Skills (Skill Town) | `/skills` | Skills | **Yes** (WebGL town) |
 | 03 | Work (flight world) | `/projects` | Work | **Yes** (WebGL flight) |
-| 04 | Awards | `/certificates` | Awards | No |
-| 05 | Contact | `/contact` | Contact | No |
+| 04 | Awards | `/certificates` | Awards | Small 3D props (wide screens) |
+| 05 | Contact | `/contact` | Contact | Small 3D props (wide screens) |
 
 Each project also has its own address: `/projects/<slug>` (for example
 `/projects/arise`). Opening one directly lands you on Work with that project's
@@ -81,14 +81,25 @@ one and the start of the next.
 
 | Between | What's there |
 |---|---|
-| Home → Skills | Home's paper **tears open** onto Skill Town's sky (white fibrous rim, soft shadow); low-poly rocks and clouds cross the tear |
-| Skills → Work | A **torn strip of paper** lies across the boundary; clouds and rocks hang off it |
-| Work → Awards | Awards' paper **rises over** the flight world with a torn top edge; rocks, a paper airplane and a gold coin cross it |
-| Awards → Contact | Same paper, no edge at all: plant leaves reach across from the sides |
+| Home → Skills | Home's paper **tears open** onto Skill Town's sky; a second, darker sheet peeks out under the tear; rocks, clouds and paper scraps cross it |
+| Skills → Work | A **strip of paper torn on both edges** lies across the boundary; clouds, rocks and a scrap hang off it |
+| Work → Awards | Awards' paper **rises over** the flight world with a torn, stacked top edge; rocks, a paper airplane, a gold coin and a scrap cross it |
+| Awards → Contact | Same paper, no edge at all; the 3D desk props in each section carry the eye across |
 
 Each prop has its own scroll speed, so as you scroll they drift at different
 rates against the page: that parallax is what makes the seams feel like depth.
 The torn sheets fade out on their flat side, so only the tear reads.
+
+**How a tear is drawn** (SVG):
+- **The torn line** layers broad wander, medium lumps, small bites, fine
+  jaggies and the odd sharp nick, like paper pulled apart by hand.
+- **The rim:** a bright white fibrous band, of varying width, follows the line.
+  It's roughened into hair-like fibres by a turbulence displacement filter.
+- **The face** carries paper grain. The paper darkens slightly just inside the
+  tear, where it lifts, and a soft shadow falls beneath it.
+- **Real pixel size:** tears are drawn at real pixel size on a 2400px-wide
+  sheet and cropped to the screen, never stretched. The fibres look the same on
+  a phone and a monitor.
 
 ### Reveals and parallax inside sections
 - Blocks marked `.layer` (with a depth `--d`, 0–5) are hidden until their
@@ -218,14 +229,30 @@ mode) and the world in `src/skilltown/`:
   it through a **plaza with a fountain**, and two spurs lead to the east dock
   and a west lookout. Every road has a sandy shoulder.
 - **Nine districts:** Languages, Web, Mobile, Backend, Database, AR/VR, UI/UX,
-  Tools and AI/ML. Each is a cluster of 2–4 buildings beside its stop on the
-  loop, led by a landmark (domed hall, tower or large hip-roofed house).
-  - About 24 more houses line the streets for density. Each belongs to its
-    nearest district, so clicking it selects that district.
-- **Buildings** (procedural, 37 in total): cream walls with gable, hip, dome,
-  tower or flat roofs in terracotta, coral, orange, teal, turquoise or lavender.
-  They have doors with little awnings, windows, eave trim, stone footings and
-  some chimneys. Every building faces its street.
+  Tools and AI/ML. Each district has exactly **two buildings** beside its stop
+  on the loop: one main building and one cottage. There are no filler houses;
+  the rest of the island is trees and gardens.
+- **Main buildings** (one of three kinds, in turn):
+  - **Domed hall:** a portico of four columns on three steps under a pediment,
+    tall windows all round, and a parapet. On the roof, a drum with pilasters
+    and windows carries a dome with a lantern and a gold finial.
+  - **Clock-tower house:** a two-storey gabled house with a square tower at the
+    front corner. The tower has clock faces on three sides (dial, hour marks
+    and hands) under a pyramid roof with a gold finial.
+  - **Manor:** two storeys under a hipped roof, with two chimneys. A porch with
+    two columns and a balcony rail shelters the door.
+- **Cottages:** one storey with a gabled or hipped roof, a chimney, and flower
+  boxes under the front windows.
+- **Detail on every building** (`src/skilltown/Buildings.jsx`):
+  - a stone plinth, corner pilasters, a cornice and storey bands
+  - framed windows with mullions, lintels, sills and coloured shutters
+  - panelled doors with a brass knob, a stone step and a little canopy
+  - thick roof slabs with tile courses, a ridge cap, bargeboards, filled gable
+    ends with a round vent, and brick chimneys
+  - stepping stones from the door to the street; every building faces its
+    street
+- **Cost:** each district's buildings are merged into one solid mesh and one
+  glass mesh, so all that detail costs two draw calls per district.
 - **Greenery:** about 130 rounded multi-lobe trees, about 70 bushes and flower
   patches, never on roads or buildings.
 - **Wind turbines:** six slender white turbines on the rear mounds, turning
@@ -277,13 +304,30 @@ a one-line description. It hides while you're driving.
 | AI / ML | TensorFlow, OpenCV, CNNs |
 
 ### Drive mode
-- **"Drive the car"** hands you the car. Drive with WASD or the arrow keys on
-  desktop, or the joystick on phones.
-- Solid ground is the island: drive off the edge and you fall, then respawn at
-  the Languages district.
-- The car bumps off buildings, mounds and turbines. The chase camera sits behind
-  and above it.
-- Press **"Exit drive mode"** to return to the overview camera.
+- **"Drive the car"** hands you the car where it stands.
+- **Desktop:** W/↑ accelerates; S/↓ brakes, then reverses; A/D or ←/→ steer;
+  Space is the handbrake; R resets. A key guide sits at the bottom.
+- **Touch screens:** an analog stick (push gently to creep, fully to race) and
+  Brake and Reset buttons sit at the lower right.
+- **Feel:**
+  - The car accelerates, coasts and brakes instead of starting and stopping
+    instantly.
+  - It steers like a real car: it turns only while rolling, and steers less at
+    speed.
+  - It follows the hills, pitching with the slope and leaning out of turns.
+- **Collisions:** the car bumps into buildings, turbines, tanks and the
+  fountain. A head-on hit stops it; a glancing one slides along.
+- **The edge:** drive off the island and the car sails off, drops into the sea,
+  and respawns at the Languages district.
+- **Camera:**
+  - The chase camera swings in behind the car with a little lag, pulls back
+    as you speed up, and looks just ahead of the bonnet.
+  - It switches to a wider lens than the overview.
+  - It stops short of any building between it and the car, so it never ends
+    up inside a wall.
+- While driving, the Skill Town title, the skills panel and the sky haze fade
+  away so the street is clear.
+- Press **"Exit drive mode"** to return to the overview camera (and its lens).
 
 ---
 
@@ -442,16 +486,21 @@ A warm paper sheet, left-aligned like the other sections.
 
 Cards rise in one after another and lift on hover.
 
-**Desk props** (wide screens only): a tilted framed certificate with a gold
-medal on red and blue ribbons, and a gold coin, at the top right
-(`src/DeskProps.jsx`).
+**Desk props** (wide screens only): **real 3D objects** at the top right.
+- A wooden-framed certificate behind glass leans on its stand.
+- In front of it: a gold medal on red and blue ribbons, swaying gently, and a
+  gold trophy on a dark wooden base.
+- Three gold coins lie around them.
+- The gold reflects a generated studio light, and soft shadows fall on the
+  paper. The group turns a few degrees toward the mouse.
+- Files: `src/DeskProps.jsx` (loader), `src/Desk3D.jsx` (the scenes).
 
 ---
 
 ## 9. 05 · Contact
 
 Component: `ContactSection` in `src/App.jsx` · styles: `src/Contact.css` ·
-props: `src/DeskProps.jsx` · no WebGL.
+props: `src/DeskProps.jsx` → `src/Desk3D.jsx` (small 3D scenes, wide screens only).
 
 Two columns on desktop, stacked on phones.
 
@@ -473,9 +522,13 @@ Two columns on desktop, stacked on phones.
   the message; "Sending…" while it works; a green "Message sent!" banner for 5
   seconds and a cleared form on success; a red banner if sending fails.
 
-**Desk props** (wide screens only, decorative): a potted plant at the bottom
-left, and a black "Mehanth." mug with steam on a stack of books at the bottom
-right.
+**Desk props** (wide screens only, decorative, **real 3D**):
+- **Bottom left:** a terracotta pot of long folded leaves that sway slightly,
+  with three rocks beside it.
+- **Bottom right:** a stack of three cloth-bound books (with page edges and
+  gold spine bands) carrying a glazed black mug. The mug has an amber-dot
+  "Mehanth." label, coffee inside and steam curling up.
+- Both turn a few degrees toward the mouse and cast soft shadows on the paper.
 
 ---
 
@@ -514,8 +567,11 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 ## 11. Performance and loading
 
 - **First load is HTML-light:** about 126 KB of compressed JavaScript (React,
-  the animation library and the app). No 3D library loads for Home, Awards or
-  Contact.
+  the animation library and the app). No 3D library loads for Home.
+- **Awards and Contact 3D props** download (about 4 KB, plus the shared 3D
+  library) only on screens 1000px or wider, once the section is within about
+  800px. They render only while on screen; with reduced motion they render once
+  and stay still. Phones never load them.
 - **3D loads on demand:** the Skills and Work code and models download when you
   head there, or in idle time while you're on the section before. Models are
   cached and reused.
@@ -555,6 +611,10 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
   - The camera rises higher and backs off so the whole island fits the width.
     District signs scale up so they stay readable.
   - Taps select districts; swipes always scroll the page.
+  - In drive mode an analog stick, with Brake and Reset buttons, sits at the
+    lower right.
+- **Awards and Contact:** the 3D desk props are skipped below 1000px wide
+  (they never download on phones).
 - **Work:**
   - The header shrinks to the title and the two buttons.
   - The chase camera pulls back on portrait screens, so the plane's wings and
@@ -574,11 +634,11 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 | App shell, navigation, Home section, Contact | `src/App.jsx`, `src/App.css`, `src/Navbar.css`, `src/index.css` |
 | Motion system | `src/Motion.css` (+ `getScreenStyle` / `screenClass` in `App.jsx`) |
 | Home | `src/HomeHero.jsx`, `src/Home.css` |
-| Skills | `src/Skills.jsx`, `src/skilltown/` (`layout.js`, `Terrain.jsx`, `Town.jsx`, `index.jsx`), `src/utils/models/Car.jsx` |
+| Skills | `src/Skills.jsx`, `src/skilltown/` (`layout.js`, `Terrain.jsx`, `Town.jsx`, `Buildings.jsx`, `index.jsx`), `src/utils/models/Car.jsx` |
 | Work | `src/ProjectsStage.jsx`, `src/Projects.jsx`, `src/Airplane.jsx`, `src/Astroid.jsx` (balloons), `src/Blaster.jsx`, `src/CoinField.jsx`, `src/Coin.jsx`, `src/CockpitControls.jsx`, `src/utils/useKeyboard.jsx` |
 | Project pages | `src/ProjectPages.jsx`, `src/ProjectPages.css`, `src/data/projects.js` |
-| Awards | `src/Certificates.jsx`, `src/Awards.css` |
-| Contact | `ContactSection` in `src/App.jsx`, `src/Contact.css` |
+| Awards | `src/Certificates.jsx`, `src/Awards.css`, `src/DeskProps.jsx`, `src/Desk3D.jsx` |
+| Contact | `ContactSection` in `src/App.jsx`, `src/Contact.css`, `src/DeskProps.jsx`, `src/Desk3D.jsx` |
 | Shared overlays | `src/TourGuide.jsx`, `src/DevicePreview.jsx` |
 | Loading | `src/preloadAssets.js`, `vite.config.js` (chunking) |
 | Models | `public/models/*.glb` (Skills now uses only `car.glb`) |

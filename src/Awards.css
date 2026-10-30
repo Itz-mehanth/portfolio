@@ -202,10 +202,10 @@
 .awards { position: relative; }
 .awards-props {
   position: absolute;
-  right: clamp(8px, 4vw, 70px);
-  top: -30px;
-  width: 210px;
+  right: clamp(-20px, 2vw, 50px);
+  top: -70px;
+  width: 400px;
+  height: 330px;
   pointer-events: none;
 }
-.desk-prop { display: block; height: auto; filter: drop-shadow(0 14px 14px rgba(17, 17, 20, 0.2)); }
 @media (max-width: 1000px) { .awards-props { display: none; } }

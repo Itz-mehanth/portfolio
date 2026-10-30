@@ -12,7 +12,7 @@ import DevicePreview from './DevicePreview'
 import TourGuide from './TourGuide'
 import { ProjectIndex, ProjectCaseStudy } from './ProjectPages'
 import HomeHero from './HomeHero'
-import { MugAndBooks, PottedPlant } from './DeskProps'
+import DeskProps from './DeskProps'
 import { SeamHomeSkills, SeamSkillsWork, SeamWorkAwards, SeamAwardsContact } from './Seams'
 import Scribble from './Scribble'
 import './Motion.css'
@@ -1147,8 +1147,8 @@ function ContactSection({ onSent }) {
   return (
     <>
       <section className="contact-section">
-        <PottedPlant width={150} style={{ position: 'absolute', left: 'clamp(-20px, 1vw, 24px)', bottom: '18px' }} />
-        <MugAndBooks width={230} style={{ position: 'absolute', right: 'clamp(8px, 3vw, 56px)', bottom: '10px' }} />
+        <DeskProps scene="plant" className="desk-left" />
+        <DeskProps scene="mug" className="desk-right" />
         <div className="contact-container">
           <div className="contact-intro layer" style={{ '--d': 1 }}>
             <header className="contact-heading">

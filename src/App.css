@@ -1148,3 +1148,64 @@ html, body {
   .skill-chip { padding: 6px 12px; font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { .skill-chip { transition: none; } }
+
+/* 3D desk props (DeskProps.jsx): decorative canvases on the paper sections */
+.desk3d { position: absolute; inset: 0; pointer-events: none; }
+
+/* Skill Town drive mode controls. While driving, the panel and haze step aside. */
+.skills-overlay, .skills-fade { transition: opacity 0.35s ease, visibility 0.35s; }
+.skills-stage.is-driving .skills-overlay,
+.skills-stage.is-driving .skills-fade { opacity: 0; visibility: hidden; }
+.drive-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 14px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(18, 17, 23, 0.78);
+  color: rgba(255, 255, 255, 0.86);
+  font: 500 12px/1 var(--font-body);
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+.drive-hint span { display: inline-flex; align-items: center; gap: 4px; }
+.drive-hint kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.22);
+  font: 600 11px/1 var(--font-body);
+  text-align: center;
+  color: #fff;
+}
+.drive-pad {
+  position: absolute;
+  right: 20px;
+  bottom: 28px;
+  z-index: 25;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-direction: row-reverse;
+  touch-action: none;
+}
+.drive-brake {
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(18, 17, 23, 0.72);
+  color: #fff;
+  font: 600 12px/1 var(--font-body);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.drive-brake:active { background: #ffb51b; color: #121117; }
+@media (max-width: 900px) { .drive-hint { display: none; } }

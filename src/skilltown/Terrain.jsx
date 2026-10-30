@@ -371,12 +371,11 @@ const CLOUD_SPOTS = [
 ]
 function Clouds({ animate }) {
   const refs = useRef([])
-  useFrame((_, delta) => {
+  // Each cloud sways around its own spot, so none ever drifts in front of the town.
+  useFrame(({ clock }) => {
     if (!animate) return
     refs.current.forEach((g, i) => {
-      if (!g) return
-      g.position.x += delta * 0.12 * (i % 2 ? 1 : -1)
-      if (Math.abs(g.position.x) > 30) g.position.x = -Math.sign(g.position.x) * 30
+      if (g) g.position.x = CLOUD_SPOTS[i][0] + Math.sin(clock.elapsedTime * 0.06 + i * 1.7) * 1.6
     })
   })
   const lobes = [[0, 0, 0, 1.15], [1.25, -0.25, 0.2, 0.85], [-1.2, -0.3, -0.1, 0.8], [0.45, 0.5, -0.25, 0.75], [-0.4, 0.35, 0.3, 0.7], [2.1, -0.45, 0, 0.55]]

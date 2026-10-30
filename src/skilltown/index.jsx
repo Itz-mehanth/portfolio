@@ -6,14 +6,17 @@ import { PerspectiveCamera } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import Terrain from './Terrain'
 import Town from './Town'
+import { heightAt, isOnIsland } from './layout'
 
-export {
-  DISTRICT_ROAD_POINTS, DRIVE_OBSTACLES, GROUND_Y, SPAWN_POINT, isOnIsland, pathBetween,
-} from './layout'
+export { DISTRICT_ROAD_POINTS, DRIVE_COLLIDERS, SPAWN_POINT, pathBetween } from './layout'
+
+// Ground height for the car: the terrain on the island, null over the sea.
+export const groundAt = (x, z) => (isOnIsland(x, z) ? heightAt(x, z) : null)
 
 const TARGET = new THREE.Vector3(0.6, 1.4, 0.4)
 // Desktop: elevated three-quarter view, slightly from the right. Phones: further and higher.
 const DESKTOP = { azimuth: THREE.MathUtils.degToRad(-12), elevation: THREE.MathUtils.degToRad(34), distance: 48, fov: 32 }
+const DRIVE_FOV = 58
 const PORTRAIT = { azimuth: THREE.MathUtils.degToRad(-8), elevation: THREE.MathUtils.degToRad(46), distance: 62, fov: 40 }
 
 // A designed camera, not a free orbit: fixed framing, an arrival ease, and a gentle
@@ -29,18 +32,26 @@ function CameraRig({ enabled, animate }) {
   const smooth = useRef({ x: 0, y: 0 })
 
   // On wide screens, shift the view so the island sits right of the text column.
+  // While driving, the car stays centred.
   useEffect(() => {
     const c = cam.current
     if (!c) return undefined
-    if (!portrait) c.setViewOffset(width, height, -width * 0.17, -height * 0.02, width, height)
+    if (!portrait && enabled) c.setViewOffset(width, height, -width * 0.17, -height * 0.02, width, height)
     else c.clearViewOffset()
     c.updateProjectionMatrix()
     return () => c.clearViewOffset()
-  }, [width, height, portrait])
+  }, [width, height, portrait, enabled])
 
   useFrame((_, delta) => {
     const c = cam.current
-    if (!c || !enabled) return
+    if (!c) return
+    // A wide lens for the chase view, the composed lens for the overview.
+    const fov = enabled ? preset.fov : DRIVE_FOV
+    if (Math.abs(c.fov - fov) > 0.05) {
+      c.fov = THREE.MathUtils.damp(c.fov, fov, 4, delta)
+      c.updateProjectionMatrix()
+    }
+    if (!enabled) return
     arrival.current = Math.min(1, arrival.current + delta / 2.2)
     const k = 1 - Math.pow(1 - arrival.current, 3)
     if (animate) {

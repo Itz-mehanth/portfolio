@@ -131,8 +131,14 @@ const creekClearance = (x, z) =>
 
 // ---------- buildings ----------
 const WALLS = ['#f7ecd8', '#f3e4c8', '#fbf3e4', '#efe2cb']
+const SHUTTERS = ['#3f7d6a', '#2f6f8f', '#8a4b35', '#5b6f3a']
 const ROOFS = ['#e0663a', '#ee8a4a', '#e45c50', '#2fa3a8', '#39b6c9', '#e7774f', '#8a7ad1', '#d9563f', '#3a9fb4']
-const ROOF_TYPES = ['gable', 'hip', 'gable', 'gable', 'hip', 'flat']
+const ROOF_TYPES = ['gable', 'hip', 'gable']
+// Main buildings: a two-storey manor with a porch, a domed hall with a portico,
+// and a house with a clock tower.
+const LANDMARK_TYPES = ['hall', 'clock', 'manor']
+// How far each roof type rises above the walls (for sign heights).
+const ROOF_RISE = { gable: 0.6, hip: 0.55, manor: 0.85, hall: 1.35, clock: 1.75 }
 
 // Nearest road point, so a building can face its street.
 function nearestRoadPoint(x, z) {
@@ -161,12 +167,15 @@ function placeDistrictBuildings() {
       radius: Math.max(w, d) * 0.62,
       wall: WALLS[Math.floor(rnd() * WALLS.length)],
       rot: Math.atan2(rx - x, rz - z),     // front door toward the street
-      chimney: !landmark && (roof === 'gable' || roof === 'hip') && rnd() < 0.45,
+      chimney: roof === 'gable' || roof === 'manor' || (roof === 'hip' && rnd() < 0.5),
+      shutter: SHUTTERS[Math.floor(rnd() * SHUTTERS.length)],
     }
   }
 
-  // 1. Each district: a landmark and 2-3 houses on the free spots nearest its stop,
-  //    placed round-robin (one per district per pass) so neighbours share space.
+  // Each district: one main building (manor, domed hall or clock tower) and one
+  // cottage on the free spots nearest its stop, placed round-robin (one per
+  // district per pass) so neighbours share space. No filler houses: the rest of
+  // the island is trees and gardens.
   const districts = {}
   const lists = {}
   const built = {}
@@ -183,17 +192,22 @@ function placeDistrictBuildings() {
     lists[id] = candidates.sort((u, v) => u[2] - v[2])
     built[id] = []
   })
-  for (let round = 0; round < 4; round++) {
+  for (let round = 0; round < 2; round++) {
     DISTRICT_ORDER.forEach((id, di) => {
       const buildings = built[id]
-      if (buildings.length >= 3 + (di % 2) || buildings.length < round) return
+      if (buildings.length >= 2 || buildings.length < round) return
       const landmark = buildings.length === 0
-      const w = landmark ? 1.35 + rnd() * 0.3 : 0.85 + rnd() * 0.45
-      const d = landmark ? 1.15 + rnd() * 0.25 : 0.8 + rnd() * 0.35
-      const spot = lists[id].find(([x, z]) => fits(x, z, Math.max(w, d) * 0.62))
+      let w = landmark ? 1.75 + rnd() * 0.25 : 1.0 + rnd() * 0.2
+      let d = landmark ? 1.35 + rnd() * 0.15 : 0.85 + rnd() * 0.15
+      // Shrink step by step until it fits beside the road.
+      let spot = null
+      for (let k = 0; k < 5 && !spot; k++) {
+        if (k > 0) { w *= 0.9; d *= 0.9 }
+        spot = lists[id].find(([x, z]) => fits(x, z, Math.max(w, d) * 0.62))
+      }
       if (!spot) return
-      const roof = landmark ? ['dome', 'tower', 'hip'][di % 3] : ROOF_TYPES[Math.floor(rnd() * ROOF_TYPES.length)]
-      const h = landmark ? 1.25 + rnd() * 0.35 : 0.75 + rnd() * 0.4
+      const roof = landmark ? LANDMARK_TYPES[di % 3] : ROOF_TYPES[Math.floor(rnd() * ROOF_TYPES.length)]
+      const h = landmark ? 1.35 + rnd() * 0.15 : 0.78 + rnd() * 0.12
       const b = make(id, spot[0], spot[1], w, d, h, roof, ROOFS[(di * 3 + buildings.length) % ROOFS.length], landmark)
       buildings.push(b)
       placed.push(b)
@@ -203,29 +217,11 @@ function placeDistrictBuildings() {
     const buildings = built[id]
     const cx = buildings.reduce((sum, b) => sum + b.x, 0) / buildings.length
     const cz = buildings.reduce((sum, b) => sum + b.z, 0) / buildings.length
-    const tallest = Math.max(...buildings.map((b) => b.h + (b.roof === 'tower' ? 1.0 : b.roof === 'dome' ? 0.7 : 0.55)))
+    const tallest = Math.max(...buildings.map((b) => b.h + ROOF_RISE[b.roof]))
     const extent = Math.max(...buildings.map((b) => Math.hypot(b.x - cx, b.z - cz) + b.radius))
     districts[id] = { id, index: di, buildings, center: [cx, cz], signY: GROUND_Y + tallest + 1.0, extent }
   })
 
-  // 2. Filler houses along every street, for density and depth; each belongs to
-  //    the nearest district, so clicking it selects that district.
-  for (let tries = 0, added = 0; added < 24 && tries < 4000; tries++) {
-    const [x, z] = coastPoint(rnd() * Math.PI * 2, Math.sqrt(rnd()) * 0.82)
-    const clearance = roadClearance(x, z)
-    if (clearance > 1.9) continue
-    const w = 0.75 + rnd() * 0.4
-    const d = 0.7 + rnd() * 0.3
-    if (!fits(x, z, Math.max(w, d) * 0.62)) continue
-    const owner = DISTRICT_ORDER.reduce((best, id) => {
-      const [cx, cz] = districts[id].center
-      const [bx, bz] = districts[best].center
-      return Math.hypot(cx - x, cz - z) < Math.hypot(bx - x, bz - z) ? id : best
-    }, DISTRICT_ORDER[0])
-    const b = make(owner, x, z, w, d, 0.65 + rnd() * 0.35, ROOF_TYPES[Math.floor(rnd() * 5)], ROOFS[Math.floor(rnd() * ROOFS.length)], false)
-    placed.push(b)
-    added++
-  }
   return { districts, buildings: placed }
 }
 export const { districts: DISTRICTS, buildings: BUILDINGS } = placeDistrictBuildings()
@@ -282,11 +278,14 @@ export const DOCKS = [Math.PI / 2 + 1.0, 0.62].map((t) => {
 })
 
 // ---------- drive mode ----------
-export const DRIVE_OBSTACLES = Object.fromEntries([
-  ...BUILDINGS.map((b, i) => [`b${i}`, [b.x, GROUND_Y, b.z]]),
-  ...MOUNDS.flatMap((m, i) => [-0.4, 0, 0.4].map((f, k) => [`m${i}-${k}`, [m.x + f * m.r, GROUND_Y, m.z]])),
-  ...TURBINES.map((tb, i) => [`t${i}`, [tb.x, GROUND_Y, tb.z]]),
-])
+// Circles the car can't drive through: buildings, turbines, tanks and the fountain.
+// (Mounds are drivable: the car follows heightAt over them.)
+export const DRIVE_COLLIDERS = [
+  ...BUILDINGS.map((b) => ({ x: b.x, z: b.z, r: Math.max(b.w, b.d) * 0.55 })),
+  ...TURBINES.map((tb) => ({ x: tb.x, z: tb.z, r: 0.18 })),
+  ...TANKS.map(([x, z]) => ({ x, z, r: 0.3 })),
+  { x: PLAZA.x, z: PLAZA.z, r: 0.62 },
+]
 
 // ---------- sign positions ----------
 // Start above each district's centre, then nudge apart any two that would overlap

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import SkillTownWorld, {
-  DISTRICT_ROAD_POINTS, DRIVE_OBSTACLES, GROUND_Y, SPAWN_POINT, isOnIsland, pathBetween,
+  DISTRICT_ROAD_POINTS, DRIVE_COLLIDERS, SPAWN_POINT, groundAt, pathBetween,
 } from './skilltown';
 import Car from './utils/models/Car';
 import { useInView } from 'react-intersection-observer';
@@ -11,6 +11,9 @@ import { Joystick } from 'react-joystick-component';
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Keys set the booleans; the joystick sets analog throttle/steer (null when idle).
+const IDLE_KEYS = { forward: false, backward: false, left: false, right: false, brake: false, reset: false, throttle: null, steer: null };
 
 export default function SciFiSkillCities({ lowPowerMode = false, header = null, touch = false }) {
   const [reducedMotion] = useState(prefersReducedMotion);
@@ -26,7 +29,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
       setTimeout(() => setGlKey((k) => k + 1), 450);
     });
   };
-  const driveKeysRef = useRef({ forward: false, backward: false, left: false, right: false });
+  const driveKeysRef = useRef({ ...IDLE_KEYS });
   const [ref, inView] = useInView({ threshold: 0 }); // Visibility check for 3D canvas
 
   // Keyboard controls for drive mode
@@ -38,18 +41,20 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
       KeyS: 'backward', ArrowDown: 'backward',
       KeyA: 'left', ArrowLeft: 'left',
       KeyD: 'right', ArrowRight: 'right',
+      Space: 'brake', KeyR: 'reset',
     };
 
     const handleKeyDown = (e) => {
       const action = keyMap[e.code];
-      if (action) {
-        e.preventDefault();
-        driveKeysRef.current[action] = true;
-      }
+      if (!action) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      e.preventDefault();
+      driveKeysRef.current[action] = true;
     };
     const handleKeyUp = (e) => {
       const action = keyMap[e.code];
-      if (action) driveKeysRef.current[action] = false;
+      if (action && action !== 'reset') driveKeysRef.current[action] = false;
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -57,7 +62,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      driveKeysRef.current = { forward: false, backward: false, left: false, right: false };
+      driveKeysRef.current = { ...IDLE_KEYS };
     };
   }, [driveMode]);
 
@@ -141,7 +146,7 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
     <>
       <div
         ref={ref}
-        className="skills-stage"
+        className={`skills-stage${driveMode ? ' is-driving' : ''}`}
         data-gesture-zone
         style={{
           overflow: 'hidden',
@@ -185,10 +190,9 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
                 path={driveMode ? null : path}
                 driveMode={driveMode}
                 keysRef={driveKeysRef}
-                cityPositions={DRIVE_OBSTACLES}
-                isOverGround={isOnIsland}
+                colliders={DRIVE_COLLIDERS}
+                groundAt={groundAt}
                 spawn={SPAWN_POINT}
-                groundY={GROUND_Y}
                 onReachEnd={() => setCurrentCity(selectedCity)}
               />
             </Suspense>
@@ -221,52 +225,46 @@ export default function SciFiSkillCities({ lowPowerMode = false, header = null, 
           {driveMode ? 'Exit drive mode' : 'Drive the car'}
         </button>
 
-        {/* Drive mode controls hint (desktop) */}
-        {driveMode && (
-          <div style={{
-            position: 'absolute',
-            bottom: '12px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '6px 14px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            color: 'rgba(255, 255, 255, 0.8)',
-            borderRadius: '12px',
-            fontSize: '11px',
-            fontFamily: "var(--font-body)",
-            zIndex: 20,
-            backdropFilter: 'blur(4px)',
-            whiteSpace: 'nowrap',
-          }}>
-            W↑ S↓ A← D→
+        {/* Drive controls: a key guide on desktop, an analog stick and brake on touch */}
+        {driveMode && !touch && (
+          <div className="drive-hint" aria-live="polite">
+            <span><kbd>W</kbd><kbd>↑</kbd> drive</span>
+            <span><kbd>S</kbd><kbd>↓</kbd> brake / reverse</span>
+            <span><kbd>A</kbd><kbd>D</kbd> steer</span>
+            <span><kbd>Space</kbd> handbrake</span>
+            <span><kbd>R</kbd> reset</span>
           </div>
         )}
-
-        {/* Joystick for mobile drive mode */}
-        {driveMode && (
-          <div style={{
-            position: 'absolute',
-            bottom: '40px',
-            left: '30px',
-            zIndex: 25,
-          }}>
+        {driveMode && touch && (
+          <div className="drive-pad">
             <Joystick
-              size={80}
-              baseColor="rgba(0,0,0,0.3)"
-              stickColor="rgba(255,215,0,0.9)"
-              throttle={50}
+              size={120}
+              stickSize={56}
+              baseColor="rgba(18,17,23,0.32)"
+              stickColor="rgba(255,181,27,0.95)"
+              throttle={16}
               move={(e) => {
                 if (!e) return;
-                const threshold = 0.3;
-                driveKeysRef.current.forward = e.y > threshold;
-                driveKeysRef.current.backward = e.y < -threshold;
-                driveKeysRef.current.left = e.x < -threshold;
-                driveKeysRef.current.right = e.x > threshold;
+                driveKeysRef.current.throttle = e.y ?? 0;
+                driveKeysRef.current.steer = -(e.x ?? 0);
               }}
               stop={() => {
-                driveKeysRef.current = { forward: false, backward: false, left: false, right: false };
+                driveKeysRef.current.throttle = null;
+                driveKeysRef.current.steer = null;
               }}
             />
+            <button
+              type="button"
+              className="drive-brake"
+              onPointerDown={() => { driveKeysRef.current.brake = true; }}
+              onPointerUp={() => { driveKeysRef.current.brake = false; }}
+              onPointerLeave={() => { driveKeysRef.current.brake = false; }}
+            >
+              Brake
+            </button>
+            <button type="button" className="drive-brake" onClick={() => { driveKeysRef.current.reset = true; }}>
+              Reset
+            </button>
           </div>
         )}
 

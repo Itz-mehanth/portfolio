@@ -14,24 +14,27 @@
   left: 0;
   width: 100%;
   display: block;
-  filter: drop-shadow(0 6px 8px rgba(17, 17, 20, 0.16));
+  filter: drop-shadow(0 8px 10px rgba(17, 17, 20, 0.14));
 }
-.torn-edge.edge-up { bottom: -46px; }          /* hangs down from the section above */
-.torn-edge.edge-down { top: -46px; }           /* rises from the section below */
+/* The sheets reach far enough across the line that every point of the tear lies
+   on the far side of it, so a section's straight edge never shows through. */
+.torn-edge.edge-up { bottom: -108px; }         /* hangs down from the section above */
+.torn-edge.edge-down { top: -108px; }          /* rises from the section below */
 .torn-edge.edge-down { filter: drop-shadow(0 -6px 8px rgba(17, 17, 20, 0.14)); }
-/* The sheet's flat side fades out, so only the torn edge reads, never a rectangle. */
+/* The sheet's flat side fades out, so only the torn edge reads, never a rectangle.
+   The fade ends well before the tear (which wanders around the middle). */
 .torn-edge.edge-up {
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 50%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 50%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 25%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 25%);
 }
 .torn-edge.edge-down {
-  -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 50%);
-  mask-image: linear-gradient(0deg, transparent 0%, #000 50%);
+  -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 25%);
+  mask-image: linear-gradient(0deg, transparent 0%, #000 25%);
 }
 .torn-strip {
   position: absolute;
   left: 0;
-  top: -37px;
+  top: -50px;
   width: 100%;
   display: block;
   filter: drop-shadow(0 8px 10px rgba(17, 17, 20, 0.22));
