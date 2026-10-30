@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (Awards and Contact as one sunlit room: 3D greenery strip, window corner, light on the paper)._
+_Last updated: 2026-10-30 (fourth hackathon win: NextGen AI Hacks 2026, 1st place)._
 
 ---
 
@@ -459,17 +459,21 @@ Files: `src/Certificates.jsx`, `src/Awards.css` · no WebGL.
 A warm paper sheet, left-aligned like the other sections.
 
 - **Header** (layer 1): "04 · Awards", the title **"Proof of work"**, and
-  "Three hackathon wins in 2026, and the certifications behind the
+  "Four hackathon wins in 2026, and the certifications behind the
   fundamentals." A margin note reads "Recognitions that push me forward"
   (wide screens only).
-- **Hackathons** (layer 2): three cream cards, each with:
-  - a small gold mark (trophy for first place, then a medal and an award
-    ribbon)
+- **Hackathons** (layer 2): four cream cards, newest first, in one row of four
+  on wide screens (two by two on mid-size screens, stacked on phones). Each has:
+  - a small gold mark (a trophy for every first place, a medal for best
+    performance, an award ribbon otherwise)
   - an ink badge
   - a faint large number in the corner
   - the title, venue · year, and the story
 
-  The three wins:
+  The four wins:
+  - **1st Place:** NextGen AI Hacks 2026, REC Chennai, 2026: "My latest win:
+    24 hours of building with AI on real industry problems, and first place at
+    the end."
   - **1st Place:** Data Sprint 3.0, Sri Sairam Engineering College, 2026:
     "Won the hackathon on my birthday. 40+ teams sang happy birthday at
     midnight."

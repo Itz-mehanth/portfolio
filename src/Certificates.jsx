@@ -4,10 +4,13 @@ import Scribble from './Scribble';
 import DeskProps from './DeskProps';
 import './Awards.css';
 
-// A small, restrained gold mark per win: first place gets the trophy.
-const WIN_MARKS = [Trophy, Medal, Award];
+// A small, restrained gold mark per win: a trophy for every first place, a medal
+// for best performance, an award ribbon otherwise.
+const markFor = (badge) => (/1st/i.test(badge) ? Trophy : /best/i.test(badge) ? Medal : Award);
 
+// Newest first.
 const hackathonPages = [
+  { title: "NextGen AI Hacks 2026", venue: "REC, Chennai", date: "2026", badge: "1st Place", story: "My latest win: 24 hours of building with AI on real industry problems, and first place at the end." },
   { title: "Data Sprint 3.0", venue: "Sri Sairam Engineering College", date: "2026", badge: "1st Place", story: "Won the hackathon on my birthday. 40+ teams sang happy birthday at midnight." },
   { title: "TechathonX 2026", venue: "Prathyusha Engineering College", date: "2026", badge: "Best Performance", story: "Powered by pure sleep deprivation. Last-minute ideas actually work." },
   { title: "Impact Nexus", venue: "SSN College of Engineering", date: "2026", badge: "Winner", story: "Won at our own college with an Agentic Ads Platform." },
@@ -32,7 +35,7 @@ export default function Certificates() {
         <Scribble style={{ left: '-104px', top: '58px' }}>{'Recognitions that\npush me forward'}</Scribble>
         <span className="section-eyebrow">04 · Awards</span>
         <h2 className="section-title">Proof of work</h2>
-        <p className="sheet-lede">Three hackathon wins in 2026, and the certifications behind the fundamentals.</p>
+        <p className="sheet-lede">Four hackathon wins in 2026, and the certifications behind the fundamentals.</p>
       </header>
 
       {/* 3D desk props at the top right, like trophies on a shelf */}
@@ -44,7 +47,7 @@ export default function Certificates() {
         <h3 id="awards-hackathons" className="awards-group-title"><Trophy size={16} /> Hackathons</h3>
         <ol className="awards-wins">
           {hackathonPages.map((win, i) => {
-            const Mark = WIN_MARKS[i] || Award;
+            const Mark = markFor(win.badge);
             return (
             <motion.li key={win.title} className="award-card win" {...reveal(i)}>
               <span className="award-index">{String(i + 1).padStart(2, '0')}</span>
