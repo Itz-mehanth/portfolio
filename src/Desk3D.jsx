@@ -8,6 +8,7 @@
 // Gold and glaze reflect a generated studio environment (no downloaded HDR), and
 // soft shadows land on an invisible shadow catcher, so the props sit on the paper.
 // Loaded lazily by DeskProps.jsx, only on wide screens and only near the section.
+// The props are also exported for the MR world (src/mr), which reuses them life-size.
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
@@ -203,7 +204,7 @@ const lathe = (pts, segments = 48) => new THREE.LatheGeometry(pts.map(([x, y]) =
 
 // A rock: a finely divided sphere pushed in and out by layered waves, squashed and
 // flattened underneath, then flat-shaded so every small facet catches the light.
-function rockGeometry(seed, r) {
+export function rockGeometry(seed, r) {
   const g = new THREE.IcosahedronGeometry(r, 3)
   const pos = g.attributes.position
   const n = new THREE.Vector3()
@@ -270,7 +271,7 @@ function leafGeometry(length, width, curl, tone = 1) {
 }
 
 // ---------- awards: certificate, medal, trophy, coins ----------
-function FramedCertificate(props) {
+export function FramedCertificate(props) {
   const tex = useCertificateTexture()
   const W = 2.3
   const H = 1.66
@@ -308,7 +309,7 @@ function FramedCertificate(props) {
   )
 }
 
-function Medal({ animate, ...props }) {
+export function Medal({ animate, ...props }) {
   const ref = useRef()
   const star = useMemo(() => {
     const g = new THREE.ExtrudeGeometry(starShape(0.24, 0.1), { depth: 0.04, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.012, bevelSegments: 2 })
@@ -350,7 +351,7 @@ function Medal({ animate, ...props }) {
   )
 }
 
-function Trophy(props) {
+export function Trophy(props) {
   const cup = useMemo(() => lathe([
     [0, 0.62], [0.08, 0.62], [0.1, 0.66], [0.06, 0.78], [0.07, 0.92], [0.14, 0.98],
     [0.3, 1.06], [0.42, 1.24], [0.47, 1.46], [0.48, 1.62], [0.45, 1.63], [0.43, 1.48], [0.38, 1.28], [0.0, 1.12],
@@ -379,7 +380,7 @@ function Trophy(props) {
   )
 }
 
-function Coin(props) {
+export function Coin(props) {
   const star = useMemo(() => {
     const g = new THREE.ExtrudeGeometry(starShape(0.1, 0.045), { depth: 0.012, bevelEnabled: false })
     g.center()
@@ -414,7 +415,7 @@ function AwardsScene({ animate }) {
 }
 
 // ---------- contact: plant, rocks, mug, books ----------
-function Plant({ animate, ...props }) {
+export function Plant({ animate, ...props }) {
   const pot = useMemo(() => lathe([
     [0, 0], [0.4, 0], [0.44, 0.04], [0.52, 0.86], [0.6, 0.88], [0.62, 1.04], [0.56, 1.06], [0.54, 0.96], [0, 0.96],
   ]), [])
@@ -466,7 +467,7 @@ function Plant({ animate, ...props }) {
   )
 }
 
-function Rocks(props) {
+export function Rocks(props) {
   const geos = useMemo(() => [rockGeometry(3, 0.5), rockGeometry(11, 0.34), rockGeometry(29, 0.24)], [])
   useEffect(() => () => geos.forEach((g) => g.dispose()), [geos])
   return (
@@ -478,7 +479,7 @@ function Rocks(props) {
   )
 }
 
-function Book({ size: [w, h, d], color, band = '#d8c58f', ...props }) {
+export function Book({ size: [w, h, d], color, band = '#d8c58f', ...props }) {
   const cover = useMemo(() => new THREE.MeshStandardMaterial({ color, roughness: 0.62 }), [color])
   useEffect(() => () => cover.dispose(), [cover])
   const c = 0.03
@@ -524,7 +525,7 @@ function Steam({ animate, texture }) {
   ))
 }
 
-function Mug({ animate, ...props }) {
+export function Mug({ animate, ...props }) {
   const label = useMugLabel()
   const dot = useSoftDot()
   const body = useMemo(() => lathe([
@@ -753,7 +754,7 @@ const PAINTED_WOOD = new THREE.MeshStandardMaterial({ color: '#efe4cf', roughnes
 const DESK_WOOD = new THREE.MeshStandardMaterial({ color: '#c08c55', roughness: 0.55 })
 const DESK_EDGE = new THREE.MeshStandardMaterial({ color: '#9c6b3c', roughness: 0.6 })
 
-function Window({ w = 1.6, h = 2.3, ...props }) {
+export function Window({ w = 1.6, h = 2.3, ...props }) {
   const sky = useSkyTexture()
   const glow = useSoftDot()
   const t = 0.12

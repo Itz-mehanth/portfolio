@@ -15,6 +15,7 @@ import HomeHero from './HomeHero'
 import DeskProps from './DeskProps'
 import { SeamHomeSkills, SeamSkillsWork, SeamWorkAwards, SeamAwardsContact } from './Seams'
 import Scribble from './Scribble'
+import { MRButton, MRHost } from './mr/MRLauncher'
 import './Motion.css'
 import { getProjectBySlug } from './data/projects'
 import { Mail, Linkedin, Github, Instagram, Download, ArrowRight, MapPin, Send, LayoutGrid, Plus, X } from 'lucide-react';
@@ -134,7 +135,7 @@ const NAV_ITEMS = [
 ]
 const NAV_LABELS = Object.fromEntries(NAV_ITEMS.map(({ id, label }) => [id, label]))
 
-const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
+const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate, onEnterMR }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
@@ -208,6 +209,7 @@ const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
             </button>
           );
         })}
+        <MRButton color={fontBlack ? '#1a1a1a' : 'rgba(255,255,255,0.8)'} onOpen={onEnterMR} />
         <button
           onClick={() => {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -270,6 +272,10 @@ const Navbar = React.memo(({ fontBlack, activeScreenId, onNavigate }) => {
             }
           }
         }}>Fullscreen</a>
+        <a style={{ color: fontBlack ? 'white' : 'black', cursor: 'pointer' }} onClick={() => {
+          toggleMenu();
+          onEnterMR?.();
+        }}>Enter MR</a>
       </div>
     </nav>
   );
@@ -396,6 +402,9 @@ export default function App() {
   const projectOverlayOpen = projectIndexOpen || caseStudySlug !== null;
   const [showCharacter, setShowCharacter] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mrOpen, setMrOpen] = useState(false);
+  const openMR = useCallback(() => setMrOpen(true), []);
+  const closeMR = useCallback(() => setMrOpen(false), []);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [activeScreenIndex, setActiveScreenIndex] = useState(initialScreenIndex);
   // The 3D sections mount while within a screen of the viewport and unmount when far.
@@ -754,7 +763,9 @@ export default function App() {
             fontBlack={fontBlack}
             activeScreenId={SCREEN_DEFINITIONS[activeScreenIndex].id}
             onNavigate={navigateToScreen}
+            onEnterMR={openMR}
           />
+          <MRHost open={mrOpen} onClose={closeMR} />
           {/* Premium section navigation rail */}
           {!isMobile && <NavDots activeIndex={activeScreenIndex} fontBlack={fontBlack} onNavigate={navigateToScreen} />}
           <section id='lander'

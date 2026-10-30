@@ -5,7 +5,7 @@ What is on every screen of the portfolio, how it moves, and which file builds it
 content, its controls or the motion system should update the matching part of
 this guide in the same commit.
 
-_Last updated: 2026-10-30 (fourth hackathon win: NextGen AI Hacks 2026, 1st place)._
+_Last updated: 2026-10-30 (mixed reality: each section as its own world in your room, with an on-screen preview)._
 
 ---
 
@@ -26,6 +26,7 @@ _Last updated: 2026-10-30 (fourth hackathon win: NextGen AI Hacks 2026, 1st plac
 13. [Phones and tablets](#13-phones-and-tablets)
 14. [File map](#14-file-map)
 15. [Content you still need to add](#15-content-you-still-need-to-add)
+16. [Mixed reality (MR)](#16-mixed-reality-mr)
 
 ---
 
@@ -118,8 +119,10 @@ The torn sheets fade out on their flat side, so only the tear reads.
   - "Mehanth" with the site's one amber dot.
   - A glass pill of section links; the active one has an ink fill that slides
     between links.
+  - **"MR"** (a headset icon with an amber tag) opens the mixed-reality lobby
+    (see section 16).
   - A fullscreen toggle.
-  - On phones it collapses to a hamburger menu.
+  - On phones it collapses to a hamburger menu (with "Enter MR").
 - **Section rail** (`NavDots` in `App.jsx`): desktop only, described above.
 - **Tour guide** (`src/TourGuide.jsx`): the round ink chat button at bottom
   left opens a short guided tour: three steps on Home, two each on Skills and
@@ -667,6 +670,7 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
 | Shared overlays | `src/TourGuide.jsx`, `src/DevicePreview.jsx` |
 | Loading | `src/preloadAssets.js`, `vite.config.js` (chunking) |
 | Models | `public/models/*.glb` (Skills now uses only `car.glb`) |
+| Mixed reality | `src/mr/*` (see section 16), `src/data/skills.js`, `src/data/awards.js` (shared with the site) |
 
 ---
 
@@ -681,3 +685,66 @@ Defined in `src/index.css` (tokens) and `src/App.css` (shared pieces).
   Nov 18, 2026).
 - **3D model credits:** the authors and licences of the models in
   `public/models/`, for the README. Award juries check for these.
+
+---
+
+## 16. Mixed reality (MR)
+
+Files: `src/mr/` (`MRLauncher.jsx`, `MRExperience.jsx`, `MRScene.jsx`,
+`worlds.jsx`, `sections.js`, `Rift.jsx`, `Transit.jsx`, `Dock.jsx`, `ui.jsx`,
+`emulator.js`, `mr.css`). Built on `@react-three/xr` (WebXR). The look and the
+two key effects are ported from the HandForge MR game.
+
+### Getting in
+- **"MR" button** in the navbar, beside fullscreen (a headset icon with an
+  amber MR tag). On phones it's "Enter MR" in the menu.
+- It opens the **MR lobby**, a dark full-screen page over the site:
+  - "Mixed reality", then **"Step into the portfolio"**, a line on what's
+    inside, and the five worlds as a list. Tap one to choose where to start.
+  - **On a headset** (Meta Quest browser): **"Enter mixed reality"** starts a
+    passthrough session (or **"Enter VR"** where there's no passthrough).
+  - **No headset:** **"Preview on this screen"** loads Meta's Immersive Web
+    Emulator (an emulated Quest 3 in a synthetic living room), then
+    **"Start preview"** starts it.
+    - Drag to look around; the emulator's panels move the controllers.
+    - "Exit preview" sits at the top; the site hides while it runs.
+  - "Back to the site" (or Escape) closes the lobby.
+- After a session ends you're back in the lobby. If you pressed a link inside
+  MR, the lobby offers **"Open it now"** (links can't open inside an immersive
+  session).
+
+### Inside
+- **The stage:** everything is placed where you were standing and facing when
+  the session started.
+- **Each section is its own world tearing into your room:** a sphere around
+  you eats through the real room in drifting, noisy patches with burning edges,
+  showing that world's sky. (This is HandForge's "Erasure"; in VR the world is
+  the whole sky.) A fresh tear opens with each world.
+
+| World | Sky through the rifts | In your room |
+|---|---|---|
+| 01 Home | Deep space with a ringed planet, amber edges | "HI, I'M **Mehanth**", the role and the line about VISA and SSN, floating ~2.3 m ahead; two paper planes looping around you; paper rocks drifting; a welcome card |
+| 02 Skills | Bright blue sky with a sun | **Skill Town on a table** (the real island and town, ~1.7 m across, on a round pool) and a skills card: tap a sign or house and the card shows that district's skills as chips |
+| 03 Work | Sunset with stars | **Striped hot-air balloons**, one per project, in an arc around you, each with its name; floating islets; a paper plane. Tap a balloon: a card comes forward with the project's year and type, description, stack and **"Open live site" / "View code"** |
+| 04 Awards | Golden sky with a ringed planet | **A wooden shelf** with the framed certificate, the gold medal, the trophy and coins (the same 3D props as the site); the **four hackathon cards** in an arc above; the **three certifications** tilted up in front |
+| 05 Contact | Warm garden light | **The sunlit window**, a side table with the **books and the "Mehanth." mug**, a potted plant and rocks, and the **contact card**: "Let's build something unforgettable.", the email and location, and **Email me / LinkedIn / GitHub / Instagram** |
+
+- **The dock:** six pills just below eye level, tilted up like a console:
+  **01 Home … 05 Contact** and **Exit MR**.
+  - The current world is amber.
+  - It follows you lazily: it glides back in front only when you've turned or
+    walked away.
+  - Press with a fingertip (poke), a pinch, or a controller ray and trigger.
+- **Travel:** pressing a world wraps you in HandForge's travel tunnel for about
+  2.6 seconds, then a flash drops you into the next world. Each world has its
+  own tunnel: hyperspace warp (Home), cloud flight (Skills and Contact),
+  wormhole (Work), fire (Awards).
+- **Input:** hands (poke and pinch) and controllers (ray and trigger) work
+  everywhere, via `@react-three/xr`.
+
+### Loading
+- **Main site:** only the tiny launcher is in the main bundle.
+- **MR code:** about 35 KB compressed, plus the shared 3D library. It
+  downloads when the lobby opens, or when you hover the button.
+- **The emulator** (IWER, ~120 KB compressed) loads only for the on-screen
+  preview, never on a headset.

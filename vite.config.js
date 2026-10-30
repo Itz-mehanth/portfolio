@@ -14,6 +14,11 @@ export default defineConfig({
   }),
   compression({ algorithm: 'brotliCompress' }),
   ],
+  // One three.js for everything: the MR emulator's packages (@iwer/sem, @iwer/devui)
+  // pin an older copy, and mixing copies breaks rendering.
+  resolve: {
+    dedupe: ['three'],
+  },
   build: {
     rollupOptions: {
       output: {

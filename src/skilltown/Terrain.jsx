@@ -157,7 +157,10 @@ function Sky() {
   )
 }
 
-function Ocean({ animate }) {
+// The sea, coloured in the terrain's own coordinates (so it still works when the
+// island is shrunk onto a table in MR). `rim` fades the water out at that radius
+// (the tabletop pool); on the site it's far beyond the horizon.
+function Ocean({ animate, size = 300, rim = 1e4 }) {
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -169,18 +172,19 @@ function Ocean({ animate }) {
           uMid: { value: new THREE.Color('#1fa6d8') },
           uDeep: { value: new THREE.Color('#1677c2') },
           uHorizon: { value: new THREE.Color('#bfe9fb') },
+          uRim: { value: rim },
         },
         vertexShader: /* glsl */ `
           varying vec3 vWorld;
           void main() {
-            vec4 w = modelMatrix * vec4(position, 1.0);
-            vWorld = w.xyz;
-            gl_Position = projectionMatrix * viewMatrix * w;
+            vWorld = vec3(position.x, 0.0, -position.y);   // the plane lies flat: local y is -z
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
         fragmentShader: /* glsl */ `
           uniform float uTime;
           uniform vec3 uNear, uMid, uDeep, uHorizon;
+          uniform float uRim;
           varying vec3 vWorld;
           float outline(float t) {
             return 1.0 + 0.085 * sin(2.0 * t + 0.6) + 0.06 * sin(3.0 * t + 2.1) + 0.04 * sin(5.0 * t + 0.4) + 0.022 * sin(9.0 * t + 1.7);
@@ -208,7 +212,7 @@ function Ocean({ animate }) {
             col = mix(col, vec3(1.0), clamp(foam, 0.0, 1.0) * 0.8);
             float dist = length(vWorld.xz);
             col = mix(col, uHorizon, smoothstep(30.0, 78.0, dist));
-            gl_FragColor = vec4(col, 1.0);
+            gl_FragColor = vec4(col, 1.0 - smoothstep(uRim * 0.8, uRim, dist));
           }
         `,
       }),
@@ -220,7 +224,7 @@ function Ocean({ animate }) {
   })
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, SEA_Y, 0]} material={material} receiveShadow>
-      <planeGeometry args={[300, 300]} />
+      {rim < 1e3 ? <circleGeometry args={[rim, 64]} /> : <planeGeometry args={[size, size]} />}
     </mesh>
   )
 }
@@ -391,18 +395,19 @@ function Clouds({ animate }) {
   ))
 }
 
-export default function Terrain({ animate = true, lowPowerMode = false }) {
+// tabletop: the island alone on a round pool, with no sky dome or clouds (MR).
+export default function Terrain({ animate = true, lowPowerMode = false, tabletop = false }) {
   return (
     <group>
-      <Sky />
-      <Ocean animate={animate} />
+      {!tabletop && <Sky />}
+      <Ocean animate={animate} rim={tabletop ? 19 : 1e4} />
       <Island />
       {MOUNDS.map((m, i) => <Mound key={i} m={m} />)}
       {WATERFALLS.map((f, i) => <Waterfall key={i} fall={f} animate={animate} />)}
       {DOCKS.map((d, i) => <Dock key={i} dock={d} />)}
       <Boat position={[DOCKS[0].x - 1.4, SEA_Y + 0.12, DOCKS[0].z + 2.6]} animate={animate} />
       <SeaRocks />
-      {!lowPowerMode && <Clouds animate={animate} />}
+      {!lowPowerMode && !tabletop && <Clouds animate={animate} />}
     </group>
   )
 }

@@ -154,3 +154,30 @@ html {
   pointer-events: none;
   background: linear-gradient(180deg, rgba(244, 241, 234, 0.94) 0%, rgba(244, 241, 234, 0.7) 55%, rgba(244, 241, 234, 0) 100%);
 }
+
+/* "Enter MR" (src/mr/MRLauncher.jsx): a headset icon and a small MR tag beside the
+   fullscreen button. */
+.mr-nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  font: 700 11px/1 var(--font-body);
+  letter-spacing: 0.08em;
+}
+.mr-nav-button:hover { background: rgba(255, 181, 27, 0.16); }
+.mr-nav-label { padding: 3px 5px; border-radius: 4px; background: #ffb51b; color: #121117; }
+.mr-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  background: #0d0b14;
+  color: #f4f1ea;
+  font: 600 15px/1 var(--font-body);
+}

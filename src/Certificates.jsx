@@ -2,25 +2,13 @@ import { ArrowUpRight, Trophy, Award, Medal, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Scribble from './Scribble';
 import DeskProps from './DeskProps';
+import { HACKATHONS as hackathonPages, CERTIFICATIONS as certPages } from './data/awards';
 import './Awards.css';
 
 // A small, restrained gold mark per win: a trophy for every first place, a medal
 // for best performance, an award ribbon otherwise.
 const markFor = (badge) => (/1st/i.test(badge) ? Trophy : /best/i.test(badge) ? Medal : Award);
 
-// Newest first.
-const hackathonPages = [
-  { title: "NextGen AI Hacks 2026", venue: "REC, Chennai", date: "2026", badge: "1st Place", story: "My latest win: 24 hours of building with AI on real industry problems, and first place at the end." },
-  { title: "Data Sprint 3.0", venue: "Sri Sairam Engineering College", date: "2026", badge: "1st Place", story: "Won the hackathon on my birthday. 40+ teams sang happy birthday at midnight." },
-  { title: "TechathonX 2026", venue: "Prathyusha Engineering College", date: "2026", badge: "Best Performance", story: "Powered by pure sleep deprivation. Last-minute ideas actually work." },
-  { title: "Impact Nexus", venue: "SSN College of Engineering", date: "2026", badge: "Winner", story: "Won at our own college with an Agentic Ads Platform." },
-];
-
-const certPages = [
-  { title: "Top 1% NPTEL C++", issuer: "NPTEL", date: "2024", score: "92%", story: "Top 1 percentile nationally. Weeks of grind.", url: "https://drive.google.com/file/d/1Dc06pz6NxOhE7vkxdaQvb31Cw6UYX-sh/view?usp=sharing" },
-  { title: "Top 5% Competitive Programming", issuer: "NPTEL", date: "2024", score: "85%", story: "Algorithms and data structures mastery.", url: "https://drive.google.com/file/d/1jfdlSOyMnJAaJryDomnqpMPpksZzx7QV/view?usp=sharing" },
-  { title: "UI/UX Design Figma", issuer: "Cybernaut", date: "2024", score: "Certified", story: "Bridging developers and designers.", url: "https://drive.google.com/file/d/1lSmxFqJepnsuDZl7FMHyx74-gEsETpmw/view?usp=sharing" },
-];
 
 const reveal = (i) => ({
   initial: { opacity: 0, y: 18 },

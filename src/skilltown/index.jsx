@@ -104,13 +104,15 @@ function Lighting({ lowPowerMode }) {
   )
 }
 
-export default function SkillTownWorld({ selected, onSelect, driveMode = false, lowPowerMode = false, reducedMotion = false }) {
+// tabletop: just the island and town (no camera, lights, fog, sky), for MR, where
+// the host scene provides the light and the viewer's head is the camera.
+export default function SkillTownWorld({ selected, onSelect, driveMode = false, lowPowerMode = false, reducedMotion = false, tabletop = false }) {
   const animate = !reducedMotion
   return (
     <group>
-      <Lighting lowPowerMode={lowPowerMode} />
-      <CameraRig enabled={!driveMode} animate={animate} />
-      <Terrain animate={animate} lowPowerMode={lowPowerMode} />
+      {!tabletop && <Lighting lowPowerMode={lowPowerMode} />}
+      {!tabletop && <CameraRig enabled={!driveMode} animate={animate} />}
+      <Terrain animate={animate} lowPowerMode={lowPowerMode} tabletop={tabletop} />
       <Town selected={selected} onSelect={onSelect} animate={animate} lowPowerMode={lowPowerMode} />
     </group>
   )
